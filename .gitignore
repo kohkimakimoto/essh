@@ -1,0 +1,13 @@
+.DS_Store
+Thumbs.db
+/.tags*
+._*
+*.iml
+/_vendor
+.vagrant
+/bin
+/build/*
+!.gitkeep
+/bin
+/xssh.lua
+/sshconfig

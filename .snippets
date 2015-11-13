@@ -1,0 +1,2 @@
+mkdir -p bin; go build -ldflags="-X github.com/kohkimakimoto/xssh/xssh.ConfigFile=xssh.lua -X github.com/kohkimakimoto/xssh/xssh.SSHConfigFile=sshconfig" -o="bin/xssh" cmd/xssh/xssh.go && cp -p bin/xssh /usr/local/bin/xssh
+mkdir -p bin; go build -o="bin/xssh" cmd/xssh/xssh.go && cp -p bin/xssh /usr/local/bin/xssh
