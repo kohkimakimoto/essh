@@ -19,11 +19,12 @@ func Main() int {
 	if len(os.Args) == 1 {
 		fmt.Println(`xssh: extended ssh command.
 
-Custom options:
+xssh custom options:
   --print:	Print generated ssh config.
   --list	List hosts.
   --update	Only update ssh config file. doesn't run ssh command.
-		`)
+  --zsh-completion	Output zsh completion code.
+`)
 		// show ssh help
 		run("ssh")
 		return 0
