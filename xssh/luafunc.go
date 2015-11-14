@@ -31,7 +31,7 @@ func coreHost(L *lua.LState) int {
 func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	newConfig := L.NewTable()
 	config.ForEach(func(k lua.LValue, v lua.LValue) {
-		if k.String() != "hooks" {
+		if k.String() != "hooks" && k.String() != "description" {
 			newConfig.RawSet(k, v)
 		}
 	})
@@ -43,9 +43,9 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	}
 
 	hooks := config.RawGetString("hooks")
-	if hookTb, ok := hooks.(*lua.LTable); ok {
+	if hookTb, ok := toLTable(hooks); ok {
 		hookBefore := hookTb.RawGetString("before")
-		if hookBeforeFn, ok := hookBefore.(*lua.LFunction); ok {
+		if hookBeforeFn, ok := toLFunction(hookBefore); ok {
 			h.Hooks["before"] = func() error {
 				err := L.CallByParam(lua.P{
 					Fn:      hookBeforeFn,
@@ -57,7 +57,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		}
 
 		hookAfter := hookTb.RawGetString("after")
-		if hookAfterFn, ok := hookAfter.(*lua.LFunction); ok {
+		if hookAfterFn, ok := toLFunction(hookAfter); ok {
 			h.Hooks["after"] = func() error {
 				err := L.CallByParam(lua.P{
 					Fn:      hookAfterFn,
@@ -67,6 +67,11 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 				return err
 			}
 		}
+	}
+
+	description := config.RawGetString("description")
+	if descStr, ok := toString(description); ok {
+		h.Description = descStr
 	}
 
 	Hosts = append(Hosts, h)

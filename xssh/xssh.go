@@ -21,7 +21,8 @@ func Main() int {
 
 Custom options:
   --print:	Print generated ssh config.
-  --update-only	Only update ssh config. doesn't run ssh command.
+  --list	List hosts.
+  --update	Only update ssh config file. doesn't run ssh command.
 		`)
 		// show ssh help
 		run("ssh")
@@ -34,16 +35,29 @@ Custom options:
 		args = os.Args[1:]
 	}
 
-	print := false
-	updateOnly := false
+	printFlag := false
+	updateFlag := false
+	listFlag := false
+	zshCompletinFlag := false
+
 	for _, arg := range args {
 		if arg == "--print" {
-			print = true
+			printFlag = true
 		}
-		if arg == "--update-only" {
-			updateOnly = true
+		if arg == "--update" {
+			updateFlag = true
 		}
+		if arg == "--list" {
+			listFlag = true
+		}
+		if arg == "--zsh-completion" {
+			zshCompletinFlag = true
+		}
+	}
 
+	if zshCompletinFlag {
+		fmt.Print(ZSH_COMPLETION)
+		return 0
 	}
 
 	lstate := lua.NewState()
@@ -64,8 +78,22 @@ Custom options:
 		return 1
 	}
 
-	if print {
+	if printFlag {
 		fmt.Println(string(content))
+		if !updateFlag {
+			return 0
+		}
+	}
+
+	if !printFlag && listFlag {
+		for _, host := range Hosts {
+			if host.Description != "" {
+				fmt.Printf("%s\t%s\n", host.Name, host.Description)
+			} else {
+				fmt.Printf("%s\n", host.Name)
+			}
+		}
+
 		return 0
 	}
 
@@ -92,7 +120,7 @@ Custom options:
 		}
 	}
 
-	if updateOnly {
+	if updateFlag {
 		return 0
 	}
 
@@ -180,3 +208,34 @@ func init() {
 	}
 
 }
+
+var ZSH_COMPLETION = `
+_xssh_hosts() {
+    local -a __xssh_hosts
+    PRE_IFS=$IFS
+    IFS=$'\n'
+    __xssh_hosts=($(xssh --list | awk -F'\t' '{print $1":"$2}'))
+    IFS=$PRE_IFS
+    _describe -t commands "xssh_hosts" __xssh_hosts
+}
+
+_xssh () {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments \
+        '1: :->command'
+
+    case $state in
+        command)
+            _xssh_hosts
+            ;;
+        *)
+            _files
+            ;;
+    esac
+}
+
+compdef _xssh xssh
+
+`
