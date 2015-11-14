@@ -17,6 +17,9 @@ go get github.com/kohkimakimoto/zssh/cmd/zssh
 
 ## Usage
 
+At first, you should copy your `~/.ssh/config` to `~/.ssh/config.backup` to keep a backup.
+ZSSH override `~/.ssh/config` automatically when it runs.
+
 Create and edit `~/.ssh/zssh.lua`.
 
 ```lua
