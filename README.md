@@ -40,7 +40,7 @@ Host "web02.localhost" {
 }
 ```
 
-This configuration genarates the below ssh config when you run `zssh`.
+This configuration generates the below ssh config when you run `zssh`.
 
 ```
 Host web01.localhost
