@@ -89,3 +89,11 @@ Host "web01.localhost" {
     }
 }
 ```
+
+## Author
+
+Kohki Makimoto <kohki.makimoto@gmail.com>
+
+## License
+
+MIT license.
