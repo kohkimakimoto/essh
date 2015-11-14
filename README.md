@@ -2,8 +2,8 @@
 
 Extended ssh command wrapper.
 
-features
-
+* This is a single CLI app `zssh`.
+* Simply wraps `ssh` command. You can use it in the same way as `ssh`.
 * Automatically generates `~/.ssh/config` from `~/.ssh/zssh.lua`
 * Support zsh completion.
 
