@@ -14,10 +14,13 @@ import (
 
 var ConfigFile string
 var SSHConfigFile string
+var Version = "0.1.0"
 
 func Main() int {
 	if len(os.Args) == 1 {
 		fmt.Println(`zssh: extended ssh command.
+
+version ` + Version + `
 
 zssh custom options:
   --print:	Print generated ssh config.
