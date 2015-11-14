@@ -1,4 +1,4 @@
-package xssh
+package zssh
 
 import (
 	"github.com/yuin/gopher-lua"

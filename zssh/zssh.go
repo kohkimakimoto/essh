@@ -1,4 +1,4 @@
-package xssh
+package zssh
 
 import (
 	"os"
@@ -17,9 +17,9 @@ var SSHConfigFile string
 
 func Main() int {
 	if len(os.Args) == 1 {
-		fmt.Println(`xssh: extended ssh command.
+		fmt.Println(`zssh: extended ssh command.
 
-xssh custom options:
+zssh custom options:
   --print:	Print generated ssh config.
   --list	List hosts.
   --update	Only update ssh config file. doesn't run ssh command.
@@ -200,7 +200,7 @@ func userHomeDir() string {
 func init() {
 	if ConfigFile == "" {
 		home := userHomeDir()
-		ConfigFile = filepath.Join(home, ".ssh/xssh.lua")
+		ConfigFile = filepath.Join(home, ".ssh/zssh.lua")
 	}
 
 	if SSHConfigFile == "" {
@@ -211,16 +211,16 @@ func init() {
 }
 
 var ZSH_COMPLETION = `
-_xssh_hosts() {
-    local -a __xssh_hosts
+_zssh_hosts() {
+    local -a __zssh_hosts
     PRE_IFS=$IFS
     IFS=$'\n'
-    __xssh_hosts=($(xssh --list | awk -F'\t' '{print $1":"$2}'))
+    __zssh_hosts=($(zssh --list | awk -F'\t' '{print $1":"$2}'))
     IFS=$PRE_IFS
-    _describe -t commands "xssh_hosts" __xssh_hosts
+    _describe -t commands "zssh_hosts" __zssh_hosts
 }
 
-_xssh () {
+_zssh () {
     local curcontext="$curcontext" state line
     typeset -A opt_args
 
@@ -229,7 +229,7 @@ _xssh () {
 
     case $state in
         command)
-            _xssh_hosts
+            _zssh_hosts
             ;;
         *)
             _files
@@ -237,6 +237,6 @@ _xssh () {
     esac
 }
 
-compdef _xssh xssh
+compdef _zssh zssh
 
 `

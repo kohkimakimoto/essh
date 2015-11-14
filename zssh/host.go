@@ -1,4 +1,4 @@
-package xssh
+package zssh
 
 import (
 	"github.com/yuin/gopher-lua"
@@ -51,7 +51,7 @@ func GetHost(hostname string) *Host {
 	return nil
 }
 
-var hostsTemplate = `# Generated from '{{.ConfigFile}}' by using https://github.com/kohkimakimoto/xssh
+var hostsTemplate = `# Generated from '{{.ConfigFile}}' by using https://github.com/kohkimakimoto/zssh
 # Don't edit this file manually.
 {{range $i, $host := .Hosts}}
 Host {{$host.Name}}{{range $ii, $value := $host.Values}}{{range $k, $v := $value}}

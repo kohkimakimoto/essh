@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"os"
-	"github.com/kohkimakimoto/xssh/xssh"
+	"github.com/kohkimakimoto/zssh/zssh"
 )
 
 func main() {
@@ -14,5 +14,5 @@ func main() {
 		}
 	}()
 
-	os.Exit(xssh.Main())
+	os.Exit(zssh.Main())
 }

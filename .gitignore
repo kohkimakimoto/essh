@@ -9,5 +9,5 @@ Thumbs.db
 /build/*
 !.gitkeep
 /bin
-/xssh.lua
+/zssh.lua
 /sshconfig
