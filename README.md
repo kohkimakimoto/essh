@@ -25,17 +25,17 @@ Create and edit `~/.ssh/zssh.lua`.
 
 ```lua
 Host "web01.localhost" {
-    Port = "22",
     ForwardAgent = "yes",
     HostName = "192.168.0.11",
+    Port = "22",
     User = "kohkimakimoto",
     description = "my web01 server",
 }
 
 Host "web02.localhost" {
-    Port = "22",
     ForwardAgent = "yes",
     HostName = "192.168.0.12",
+    Port = "22",
     User = "kohkimakimoto",
     description = "my web02 server",
 }
