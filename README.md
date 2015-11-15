@@ -73,6 +73,20 @@ web01.localhost          -- my web01 server
 web02.localhost          -- my web02 server
 ```
 
+You can hide a host using `hidden` property. If you set it true, zsh completion doesn't show the host.
+
+```lua
+Host "web01.localhost" {
+    ForwardAgent = "yes",
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+    description = "my web01 server",
+
+    hidden = true,
+}
+```
+
 ### Hooks
 
 You can add hook functions `before` and `after` in a host configuration.
