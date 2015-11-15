@@ -1,2 +1,5 @@
 mkdir -p bin; go build -o="bin/zssh" cmd/zssh/zssh.go && cp -p bin/zssh /usr/local/bin/zssh
 mkdir -p bin; go build -ldflags="-X github.com/kohkimakimoto/zssh/zssh.ConfigFile=zssh.lua -X github.com/kohkimakimoto/zssh/zssh.SSHConfigFile=sshconfig" -o="bin/zssh" cmd/zssh/zssh.go && cp -p bin/zssh /usr/local/bin/zssh
+
+# build
+[build production] ./scripts/build.sh
