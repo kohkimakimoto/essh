@@ -91,10 +91,12 @@ zssh custom options:
 
 	if !printFlag && listFlag {
 		for _, host := range Hosts {
-			if host.Description != "" {
-				fmt.Printf("%s\t%s\n", host.Name, host.Description)
-			} else {
-				fmt.Printf("%s\n", host.Name)
+			if !host.Hidden {
+				if host.Description != "" {
+					fmt.Printf("%s\t%s\n", host.Name, host.Description)
+				} else {
+					fmt.Printf("%s\n", host.Name)
+				}
 			}
 		}
 

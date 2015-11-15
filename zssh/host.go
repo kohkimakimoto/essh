@@ -13,6 +13,7 @@ type Host struct {
 	Config *lua.LTable
 	Hooks map[string]func() error
 	Description string
+	Hidden bool
 }
 
 func (h *Host) Values() []map[string]interface{} {
@@ -103,6 +104,14 @@ func toGoValue(lv lua.LValue) interface{} {
 		}
 	default:
 		return v
+	}
+}
+
+func toBool(v lua.LValue) (bool, bool) {
+	if lv, ok := v.(lua.LBool); ok {
+		return bool(lv), true
+	} else {
+		return false, false
 	}
 }
 

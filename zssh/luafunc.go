@@ -31,7 +31,7 @@ func coreHost(L *lua.LState) int {
 func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	newConfig := L.NewTable()
 	config.ForEach(func(k lua.LValue, v lua.LValue) {
-		if k.String() != "hooks" && k.String() != "description" {
+		if k.String() != "hooks" && k.String() != "description" && k.String() != "hidden" {
 			newConfig.RawSet(k, v)
 		}
 	})
@@ -72,6 +72,11 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	description := config.RawGetString("description")
 	if descStr, ok := toString(description); ok {
 		h.Description = descStr
+	}
+
+	hidden := config.RawGetString("hidden")
+	if hiddenBool, ok := toBool(hidden); ok {
+		h.Hidden = hiddenBool
 	}
 
 	Hosts = append(Hosts, h)
