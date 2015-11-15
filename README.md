@@ -4,8 +4,9 @@ Extended ssh command wrapper.
 
 * This is a single CLI app.
 * Simply wraps `ssh` command. You can use it in the same way as `ssh`.
-* Automatically generates `~/.ssh/config` from `~/.ssh/zssh.lua`
-* Support zsh completion.
+* Automatically generates `~/.ssh/config` from `~/.ssh/zssh.lua`. You can write SSH configuration in Lua programming language.
+* Supports zsh completion.
+* Provides some hook functions.
 
 ## Installation
 
@@ -56,6 +57,8 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
+### Zsh Completion
+
 If you want to use zsh completion, add the following code in your `~/.zshrc`
 
 ```
@@ -69,6 +72,8 @@ $ zssh [TAB]
 web01.localhost          -- my web01 server
 web02.localhost          -- my web02 server
 ```
+
+### Hooks
 
 You can add hook functions `before` and `after` in a host configuration.
 
@@ -89,6 +94,8 @@ Host "web01.localhost" {
     }
 }
 ```
+
+`before` hook fires before you connect server via SSH. `after` hook fires after you disconnect SSH connection.
 
 ## Author
 
