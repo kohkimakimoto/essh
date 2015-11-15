@@ -2,7 +2,7 @@
 
 Extended ssh command wrapper.
 
-* This is a single CLI app.
+* This is a single binary CLI app.
 * Simply wraps `ssh` command. You can use it in the same way as `ssh`.
 * Automatically generates `~/.ssh/config` from `~/.ssh/zssh.lua`. You can write SSH configuration in Lua programming language.
 * Supports zsh completion.
