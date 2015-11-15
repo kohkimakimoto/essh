@@ -1,6 +1,6 @@
 # ZSSH
 
-Extended ssh command wrapper.
+Extended ssh command.
 
 * This is a single binary CLI app.
 * Simply wraps `ssh` command. You can use it in the same way as `ssh`.
