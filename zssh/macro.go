@@ -1,8 +1,12 @@
 package zssh
 
 import(
+	"bufio"
 	"fmt"
 	"errors"
+	"os"
+	"sync"
+	"strings"
 )
 
 type Macro struct {
@@ -30,6 +34,137 @@ func GetMacro(name string) (*Macro, error) {
 }
 
 func (m *Macro) Run(payload string) error {
+	if m.Confirm {
+		if !m.AskYesOrNo() {
+			return nil
+		}
+	}
+
+	os.Setenv("ZSSH_PAYLOAD", payload)
+	defer os.Unsetenv("ZSSH_PAYLOAD")
+
+	if m.RunLocally {
+		// run locally
+		script, err := m.Script(payload, nil)
+		if err != nil {
+			return err
+		}
+		if script == "" {
+			return nil
+		}
+
+		err = m.runCommandLocally(script)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	hosts, err := m.TargetHosts()
+	if err != nil {
+		return err
+	}
+
+	wg := &sync.WaitGroup{}
+	for _, host := range hosts {
+		script, err := m.Script(payload, host)
+		if err != nil {
+			return err
+		}
+
+		cmd := host.SSHScriptCommandString(script)
+
+		if m.Parallel {
+			wg.Add(1)
+			go func(host *Host, cmd string) {
+				host.RunCommand(cmd)
+				wg.Done()
+			}(host, cmd)
+		} else {
+			// ignore err
+			host.RunCommand(cmd)
+		}
+	}
+	wg.Wait()
+
 
 	return nil
+}
+
+func (m *Macro) Script(payload string, host *Host) (string, error) {
+	script := m.Command
+	if m.CommandFunc != nil {
+		ret, err := m.CommandFunc(payload, host)
+		if err != nil {
+			return "", err
+		}
+
+		script = ret
+	}
+
+	return script, nil
+}
+
+func (m *Macro) runCommandLocally(command string) error {
+	err := RunWithCallback(command, func(out string, stderr string) {
+		if out != "" {
+			fmt.Printf("%s\n", out)
+		}
+		if stderr != "" {
+			fmt.Printf("%s\n", FgR(stderr))
+		}
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Macro) TargetHosts() ([]*Host, error) {
+
+	var targets = []*Host{}
+
+	hosts := HostsByTags(m.OnTags)
+	targets = append(targets, hosts...)
+
+	for _, v := range m.OnServers {
+		host := GetHost(v)
+		if host != nil {
+			targets = append(targets, host)
+		}
+	}
+
+	// remove duplication
+	var ret = []*Host{}
+	var checkDup = map[string]bool{}
+	for _, v := range targets {
+		if _, ok := checkDup[v.Name]; !ok {
+			checkDup[v.Name] = true
+			ret = append(ret, v)
+		}
+	}
+
+	return ret, nil
+}
+
+func (m *Macro) AskYesOrNo() bool {
+	var msg string
+	if m.ConfirmText != "" {
+		msg = fmt.Sprintf("%s %s: ", m.ConfirmText, FgYB("[y/N]"))
+	} else {
+		msg = fmt.Sprintf("Are you sure you want to run the [%s] task? %s: ", FgY(m.Name), FgYB("[y/N]"))
+	}
+
+	fmt.Printf(msg)
+	reader := bufio.NewReader(os.Stdin)
+	str, _ := reader.ReadString('\n')
+	str = strings.Trim(str, "\r\n")
+
+	if str == "y" {
+		return true
+	} else {
+		return false
+	}
 }

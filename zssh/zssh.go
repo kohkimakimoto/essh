@@ -13,9 +13,11 @@ import (
 
 var ConfigFile string
 var SSHConfigFile string
-var Version = "0.1.0"
+var Version = "0.2.0"
 
 func Main() int {
+	log.SetFlags(0)
+
 	if len(os.Args) == 1 {
 		fmt.Println(`zssh: extended ssh command.
 

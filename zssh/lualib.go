@@ -55,7 +55,7 @@ func coreMacro(L *lua.LState) int {
 func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	newConfig := L.NewTable()
 	config.ForEach(func(k lua.LValue, v lua.LValue) {
-		if k.String() != "hooks" && k.String() != "description" && k.String() != "hidden" {
+		if k.String() != "hooks" && k.String() != "description" && k.String() != "hidden" && k.String() != "tags" {
 			newConfig.RawSet(k, v)
 		}
 	})
@@ -64,6 +64,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		Name:   name,
 		Config: newConfig,
 		Hooks:  map[string]func() error{},
+		Tags: map[string][]string{},
 	}
 
 	hooks := config.RawGetString("hooks")

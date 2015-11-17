@@ -5,6 +5,8 @@ import (
 	"github.com/yuin/gopher-lua"
 	"sort"
 	"text/template"
+	"fmt"
+	"strings"
 )
 
 type Host struct {
@@ -44,6 +46,32 @@ func (h *Host) Values() []map[string]interface{} {
 	return values
 }
 
+func (h *Host) SSHScriptCommandString(script string) string {
+	return "echo '" + script + "' | ssh " + h.Name+ " ZSSH_PAYLOAD=\"$ZSSH_PAYLOAD\" bash -se"
+}
+
+func (h *Host) RunCommand(script string) error {
+	prefix := "[" + h.Name + "]: "
+	err := RunWithCallback(script, func(out string, stderr string) {
+		if out != "" {
+			fmt.Printf("%s%s\n", FgC(prefix), out)
+		}
+		if stderr != "" {
+			if strings.Index(stderr, "Killed by signal 1.") == 0 {
+				// skip.
+				return
+			}
+
+			fmt.Printf("%s%s\n", FgR(prefix), FgR(stderr))
+		}
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetHost(hostname string) *Host {
 	for _, host := range Hosts {
 		if host.Name == hostname {
@@ -75,4 +103,25 @@ func GenHostsConfig() ([]byte, error) {
 	}
 
 	return b.Bytes(), nil
+}
+
+func HostsByTags(tags map[string][]string) []*Host {
+	var hosts = []*Host{}
+
+	for _, host := range Hosts {
+		alreadyExists := false
+		for tag, values := range tags {
+			hostTagValues := host.Tags[tag]
+			for _, serverTagValue := range hostTagValues {
+				for _, value := range values {
+					if serverTagValue == value && !alreadyExists {
+						hosts = append(hosts, host)
+						alreadyExists = true
+					}
+				}
+			}
+		}
+	}
+
+	return hosts
 }

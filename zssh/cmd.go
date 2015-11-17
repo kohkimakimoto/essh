@@ -77,5 +77,4 @@ func RunWithCallback(command string, callback CallbackFunc) error {
 	}
 
 	return nil
-
 }

@@ -1,2 +1,4 @@
 gom "github.com/yuin/gopher-lua"
 gom "github.com/yuin/gluamapper"
+gom "github.com/shiena/ansicolor"
+gom "github.com/fatih/color"
