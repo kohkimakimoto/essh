@@ -1,15 +1,14 @@
 package zssh
 
 import (
+	"fmt"
+	"github.com/yuin/gopher-lua"
+	"io/ioutil"
+	"log"
 	"os"
-	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
-	"log"
-	"path/filepath"
-	"github.com/yuin/gopher-lua"
-	"fmt"
-	"io/ioutil"
 )
 
 var ConfigFile string
@@ -23,13 +22,15 @@ func Main() int {
 version ` + Version + `
 
 zssh custom options:
-  --print:	Print generated ssh config.
-  --list	List hosts.
+  --print	Print generated ssh config.
+  --config	Edit config file.
+  --hosts	List hosts.
+  --macros	List macros.
   --update	Only update ssh config file. doesn't run ssh command.
   --zsh-completion	Output zsh completion code.
 `)
 		// show ssh help
-		run("ssh")
+		Run("ssh")
 		return 0
 	}
 
@@ -39,9 +40,13 @@ zssh custom options:
 		args = os.Args[1:]
 	}
 
+	firstArg := args[0]
+
 	printFlag := false
 	updateFlag := false
-	listFlag := false
+	hostsFlag := false
+	macrosFlag := false
+	configFlag := false
 	zshCompletinFlag := false
 
 	for _, arg := range args {
@@ -51,8 +56,14 @@ zssh custom options:
 		if arg == "--update" {
 			updateFlag = true
 		}
-		if arg == "--list" {
-			listFlag = true
+		if arg == "--hosts" {
+			hostsFlag = true
+		}
+		if arg == "--macros" {
+			macrosFlag = true
+		}
+		if arg == "--config" {
+			configFlag = true
 		}
 		if arg == "--zsh-completion" {
 			zshCompletinFlag = true
@@ -63,6 +74,12 @@ zssh custom options:
 		fmt.Print(ZSH_COMPLETION)
 		return 0
 	}
+
+	if configFlag {
+		Run("$EDITOR " + ConfigFile)
+		return 0
+	}
+
 
 	lstate := lua.NewState()
 	defer lstate.Close()
@@ -89,7 +106,7 @@ zssh custom options:
 		}
 	}
 
-	if !printFlag && listFlag {
+	if hostsFlag {
 		for _, host := range Hosts {
 			if !host.Hidden {
 				if host.Description != "" {
@@ -97,6 +114,18 @@ zssh custom options:
 				} else {
 					fmt.Printf("%s\n", host.Name)
 				}
+			}
+		}
+
+		return 0
+	}
+
+	if macrosFlag {
+		for _, macro := range Macros {
+			if macro.Description != "" {
+				fmt.Printf("%s\t%s\n", macro.Name, macro.Description)
+			} else {
+				fmt.Printf("%s\n", macro.Name)
 			}
 		}
 
@@ -130,6 +159,21 @@ zssh custom options:
 		return 0
 	}
 
+	if macro, err := GetMacro(firstArg); err == nil {
+		// there is a macro
+		payload := ""
+		if (len(args) >= 2) {
+			payload = args[1]
+		}
+
+		err := macro.Run(payload)
+		if err != nil {
+			log.Printf("Error: %s", err)
+			return 1
+		}
+		return 0
+	}
+
 	// setup ssh command
 	cmdline := "ssh " + strings.Join(args, " ")
 
@@ -152,7 +196,7 @@ zssh custom options:
 	}
 
 	// run ssh
-	err = run(cmdline)
+	err = Run(cmdline)
 
 	// after hook
 	if after := hooks["after"]; after != nil {
@@ -168,27 +212,6 @@ zssh custom options:
 	}
 
 	return 0
-}
-
-
-func run(command string) error {
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/c", command)
-	} else {
-		cmd = exec.Command("sh", "-c", command)
-	}
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func userHomeDir() string {
@@ -218,11 +241,14 @@ func init() {
 var ZSH_COMPLETION = `
 _zssh_hosts() {
     local -a __zssh_hosts
+    local -a __zssh_macros
     PRE_IFS=$IFS
     IFS=$'\n'
-    __zssh_hosts=($(zssh --list | awk -F'\t' '{print $1":"$2}'))
+    __zssh_hosts=($(zssh --hosts | awk -F'\t' '{print $1":"$2}'))
+    __zssh_macros=($(zssh --macros | awk -F'\t' '{print $1":"$2}'))
     IFS=$PRE_IFS
-    _describe -t commands "zssh_hosts" __zssh_hosts
+    _describe -t host "host" __zssh_hosts
+    _describe -t macro "macro" __zssh_macros
 }
 
 _zssh () {

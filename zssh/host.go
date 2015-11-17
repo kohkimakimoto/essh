@@ -1,20 +1,24 @@
 package zssh
 
 import (
-	"github.com/yuin/gopher-lua"
-	"text/template"
 	"bytes"
-	"fmt"
+	"github.com/yuin/gopher-lua"
 	"sort"
+	"text/template"
 )
 
 type Host struct {
-	Name string
-	Config *lua.LTable
-	Hooks map[string]func() error
+	Name        string
+	Config      *lua.LTable
+	Hooks       map[string]func() error
 	Description string
-	Hidden bool
+	Hidden      bool
+	Tags        map[string][]string
 }
+
+const LHostClass = "ZsshHost*"
+
+var Hosts []*Host = []*Host{}
 
 func (h *Host) Values() []map[string]interface{} {
 
@@ -39,8 +43,6 @@ func (h *Host) Values() []map[string]interface{} {
 
 	return values
 }
-
-var Hosts []*Host = []*Host{}
 
 func GetHost(hostname string) *Host {
 	for _, host := range Hosts {
@@ -73,68 +75,4 @@ func GenHostsConfig() ([]byte, error) {
 	}
 
 	return b.Bytes(), nil
-}
-
-// This code refers to https://github.com/yuin/gluamapper/blob/master/gluamapper.go
-func toGoValue(lv lua.LValue) interface{} {
-	switch v := lv.(type) {
-	case *lua.LNilType:
-		return nil
-	case lua.LBool:
-		return bool(v)
-	case lua.LString:
-		return string(v)
-	case lua.LNumber:
-		return float64(v)
-	case *lua.LTable:
-		maxn := v.MaxN()
-		if maxn == 0 { // table
-			ret := make(map[interface{}]interface{})
-			v.ForEach(func(key, value lua.LValue) {
-				keystr := fmt.Sprint(toGoValue(key))
-				ret[keystr] = toGoValue(value)
-			})
-			return ret
-		} else { // array
-			ret := make([]interface{}, 0, maxn)
-			for i := 1; i <= maxn; i++ {
-				ret = append(ret, toGoValue(v.RawGetInt(i)))
-			}
-			return ret
-		}
-	default:
-		return v
-	}
-}
-
-func toBool(v lua.LValue) (bool, bool) {
-	if lv, ok := v.(lua.LBool); ok {
-		return bool(lv), true
-	} else {
-		return false, false
-	}
-}
-
-func toString(v lua.LValue) (string, bool) {
-	if lv, ok := v.(lua.LString); ok {
-		return string(lv), true
-	} else {
-		return "", false
-	}
-}
-
-func toLFunction(v lua.LValue) (*lua.LFunction, bool) {
-	if lv, ok := v.(*lua.LFunction); ok {
-		return lv, true
-	} else {
-		return nil, false
-	}
-}
-
-func toLTable(v lua.LValue) (*lua.LTable, bool) {
-	if lv, ok := v.(*lua.LTable); ok {
-		return lv, true
-	} else {
-		return nil, false
-	}
 }

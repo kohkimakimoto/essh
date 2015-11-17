@@ -3,3 +3,5 @@ mkdir -p bin; go build -ldflags="-X github.com/kohkimakimoto/zssh/zssh.ConfigFil
 
 # build
 [build production] ./scripts/build.sh
+
+rm Gomfile.lock; rm -rf _vendor; gom install && gom lock

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/kohkimakimoto/zssh/zssh"
 	"log"
 	"os"
-	"github.com/kohkimakimoto/zssh/zssh"
 )
 
 func main() {
