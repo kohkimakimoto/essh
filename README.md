@@ -127,7 +127,7 @@ Host "web01.localhost" {
 
 ### Macros
 
-You can define macros to runs command local or remote hosts.
+You can define macros to run commands local or remote hosts.
 
 ```lua
 Host "web01.localhost" {
