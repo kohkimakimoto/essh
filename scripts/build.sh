@@ -30,7 +30,6 @@ echo "==> Building..."
 
 gox \
     -os="linux darwin windows" \
-    -ldflags="-X github.com/kohkimakimoto/${name}/conf.CommitHash=`git log --pretty=format:%H -n 1`" \
     -output "build/${name}_{{.OS}}_{{.Arch}}" \
     ./cmd/${name}
 

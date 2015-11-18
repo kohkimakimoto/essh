@@ -15,6 +15,7 @@ var ConfigFile string
 var SSHConfigFile string
 var Version = "0.2.0"
 
+
 func Main() int {
 	log.SetFlags(0)
 
@@ -163,12 +164,7 @@ zssh custom options:
 
 	if macro, err := GetMacro(firstArg); err == nil {
 		// there is a macro
-		payload := ""
-		if (len(args) >= 2) {
-			payload = args[1]
-		}
-
-		err := macro.Run(payload)
+		err := macro.Run()
 		if err != nil {
 			log.Printf("Error: %s", err)
 			return 1

@@ -185,9 +185,7 @@ func registerMacro(L *lua.LState, name string, config *lua.LTable) {
 
 	command := config.RawGetString("command")
 	if commandFn, ok := command.(*lua.LFunction); ok {
-		m.CommandFunc = func(payload string, host *Host) (string, error) {
-			lpayload := lua.LString(payload)
-
+		m.CommandFunc = func(host *Host) (string, error) {
 			lhost := L.NewUserData()
 			lhost.Value = host
 			L.SetMetatable(lhost, L.GetTypeMetatable(LHostClass))
@@ -196,7 +194,7 @@ func registerMacro(L *lua.LState, name string, config *lua.LTable) {
 				Fn:      commandFn,
 				NRet:    1,
 				Protect: true,
-			}, lpayload, lhost)
+			}, lhost)
 			if err != nil {
 				return "", err
 			}

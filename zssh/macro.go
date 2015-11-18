@@ -13,8 +13,9 @@ type Macro struct {
 	Name        string
 	Description string
 	Parallel    bool
+	Tty         bool
 	Command     string                                               `gluamapper:"-"`
-	CommandFunc func(payload string, host *Host) (string, error)     `gluamapper:"-"`
+	CommandFunc func(host *Host) (string, error)     `gluamapper:"-"`
 	Confirm     bool                                                 `gluamapper:"-"`
 	ConfirmText string                                               `gluamapper:"-"`
 	OnServers   []string                                             `gluamapper:"-"`
@@ -33,19 +34,16 @@ func GetMacro(name string) (*Macro, error) {
 	return nil, errors.New(fmt.Sprintf("not found '%s' task.", name))
 }
 
-func (m *Macro) Run(payload string) error {
+func (m *Macro) Run() error {
 	if m.Confirm {
 		if !m.AskYesOrNo() {
 			return nil
 		}
 	}
 
-	os.Setenv("ZSSH_PAYLOAD", payload)
-	defer os.Unsetenv("ZSSH_PAYLOAD")
-
 	if m.RunLocally {
 		// run locally
-		script, err := m.Script(payload, nil)
+		script, err := m.Script(nil)
 		if err != nil {
 			return err
 		}
@@ -53,7 +51,7 @@ func (m *Macro) Run(payload string) error {
 			return nil
 		}
 
-		err = m.runCommandLocally(script)
+		err = Run(script)
 		if err != nil {
 			return err
 		}
@@ -68,12 +66,17 @@ func (m *Macro) Run(payload string) error {
 
 	wg := &sync.WaitGroup{}
 	for _, host := range hosts {
-		script, err := m.Script(payload, host)
+		script, err := m.Script(host)
 		if err != nil {
 			return err
 		}
 
-		cmd := host.SSHScriptCommandString(script)
+		var cmd string
+		if m.Tty {
+			cmd = "echo '" + script + "' | ssh -t -t " + host.Name+ " bash -se"
+		} else {
+			cmd = "echo '" + script + "' | ssh " + host.Name+ " bash -se"
+		}
 
 		if m.Parallel {
 			wg.Add(1)
@@ -92,10 +95,10 @@ func (m *Macro) Run(payload string) error {
 	return nil
 }
 
-func (m *Macro) Script(payload string, host *Host) (string, error) {
+func (m *Macro) Script(host *Host) (string, error) {
 	script := m.Command
 	if m.CommandFunc != nil {
-		ret, err := m.CommandFunc(payload, host)
+		ret, err := m.CommandFunc(host)
 		if err != nil {
 			return "", err
 		}
@@ -104,22 +107,6 @@ func (m *Macro) Script(payload string, host *Host) (string, error) {
 	}
 
 	return script, nil
-}
-
-func (m *Macro) runCommandLocally(command string) error {
-	err := RunWithCallback(command, func(out string, stderr string) {
-		if out != "" {
-			fmt.Printf("%s\n", out)
-		}
-		if stderr != "" {
-			fmt.Printf("%s\n", FgR(stderr))
-		}
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (m *Macro) TargetHosts() ([]*Host, error) {
@@ -167,4 +154,8 @@ func (m *Macro) AskYesOrNo() bool {
 	} else {
 		return false
 	}
+}
+
+func Escape(s string) string {
+	return "'" + strings.Replace(s, "'", "'\"'\"'", -1) + "'"
 }

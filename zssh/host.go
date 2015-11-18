@@ -7,6 +7,7 @@ import (
 	"text/template"
 	"fmt"
 	"strings"
+	"os"
 )
 
 type Host struct {
@@ -46,15 +47,11 @@ func (h *Host) Values() []map[string]interface{} {
 	return values
 }
 
-func (h *Host) SSHScriptCommandString(script string) string {
-	return "echo '" + script + "' | ssh " + h.Name+ " ZSSH_PAYLOAD=\"$ZSSH_PAYLOAD\" bash -se"
-}
-
 func (h *Host) RunCommand(script string) error {
 	prefix := "[" + h.Name + "]: "
 	err := RunWithCallback(script, func(out string, stderr string) {
 		if out != "" {
-			fmt.Printf("%s%s\n", FgC(prefix), out)
+			fmt.Fprintf(os.Stdout, "%s%s\n", FgC(prefix), out)
 		}
 		if stderr != "" {
 			if strings.Index(stderr, "Killed by signal 1.") == 0 {
@@ -62,7 +59,7 @@ func (h *Host) RunCommand(script string) error {
 				return
 			}
 
-			fmt.Printf("%s%s\n", FgR(prefix), FgR(stderr))
+			fmt.Fprintf(os.Stderr, "%s%s\n", FgR(prefix), FgR(stderr))
 		}
 	})
 	if err != nil {

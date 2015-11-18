@@ -153,12 +153,18 @@ Host "web02.localhost" {
 }
 
 Macro "example" {
+    -- parallel execution: default false
+    parallel = true,
+    -- display confirm prompt: default false
+    confirm = "Are you OK?",
+    -- description that shows on zsh completion.
     description = "example macro",
+    -- specify remote servers to run a command by tags. if it isn't set, runs command locally.
     on = {role = "web"},
-    confirm = true,
-    command = [=[
+    -- command.
+    command = [[
         ls -la
-    ]=],
+    ]],
 }
 ```
 
