@@ -111,10 +111,12 @@ Host "web01.localhost" {
     description = "my web01 server",
     hooks = {
         before = function()
-            -- your code ...
+            -- This is an example to change screen color to red.
+            os.execute("osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Red Sands\"'")
         end,
         after = function()
-            -- your code ...
+            -- This is an example to change screen color to black.
+            os.execute("osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Pro\"'")
         end,
     }
 }
