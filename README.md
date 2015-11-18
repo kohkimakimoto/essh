@@ -127,6 +127,8 @@ Host "web01.localhost" {
 
 ### Macros
 
+You can define macros to runs command local or remote hosts.
+
 ```lua
 Host "web01.localhost" {
     HostName = "192.168.0.11",
@@ -137,6 +139,17 @@ Host "web01.localhost" {
 
     tags = {role = "web"},
 }
+
+Host "web02.localhost" {
+    HostName = "192.168.0.12",
+    Port = "22",
+    User = "kohkimakimoto",
+    ForwardAgent = "yes",
+    description = "my web02 server",
+
+    tags = {role = "web"},
+}
+
 Macro "example" {
     description = "example macro",
     on = {role = "web"},
