@@ -161,6 +161,8 @@ Macro "example" {
     description = "example macro",
     -- specify remote servers to run a command by tags. if it isn't set, runs command locally.
     on = {role = "web"},
+    -- allocate tty: default false
+    tty = false,
     -- command.
     command = [[
         ls -la
