@@ -136,8 +136,9 @@ Host "web01.localhost" {
     User = "kohkimakimoto",
     ForwardAgent = "yes",
     description = "my web01 server",
-
-    tags = {role = "web"},
+    tags = {
+        role = "web"
+    },
 }
 
 Host "web02.localhost" {
@@ -146,8 +147,9 @@ Host "web02.localhost" {
     User = "kohkimakimoto",
     ForwardAgent = "yes",
     description = "my web02 server",
-
-    tags = {role = "web"},
+    tags = {
+        role = "web"
+    },
 }
 
 Macro "example" {
