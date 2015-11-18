@@ -69,6 +69,9 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
+If you set a first character of keys as lower case like `description`, it is not SSH config.
+It uses specific functionality. Read the next section **Zsh Completion**.
+
 ### Zsh Completion
 
 If you want to use zsh completion, add the following code in your `~/.zshrc`
@@ -158,7 +161,7 @@ Macro "example" {
     parallel = true,
     -- display confirm prompt: default false
     confirm = "Are you OK?",
-    -- description that shows on zsh completion.
+    -- description that is showed on zsh completion.
     description = "example macro",
     -- specify remote servers to run a command by tags. if it isn't set, runs command locally.
     on = {role = "web"},

@@ -5,6 +5,7 @@ import (
 	"github.com/yuin/gluamapper"
 	"fmt"
 	"errors"
+	"unicode"
 )
 
 func LoadFunctions(L *lua.LState) {
@@ -55,7 +56,13 @@ func coreMacro(L *lua.LState) int {
 func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	newConfig := L.NewTable()
 	config.ForEach(func(k lua.LValue, v lua.LValue) {
-		if k.String() != "hooks" && k.String() != "description" && k.String() != "hidden" && k.String() != "tags" {
+		var firstChar rune
+		for _,c := range k.String() {
+			firstChar = c
+			break
+		}
+
+		if unicode.IsUpper(firstChar) {
 			newConfig.RawSet(k, v)
 		}
 	})
