@@ -7,6 +7,7 @@ Extended ssh command.
 * Automatically generates `~/.ssh/config` from `~/.ssh/zssh.lua`. You can write SSH configuration in Lua programming language.
 * Supports zsh completion.
 * Provides some hook functions.
+* You can define macros to execute command via SSH.
 
 ![zssh.gif](zssh.gif)
 
