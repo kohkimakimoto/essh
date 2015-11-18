@@ -8,6 +8,9 @@ Extended ssh command.
 * Supports zsh completion.
 * Provides some hook functions.
 
+![zssh.gif](zssh.gif)
+
+
 ## Installation
 
 #### Compiled binary
@@ -118,6 +121,35 @@ Host "web01.localhost" {
 ```
 
 `before` hook fires before you connect server via SSH. `after` hook fires after you disconnect SSH connection.
+
+
+### Macros
+
+```lua
+Host "web01.localhost" {
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+    ForwardAgent = "yes",
+    description = "my web01 server",
+
+    tags = {role = "web"},
+}
+Macro "example" {
+    description = "example macro",
+    on = {role = "web"},
+    confirm = true,
+    command = [=[
+        ls -la
+    ]=],
+}
+```
+
+Run a macro.
+
+```
+$ zssh example
+```
 
 ## Author
 
