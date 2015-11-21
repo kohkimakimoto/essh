@@ -5,8 +5,8 @@ import (
 	"github.com/yuin/gopher-lua"
 	"sort"
 	"text/template"
-	"fmt"
-	"strings"
+	"os/exec"
+	"runtime"
 	"os"
 )
 
@@ -47,27 +47,39 @@ func (h *Host) Values() []map[string]interface{} {
 	return values
 }
 
-func (h *Host) RunCommand(script string) error {
-	prefix := "[" + h.Name + "]: "
-	err := RunWithCallback(script, func(out string, stderr string) {
-		if out != "" {
-			fmt.Fprintf(os.Stdout, "%s%s\n", FgC(prefix), out)
-		}
-		if stderr != "" {
-			if strings.Index(stderr, "Killed by signal 1.") == 0 {
-				// skip.
-				return
-			}
+func (h *Host) Run(command string) error {
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd", "/c", command)
+	} else {
+		cmd = exec.Command("sh", "-c", command)
+	}
 
-			fmt.Fprintf(os.Stderr, "%s%s\n", FgR(prefix), FgR(stderr))
-		}
-	})
+	realWriter := &RealWriter{
+		NewLine: true,
+		Prefix:  "[" + h.Name + "]: ",
+	}
+	outWriter := &writer{
+		realWriter: realWriter,
+		Type:       1,
+	}
+	errWriter := &writer{
+		realWriter: realWriter,
+		Type:       2,
+	}
+
+	cmd.Stdout = outWriter
+	cmd.Stderr = errWriter
+	cmd.Stdin = os.Stdin
+
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}
 
 	return nil
 }
+
 
 func GetHost(hostname string) *Host {
 	for _, host := range Hosts {

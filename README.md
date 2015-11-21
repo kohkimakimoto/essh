@@ -69,8 +69,14 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
+You can connect a server using below command.
+
+```
+$ zssh web01.localhost
+```
+
 If you set a first character of keys as lower case like `description`, it is not SSH config.
-It uses specific functionality. Read the next section **Zsh Completion**.
+It is used for specific functionality. Read the next section **Zsh Completion**.
 
 ### Zsh Completion
 
@@ -126,7 +132,7 @@ Host "web01.localhost" {
 }
 ```
 
-`before` hook fires before you connect server via SSH. `after` hook fires after you disconnect SSH connection.
+`before` hook fires before you connect a server via SSH. `after` hook fires after you disconnect SSH connection.
 
 
 ### Macros

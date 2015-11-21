@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"fmt"
 )
 
 func Run(command string) error {
@@ -27,54 +28,59 @@ func Run(command string) error {
 	return nil
 }
 
-type CallbackFunc func(stdout string, stderr string)
-
-type Writer struct {
-	CallbackFunc CallbackFunc
-	Type         int
+type writer struct {
+	Type       int
+	realWriter *RealWriter
 }
 
-func (w *Writer) Write(data []byte) (int, error) {
-	if w.CallbackFunc != nil {
-		for _, s := range strings.Split(string(data), "\n") {
-			if w.Type == 1 {
-				// stdout
-				w.CallbackFunc(s, "")
-			} else {
-				// stderr
-				w.CallbackFunc("", s)
-			}
+type RealWriter struct {
+	Prefix  string
+	NewLine bool
+}
+
+func (w *RealWriter) Write(dataType int, data []byte) {
+	dataStr := string(data)
+	dataStr = strings.Replace(dataStr, "\r\n", "\n", -1)
+
+	if w.NewLine {
+		w.NewLine = false
+		if dataType == 1 {
+			fmt.Fprintf(os.Stdout, "%s", w.Prefix)
+		} else {
+			fmt.Fprintf(os.Stderr, "%s", w.Prefix)
 		}
 	}
-	return len(data), nil
+
+	if strings.Contains(dataStr, "\n") {
+		lineCount := strings.Count(dataStr, "\n")
+
+		if dataStr[len(dataStr)-1:] == "\n" {
+			w.NewLine = true
+		}
+
+		if w.NewLine {
+			dataStr = strings.Replace(dataStr, "\n", "\n"+w.Prefix, lineCount-1)
+		} else {
+			dataStr = strings.Replace(dataStr, "\n", "\n"+w.Prefix, -1)
+		}
+
+		if dataType == 1 {
+			fmt.Fprintf(os.Stdout, "%s", dataStr)
+		} else {
+			fmt.Fprintf(os.Stderr, "%s", dataStr)
+		}
+
+	} else {
+		if dataType == 1 {
+			fmt.Fprintf(os.Stdout, "%s", dataStr)
+		} else {
+			fmt.Fprintf(os.Stderr, "%s", dataStr)
+		}
+	}
 }
 
-func RunWithCallback(command string, callback CallbackFunc) error {
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/c", command)
-	} else {
-		cmd = exec.Command("sh", "-c", command)
-	}
+func (w *writer) Write(data []byte) (int, error) {
+	w.realWriter.Write(w.Type, data)
 
-	outWriter := &Writer{
-		CallbackFunc: callback,
-		Type:         1,
-	}
-
-	errWriter := &Writer{
-		CallbackFunc: callback,
-		Type:         2,
-	}
-
-	cmd.Stdout = outWriter
-	cmd.Stderr = errWriter
-	cmd.Stdin = os.Stdin
-
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return len(data), nil
 }

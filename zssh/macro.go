@@ -81,12 +81,12 @@ func (m *Macro) Run() error {
 		if m.Parallel {
 			wg.Add(1)
 			go func(host *Host, cmd string) {
-				host.RunCommand(cmd)
+				host.Run(cmd)
 				wg.Done()
 			}(host, cmd)
 		} else {
 			// ignore err
-			host.RunCommand(cmd)
+			host.Run(cmd)
 		}
 	}
 	wg.Wait()
