@@ -13,7 +13,7 @@ import (
 
 var ConfigFile string
 var SSHConfigFile string
-var Version = "0.2.1"
+var Version = "0.3.0"
 
 
 func Main() int {
