@@ -13,7 +13,7 @@ import (
 
 var ConfigFile string
 var SSHConfigFile string
-var Version = "0.3.0"
+var Version = "0.4.0"
 
 func Main() int {
 	log.SetFlags(0)
@@ -123,10 +123,12 @@ zssh custom options:
 
 	if macrosFlag {
 		for _, macro := range Macros {
-			if macro.Description != "" {
-				fmt.Printf("%s\t%s\n", macro.Name, macro.Description)
-			} else {
-				fmt.Printf("%s\n", macro.Name)
+			if !macro.Hidden {
+				if macro.Description != "" {
+					fmt.Printf("%s\t%s\n", macro.Name, macro.Description)
+				} else {
+					fmt.Printf("%s\n", macro.Name)
+				}
 			}
 		}
 

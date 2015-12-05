@@ -14,6 +14,7 @@ type Macro struct {
 	Description string
 	Parallel    bool
 	Tty         bool
+	Hidden      bool
 	Command     string                           `gluamapper:"-"`
 	CommandFunc func(host *Host) (string, error) `gluamapper:"-"`
 	Confirm     bool                             `gluamapper:"-"`
