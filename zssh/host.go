@@ -3,11 +3,11 @@ package zssh
 import (
 	"bytes"
 	"github.com/yuin/gopher-lua"
-	"sort"
-	"text/template"
+	"os"
 	"os/exec"
 	"runtime"
-	"os"
+	"sort"
+	"text/template"
 )
 
 type Host struct {
@@ -79,7 +79,6 @@ func (h *Host) Run(command string) error {
 
 	return nil
 }
-
 
 func GetHost(hostname string) *Host {
 	for _, host := range Hosts {

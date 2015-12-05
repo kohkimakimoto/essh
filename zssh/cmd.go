@@ -1,11 +1,11 @@
 package zssh
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
-	"fmt"
 )
 
 func Run(command string) error {

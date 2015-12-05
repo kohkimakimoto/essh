@@ -1,10 +1,10 @@
 package zssh
 
 import (
-	"github.com/yuin/gopher-lua"
-	"github.com/yuin/gluamapper"
-	"fmt"
 	"errors"
+	"fmt"
+	"github.com/yuin/gluamapper"
+	"github.com/yuin/gopher-lua"
 	"unicode"
 )
 
@@ -57,7 +57,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	newConfig := L.NewTable()
 	config.ForEach(func(k lua.LValue, v lua.LValue) {
 		var firstChar rune
-		for _,c := range k.String() {
+		for _, c := range k.String() {
 			firstChar = c
 			break
 		}
@@ -71,7 +71,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		Name:   name,
 		Config: newConfig,
 		Hooks:  map[string]func() error{},
-		Tags: map[string][]string{},
+		Tags:   map[string][]string{},
 	}
 
 	hooks := config.RawGetString("hooks")

@@ -1,12 +1,12 @@
 package zssh
 
-import(
+import (
 	"bufio"
-	"fmt"
 	"errors"
+	"fmt"
 	"os"
-	"sync"
 	"strings"
+	"sync"
 )
 
 type Macro struct {
@@ -14,13 +14,13 @@ type Macro struct {
 	Description string
 	Parallel    bool
 	Tty         bool
-	Command     string                                               `gluamapper:"-"`
-	CommandFunc func(host *Host) (string, error)     `gluamapper:"-"`
-	Confirm     bool                                                 `gluamapper:"-"`
-	ConfirmText string                                               `gluamapper:"-"`
-	OnServers   []string                                             `gluamapper:"-"`
-	OnTags      map[string][]string                                  `gluamapper:"-"`
-	RunLocally  bool                                                 `gluamapper:"-"`
+	Command     string                           `gluamapper:"-"`
+	CommandFunc func(host *Host) (string, error) `gluamapper:"-"`
+	Confirm     bool                             `gluamapper:"-"`
+	ConfirmText string                           `gluamapper:"-"`
+	OnServers   []string                         `gluamapper:"-"`
+	OnTags      map[string][]string              `gluamapper:"-"`
+	RunLocally  bool                             `gluamapper:"-"`
 }
 
 var Macros []*Macro = []*Macro{}
@@ -73,9 +73,9 @@ func (m *Macro) Run() error {
 
 		var cmd string
 		if m.Tty {
-			cmd = "echo '" + script + "' | ssh -t -t " + host.Name+ " bash -se"
+			cmd = "echo '" + script + "' | ssh -t -t " + host.Name + " bash -se"
 		} else {
-			cmd = "echo '" + script + "' | ssh " + host.Name+ " bash -se"
+			cmd = "echo '" + script + "' | ssh " + host.Name + " bash -se"
 		}
 
 		if m.Parallel {
@@ -90,7 +90,6 @@ func (m *Macro) Run() error {
 		}
 	}
 	wg.Wait()
-
 
 	return nil
 }

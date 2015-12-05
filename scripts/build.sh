@@ -28,7 +28,7 @@ rm -rf build/*
 
 echo "==> Building..."
 
-gox \
+gom exec gox \
     -os="linux darwin windows" \
     -output "build/${name}_{{.OS}}_{{.Arch}}" \
     ./cmd/${name}

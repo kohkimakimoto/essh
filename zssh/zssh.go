@@ -15,7 +15,6 @@ var ConfigFile string
 var SSHConfigFile string
 var Version = "0.3.0"
 
-
 func Main() int {
 	log.SetFlags(0)
 
@@ -82,7 +81,6 @@ zssh custom options:
 		Run("$EDITOR " + ConfigFile)
 		return 0
 	}
-
 
 	lstate := lua.NewState()
 	defer lstate.Close()
