@@ -148,7 +148,7 @@ $ zssh --rsync "-avz /local/dir/ web01.localhost:/path/to/remote/dir"
 Please check command line help that showed by running `zssh` command without any options.
 
 ```
-Usage: zssh [<options>] <ssh command options and args...>
+Usage: zssh [<options>] [<ssh options and args...>]
 
 zssh is an extended ssh command.
 version 0.5.0
@@ -162,9 +162,12 @@ zssh options:
   --filter <TAG>          (Using with --hosts option) Show only the hosts configured with a tag.
   --verbose               (Using with --hosts option) List hosts with description.
   --tags                  List tags.
-  --shell <PATH>          Executed shell script of the path on the remote host.
   --zsh-completion        Output zsh completion code.
   --debug                 Output debug log
+
+zssh options for convenient functionalities:
+  --shell <PATH> <HOSTNAME>              Execute a shell script of the path on the remote host.
+  --rsync <rsync options and args...>    Execute rsync using zssh config.
 ```
 
 ## Author
