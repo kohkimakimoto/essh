@@ -1,17 +1,17 @@
 package zssh
 
 import (
+	"bytes"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"github.com/yuin/gopher-lua"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"bytes"
-	"net/http"
-	"crypto/tls"
 )
 
 // system configurations.
@@ -59,7 +59,7 @@ func Start() error {
 			filters = append(filters, args[1])
 			args = args[1:]
 		} else if strings.HasPrefix(arg, "--filter=") {
-			filters = append(filters,strings.Split(arg, "=")[1])
+			filters = append(filters, strings.Split(arg, "=")[1])
 		} else if arg == "--tags" {
 			tagsFlag = true
 		} else if arg == "--zsh-completion" {
@@ -134,7 +134,7 @@ func Start() error {
 			shellContent = b
 		} else {
 			// get script from the file system.
-			b, err :=ioutil.ReadFile(shellPath)
+			b, err := ioutil.ReadFile(shellPath)
 			if err != nil {
 				return err
 			}
@@ -261,7 +261,6 @@ func Start() error {
 	if err != nil {
 		return err
 	}
-
 
 	if shellPath == "" {
 		// get hooks

@@ -1,4 +1,1 @@
 gom 'github.com/yuin/gopher-lua', :commit => 'cbab8d20d579272a56e78ab4395236bb21dcbbbf'
-gom 'github.com/yuin/gluamapper', :commit => 'd836955830e75240d46ce9f0e6d148d94f2e1d3a'
-gom 'github.com/shiena/ansicolor', :commit => 'a422bbe96644373c5753384a59d678f7d261ff10'
-gom 'github.com/fatih/color', :commit => '9aae6aaa22315390f03959adca2c4d395b02fcef'

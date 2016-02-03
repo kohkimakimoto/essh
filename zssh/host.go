@@ -3,9 +3,6 @@ package zssh
 import (
 	"bytes"
 	"github.com/yuin/gopher-lua"
-	"os"
-	"os/exec"
-	"runtime"
 	"sort"
 	"text/template"
 )
@@ -20,7 +17,7 @@ type Host struct {
 }
 
 var (
-	Hosts []*Host            = []*Host{}
+	Hosts []*Host = []*Host{}
 	//Tags  map[string][]*Host = map[string][]*Host{}
 )
 
@@ -46,39 +43,6 @@ func (h *Host) Values() []map[string]interface{} {
 	}
 
 	return values
-}
-
-func (h *Host) Run(command string) error {
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/c", command)
-	} else {
-		cmd = exec.Command("sh", "-c", command)
-	}
-
-	realWriter := &RealWriter{
-		NewLine: true,
-		Prefix:  "[" + h.Name + "]: ",
-	}
-	outWriter := &writer{
-		realWriter: realWriter,
-		Type:       1,
-	}
-	errWriter := &writer{
-		realWriter: realWriter,
-		Type:       2,
-	}
-
-	cmd.Stdout = outWriter
-	cmd.Stderr = errWriter
-	cmd.Stdin = os.Stdin
-
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func GetHost(hostname string) *Host {
@@ -115,7 +79,7 @@ func GenHostsConfig() ([]byte, error) {
 }
 
 func Tags() []string {
-	
+
 	tagsMap := map[string]string{}
 	tags := []string{}
 
