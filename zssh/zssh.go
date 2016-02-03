@@ -24,7 +24,7 @@ var (
 var IgnoreError flag.ErrorHandling = 9999
 
 func Start() error {
-	var printFlag, configFlag, systemConfigFlag, debugFlag, hostsFlag, verboseFlag, tagsFlag, zshCompletinFlag bool
+	var printFlag, configFlag, systemConfigFlag, debugFlag, hostsFlag, verboseFlag, tagsFlag, zshCompletinFlag, bashCompletinFlag bool
 	var configFile, shellPath string
 	var rsyncArg string
 	filters := []string{}
@@ -65,6 +65,8 @@ func Start() error {
 			tagsFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletinFlag = true
+		} else if arg == "--bash-completion" {
+			bashCompletinFlag = true
 		} else if arg == "--config-file" {
 			if len(args) < 2 {
 				return fmt.Errorf("--config-file reguires an argument.")
@@ -98,6 +100,11 @@ func Start() error {
 
 	if zshCompletinFlag {
 		fmt.Print(ZSH_COMPLETION)
+		return nil
+	}
+
+	if bashCompletinFlag {
+		fmt.Print(BASH_COMPLETION)
 		return nil
 	}
 
@@ -440,3 +447,17 @@ _zssh () {
 compdef _zssh zssh
 
 `
+
+var BASH_COMPLETION = `
+_zssh_hosts() {
+
+}
+
+_zssh () {
+
+}
+
+complete -F _zssh zssh
+
+`
+
