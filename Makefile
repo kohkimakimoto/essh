@@ -14,6 +14,10 @@ dist:
 packaging:
 	@sh -c "$(CURDIR)/build/build.sh packaging"
 
+# destroy remove all vagrant vm used to create packages.
+destroy:
+	@sh -c "$(CURDIR)/build/build.sh destroy"
+
 test:
 	gom test ./... -cover
 
