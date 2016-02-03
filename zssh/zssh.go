@@ -26,6 +26,7 @@ var IgnoreError flag.ErrorHandling = 9999
 func Start() error {
 	var printFlag, configFlag, systemConfigFlag, debugFlag, hostsFlag, verboseFlag, tagsFlag, zshCompletinFlag bool
 	var configFile, shellPath string
+	var rsyncArg string
 	filters := []string{}
 
 	if len(os.Args) == 1 {
@@ -80,6 +81,14 @@ func Start() error {
 			args = args[1:]
 		} else if strings.HasPrefix(arg, "--shell=") {
 			shellPath = strings.Split(arg, "=")[1]
+		} else if arg == "--rsync" {
+			if len(args) < 2 {
+				return fmt.Errorf("--rsync reguires an argument.")
+			}
+			rsyncArg = args[1]
+			args = args[1:]
+		} else if strings.HasPrefix(arg, "--rsync=") {
+			rsyncArg = strings.Split(arg, "=")[1]
 		} else {
 			break
 		}
@@ -93,12 +102,12 @@ func Start() error {
 	}
 
 	if configFlag {
-		Run("$EDITOR " + PerUserConfigFile)
+		ShellExec("$EDITOR " + PerUserConfigFile)
 		return nil
 	}
 
 	if systemConfigFlag {
-		Run("$EDITOR " + SystemWideConfigFile)
+		ShellExec("$EDITOR " + SystemWideConfigFile)
 		return nil
 	}
 
@@ -262,7 +271,7 @@ func Start() error {
 		return err
 	}
 
-	if shellPath == "" {
+	if shellPath == "" && rsyncArg == "" {
 		// get hooks
 		var hooks map[string]func() error
 
@@ -300,37 +309,58 @@ func Start() error {
 		}()
 	}
 
-	// setup ssh command
+	// setup ssh command args
 	sshComandArgs := []string{"-F", generatedSSHConfigFile}
 	sshComandArgs = append(sshComandArgs, args[:]...)
 	if shellPath != "" {
 		sshComandArgs = append(sshComandArgs, "bash", "-se")
 	}
 
-	// execute ssh commmand
-	cmd := exec.Command("ssh", sshComandArgs[:]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if shellPath != "" {
-		// input shell script from stdin.
-		cmd.Stdin = bytes.NewBuffer(shellContent)
-
+	if rsyncArg != "" {
+		// rsync mode.
 		if debugFlag {
-			fmt.Printf("[zssh debug] shell content:\n%s\n", string(shellContent))
+			fmt.Printf("[zssh debug] use rsync mode.\n")
 		}
 
+		rsyncSSHOption := `-e "ssh ` + strings.Join(sshComandArgs, " ") + `"`
+		rsyncCommand := "rsync " + rsyncSSHOption + " " + rsyncArg
+
+		if debugFlag {
+			fmt.Printf("[zssh debug] real rsync command: %v\n", rsyncCommand)
+		}
+
+		err := ShellExec(rsyncCommand)
+		if err != nil {
+			return err
+		}
 	} else {
-		cmd.Stdin = os.Stdin
-	}
+		// normal ssh mode.
 
-	if debugFlag {
-		fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
-	}
+		// execute ssh commmand
+		cmd := exec.Command("ssh", sshComandArgs[:]...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-	err = cmd.Run()
-	if err != nil {
-		return err
+		if shellPath != "" {
+			// input shell script from stdin.
+			cmd.Stdin = bytes.NewBuffer(shellContent)
+
+			if debugFlag {
+				fmt.Printf("[zssh debug] shell content:\n%s\n", string(shellContent))
+			}
+
+		} else {
+			cmd.Stdin = os.Stdin
+		}
+
+		if debugFlag {
+			fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
+		}
+
+		err = cmd.Run()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -338,7 +368,7 @@ func Start() error {
 
 func printUsage() {
 	// print usage.
-	fmt.Println(`Usage: zssh [<options>] <ssh command options and args...>
+	fmt.Println(`Usage: zssh [<options>] [<ssh options and args...>]
 
 zssh is an extended ssh command.
 version ` + Version + `
@@ -352,9 +382,13 @@ zssh options:
   --filter <TAG>          (Using with --hosts option) Show only the hosts configured with a tag.
   --verbose               (Using with --hosts option) List hosts with description.
   --tags                  List tags.
-  --shell <PATH>          Executed shell script of the path on the remote host.
   --zsh-completion        Output zsh completion code.
   --debug                 Output debug log
+
+zssh options for convenient functionalities:
+  --shell <PATH> <HOSTNAME>              Execute a shell script of the path on the remote host.
+  --rsync <rsync options and args...>    Execute rsync using zssh config.
+
 
 And the following is original ssh command usage...
 `)

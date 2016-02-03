@@ -6,7 +6,7 @@ import (
 	"runtime"
 )
 
-func Run(command string) error {
+func ShellExec(command string) error {
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("cmd", "/c", command)

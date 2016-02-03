@@ -135,6 +135,14 @@ Also you can get a script using http instead of local filesystem.
 $ zssh --shell https://example/script.sh web01.localhost
 ```
 
+## Running rsync
+
+You can use zssh config for rsync using `--rsync` option.
+
+```
+$ zssh --rsync "-avz /local/dir/ web01.localhost:/path/to/remote/dir"
+```
+
 ## Other options
 
 Please check command line help that showed by running `zssh` command without any options.
