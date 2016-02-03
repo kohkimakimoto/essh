@@ -4,12 +4,11 @@ Extended ssh command.
 
 * This is a single binary CLI app.
 * Simply wraps `ssh` command. You can use it in the same way as `ssh`.
-* Automatically generates `~/.ssh/config` from `~/.ssh/zssh.lua`. You can write SSH configuration in Lua programming language.
+* Supports to write SSH configuration in Lua programming language.
 * Supports zsh completion.
 * Provides some hook functions.
 
 ![zssh.gif](zssh.gif)
-
 
 ## Installation
 
@@ -29,10 +28,7 @@ go get github.com/kohkimakimoto/zssh/cmd/zssh
 
 ## Usage
 
-At first, you should copy your `~/.ssh/config` to `~/.ssh/config.backup` to keep a backup.
-ZSSH override `~/.ssh/config` automatically when it runs.
-
-Create and edit `~/.ssh/zssh.lua`.
+Create and edit `~/.zssh/config.lua`. This is a main configuration file for ZSSH.
 
 ```lua
 Host "web01.localhost" {
@@ -52,7 +48,7 @@ Host "web02.localhost" {
 }
 ```
 
-This configuration generates the below ssh config when you run `zssh`.
+This configuration generates the below ssh config to the temporary file when you run `zssh`.
 
 ```
 Host web01.localhost
@@ -68,13 +64,14 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
-You can connect a server using below command.
+ZSSH uses the generated config by default. And automatically removes the temporary file when `zssh` process finishes.
+So You can connect a server using below simple command.
 
 ```
 $ zssh web01.localhost
 ```
 
-If you set a first character of keys as lower case like `description`, it is not SSH config.
+If you set a first character of keys as lower case like `description` in the config file, it is not SSH config.
 It is used for specific functionality. Read the next section **Zsh Completion**.
 
 ### Zsh Completion
@@ -102,7 +99,6 @@ Host "web01.localhost" {
     Port = "22",
     User = "kohkimakimoto",
     description = "my web01 server",
-
     hidden = true,
 }
 ```
