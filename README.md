@@ -176,4 +176,4 @@ Kohki Makimoto <kohki.makimoto@gmail.com>
 
 ## License
 
-MIT license.
+The MIT License (MIT)
