@@ -111,29 +111,7 @@ func (m *Macro) Script(host *Host) (string, error) {
 
 func (m *Macro) TargetHosts() ([]*Host, error) {
 
-	var targets = []*Host{}
-
-	hosts := HostsByTags(m.OnTags)
-	targets = append(targets, hosts...)
-
-	for _, v := range m.OnServers {
-		host := GetHost(v)
-		if host != nil {
-			targets = append(targets, host)
-		}
-	}
-
-	// remove duplication
-	var ret = []*Host{}
-	var checkDup = map[string]bool{}
-	for _, v := range targets {
-		if _, ok := checkDup[v.Name]; !ok {
-			checkDup[v.Name] = true
-			ret = append(ret, v)
-		}
-	}
-
-	return ret, nil
+	return nil, nil
 }
 
 func (m *Macro) AskYesOrNo() bool {

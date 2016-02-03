@@ -7,7 +7,6 @@ Extended ssh command.
 * Automatically generates `~/.ssh/config` from `~/.ssh/zssh.lua`. You can write SSH configuration in Lua programming language.
 * Supports zsh completion.
 * Provides some hook functions.
-* You can define macros to execute command via SSH.
 
 ![zssh.gif](zssh.gif)
 
@@ -133,58 +132,6 @@ Host "web01.localhost" {
 ```
 
 `before` hook fires before you connect a server via SSH. `after` hook fires after you disconnect SSH connection.
-
-
-### Macros
-
-You can define macros to run commands local or remote hosts.
-
-```lua
-Host "web01.localhost" {
-    HostName = "192.168.0.11",
-    Port = "22",
-    User = "kohkimakimoto",
-    ForwardAgent = "yes",
-    description = "my web01 server",
-    tags = {
-        role = "web"
-    },
-}
-
-Host "web02.localhost" {
-    HostName = "192.168.0.12",
-    Port = "22",
-    User = "kohkimakimoto",
-    ForwardAgent = "yes",
-    description = "my web02 server",
-    tags = {
-        role = "web"
-    },
-}
-
-Macro "example" {
-    -- parallel execution: default false
-    parallel = true,
-    -- display confirm prompt: default false
-    confirm = "Are you OK?",
-    -- description that is showed on zsh completion.
-    description = "example macro",
-    -- specify remote servers to run a command by tags. if it isn't set, runs command locally.
-    on = {role = "web"},
-    -- allocate tty: default false
-    tty = false,
-    -- command.
-    command = [[
-        ls -la
-    ]],
-}
-```
-
-Run a macro.
-
-```
-$ zssh example
-```
 
 ## Author
 

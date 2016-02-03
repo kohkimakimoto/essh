@@ -204,8 +204,10 @@ do_dev() {
     echo "--> Building ${txtyellow}${txtbold}dev${txtreset} binary."
 
     cd ..
-    go build -o="build/dev/${name}" cmd/${name}/${name}.go & loading
-    echo "Updated $(pwd)/build/dev/${name}" | indent
+    go build -o="build/dev/${name}" cmd/${name}/${name}.go
+    if [ $? -eq 0 ]; then
+        echo "Updated $(pwd)/build/dev/${name}" | indent
+    fi
     echo "--> Done."
 }
 

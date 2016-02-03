@@ -1,116 +1,172 @@
 package zssh
 
 import (
+	"flag"
 	"fmt"
 	"github.com/yuin/gopher-lua"
 	"io/ioutil"
-	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
-var ConfigFile string
-var SSHConfigFile string
-var Version = "0.5.0"
+// system configurations.
+var (
+	SystemWideConfigFile string
+	PerUserConfigFile    string
+	Version              = "0.5.0"
+)
 
-func Main() int {
-	log.SetFlags(0)
+var IgnoreError flag.ErrorHandling = 9999
+
+func Start() error {
+	var printFlag, configFlag, systemConfigFlag, debugFlag, hostsFlag, verboseFlag, tagsFlag, zshCompletinFlag bool
+	var configFile string
+	filters := []string{}
 
 	if len(os.Args) == 1 {
-		fmt.Println(`zssh: extended ssh command.
-
-version ` + Version + `
-
-zssh custom options:
-  --print	Print generated ssh config.
-  --config	Edit config file.
-  --hosts	List hosts.
-  --macros	List macros.
-  --update	Only update ssh config file. doesn't run ssh command.
-  --zsh-completion	Output zsh completion code.
-`)
-		// show ssh help
-		Run("ssh")
-		return 0
+		printUsage()
+		return nil
 	}
 
-	var args []string
-	if len(os.Args) >= 2 {
-		// remove the command name
-		args = os.Args[1:]
-	}
+	args := os.Args[1:]
+	for {
+		if len(args) == 0 {
+			break
+		}
 
-	firstArg := args[0]
-
-	printFlag := false
-	updateFlag := false
-	hostsFlag := false
-	macrosFlag := false
-	configFlag := false
-	zshCompletinFlag := false
-
-	for _, arg := range args {
+		arg := args[0]
 		if arg == "--print" {
 			printFlag = true
-		}
-		if arg == "--update" {
-			updateFlag = true
-		}
-		if arg == "--hosts" {
-			hostsFlag = true
-		}
-		if arg == "--macros" {
-			macrosFlag = true
-		}
-		if arg == "--config" {
+		} else if arg == "--config" {
 			configFlag = true
-		}
-		if arg == "--zsh-completion" {
+		} else if arg == "--system-config" {
+			systemConfigFlag = true
+		} else if arg == "--debug" {
+			debugFlag = true
+		} else if arg == "--hosts" {
+			hostsFlag = true
+		} else if arg == "--verbose" {
+			verboseFlag = true
+		} else if arg == "--filter" {
+			if len(args) < 2 {
+				return fmt.Errorf("--filter reguires an argument.")
+			}
+			filters = append(filters, args[1])
+			args = args[1:]
+		} else if strings.HasPrefix(arg, "--filter=") {
+			filters = append(filters,strings.Split(arg, "=")[1])
+		} else if arg == "--tags" {
+			tagsFlag = true
+		} else if arg == "--zsh-completion" {
 			zshCompletinFlag = true
+		} else if arg == "--config-file" {
+			if len(args) < 2 {
+				return fmt.Errorf("--config-file reguires an argument.")
+			}
+			configFile = args[1]
+			args = args[1:]
+		} else if strings.HasPrefix(arg, "--config-file=") {
+			configFile = strings.Split(arg, "=")[1]
+		} else {
+			break
 		}
+
+		args = args[1:]
 	}
 
 	if zshCompletinFlag {
 		fmt.Print(ZSH_COMPLETION)
-		return 0
+		return nil
 	}
 
 	if configFlag {
-		Run("$EDITOR " + ConfigFile)
-		return 0
+		Run("$EDITOR " + PerUserConfigFile)
+		return nil
 	}
 
-	lstate := lua.NewState()
-	defer lstate.Close()
+	if systemConfigFlag {
+		Run("$EDITOR " + SystemWideConfigFile)
+		return nil
+	}
 
-	LoadFunctions(lstate)
+	// set up the lua state.
+	L := lua.NewState()
+	defer L.Close()
 
-	if _, err := os.Stat(ConfigFile); err == nil {
-		if err := lstate.DoFile(ConfigFile); err != nil {
-			log.Printf("Error: %s", err)
-			return 1
+	// load lua custom functions
+	LoadFunctions(L)
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] loaded lua functions\n")
+	}
+
+	// load specific config file
+	if configFile != "" {
+		_, err := os.Stat(configFile)
+		if err != nil {
+			return err
+		}
+
+		if err := L.DoFile(configFile); err != nil {
+			return err
+		}
+
+		if debugFlag {
+			fmt.Printf("[zssh debug] loaded config file: %s \n", configFile)
+		}
+
+	} else {
+		// load system wide config
+		if _, err := os.Stat(SystemWideConfigFile); err == nil {
+			if err := L.DoFile(SystemWideConfigFile); err != nil {
+				return err
+			}
+
+			if debugFlag {
+				fmt.Printf("[zssh debug] loaded config file: %s \n", SystemWideConfigFile)
+			}
+
+		}
+
+		// load per-user wide config
+		if _, err := os.Stat(PerUserConfigFile); err == nil {
+			if err := L.DoFile(PerUserConfigFile); err != nil {
+				return err
+			}
+
+			if debugFlag {
+				fmt.Printf("[zssh debug] loaded config file: %s \n", PerUserConfigFile)
+			}
+
 		}
 	}
 
+	// generate ssh hosts config
 	content, err := GenHostsConfig()
 	if err != nil {
-		log.Printf("Error: %s", err)
-		return 1
+		return err
 	}
 
+	// only print generated config
 	if printFlag {
 		fmt.Println(string(content))
-		if !updateFlag {
-			return 0
-		}
+		return nil
 	}
 
+	// only print hosts list
 	if hostsFlag {
-		for _, host := range Hosts {
+		var hosts []*Host
+		if len(filters) > 0 {
+			hosts = HostsByTags(filters)
+		} else {
+			hosts = Hosts
+		}
+
+		for _, host := range hosts {
 			if !host.Hidden {
-				if host.Description != "" {
+				if verboseFlag {
 					fmt.Printf("%s\t%s\n", host.Name, host.Description)
 				} else {
 					fmt.Printf("%s\n", host.Name)
@@ -118,135 +174,148 @@ zssh custom options:
 			}
 		}
 
-		return 0
+		return nil
 	}
 
-	if macrosFlag {
-		for _, macro := range Macros {
-			if !macro.Hidden {
-				if macro.Description != "" {
-					fmt.Printf("%s\t%s\n", macro.Name, macro.Description)
-				} else {
-					fmt.Printf("%s\n", macro.Name)
-				}
-			}
+	if tagsFlag {
+		for _, tag := range Tags() {
+			fmt.Printf("%s\n", tag)
 		}
 
-		return 0
+		return nil
 	}
 
-	// check modification.
-	isModified := true
-	if _, err := os.Stat(SSHConfigFile); err == nil {
-		b, err := ioutil.ReadFile(SSHConfigFile)
-		if err != nil {
-			log.Printf("Error: %s", err)
-			return 1
+	// generate temporary ssh config file
+	tmpFile, err := ioutil.TempFile("", "zssh.ssh_config.")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		tmpFile.Close()
+		os.Remove(tmpFile.Name())
+
+		if debugFlag {
+			fmt.Printf("[zssh debug] deleted config file: %s \n", tmpFile.Name())
 		}
 
-		if string(b) == string(content) {
-			isModified = false
-		}
+	}()
+	generatedSSHConfigFile := tmpFile.Name()
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] generated config file: %s \n", generatedSSHConfigFile)
 	}
 
-	// update .ssh/config
-	if isModified {
-		err = ioutil.WriteFile(SSHConfigFile, content, 0644)
-		if err != nil {
-			log.Printf("Error: %s", err)
-			return 1
-		}
+	// update temporary sss config file
+	err = ioutil.WriteFile(generatedSSHConfigFile, content, 0644)
+	if err != nil {
+		return err
 	}
 
-	if updateFlag {
-		return 0
-	}
-
-	if macro, err := GetMacro(firstArg); err == nil {
-		// there is a macro
-		err := macro.Run()
-		if err != nil {
-			log.Printf("Error: %s", err)
-			return 1
-		}
-		return 0
-	}
-
-	// setup ssh command
-	cmdline := "ssh " + strings.Join(args, " ")
-
-	// got hooks
+	// get hooks
 	var hooks map[string]func() error
-	if len(args) >= 1 {
+
+	// Limitation!: hooks fires only when the hostname is specified by the first argument.
+	if len(args) > 0 {
 		hostname := args[0]
 		if host := GetHost(hostname); host != nil {
 			hooks = host.Hooks
 		}
 	}
 
-	// before hook
+	// run before hook
 	if before := hooks["before"]; before != nil {
+		if debugFlag {
+			fmt.Printf("[zssh debug] run before hook\n")
+		}
 		err := before()
 		if err != nil {
-			log.Printf("Error: %s", err)
-			return 1
+			return err
 		}
 	}
 
-	// run ssh
-	err = Run(cmdline)
-
-	// after hook
-	if after := hooks["after"]; after != nil {
-		err := after()
-		if err != nil {
-			log.Printf("Error: %s", err)
-			return 1
+	// register after hook
+	defer func() {
+		// after hook
+		if after := hooks["after"]; after != nil {
+			if debugFlag {
+				fmt.Printf("[zssh debug] run after hook\n")
+			}
+			err := after()
+			if err != nil {
+				panic(err)
+			}
 		}
+	}()
+
+	// setup ssh command
+	sshComandArgs := []string{"-F", generatedSSHConfigFile}
+	sshComandArgs = append(sshComandArgs, args[:]...)
+
+	// execute ssh commmand
+	cmd := exec.Command("ssh", sshComandArgs[:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
 	}
 
+	err = cmd.Run()
 	if err != nil {
-		return 1
+		return err
 	}
 
-	return 0
+	return nil
 }
 
-func userHomeDir() string {
-	if runtime.GOOS == "windows" {
-		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-		if home == "" {
-			home = os.Getenv("USERPROFILE")
-		}
-		return home
-	}
-	return os.Getenv("HOME")
+func printUsage() {
+	// print usage.
+	fmt.Println(`Usage: zssh [<options>] <ssh command options and args...>
+
+zssh is an extended ssh command.
+version ` + Version + `
+
+zssh options:
+  --print                 Print generated ssh config.
+  --config                Edit per-user config file.
+  --system-config         Edit system wide config file.
+  --config-file <FILE>    Load configuration from the specific file.
+  --hosts                 List hosts. This option can use with additional options
+     --filter <TAG>         Show only the hosts configured with a tag.
+     --verbose              List hosts with description.
+  --tags                  List tags.
+  --zsh-completion        Output zsh completion code.
+  --debug                 Output debug log
+
+And the following is original ssh command usage...
+`)
+	// show ssh help
+	cmd := exec.Command("ssh")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	cmd.Run()
 }
 
 func init() {
-	if ConfigFile == "" {
-		home := userHomeDir()
-		ConfigFile = filepath.Join(home, ".ssh/zssh.lua")
+	if SystemWideConfigFile == "" {
+		SystemWideConfigFile = "/etc/zssh/config.lua"
 	}
-
-	if SSHConfigFile == "" {
+	if PerUserConfigFile == "" {
 		home := userHomeDir()
-		SSHConfigFile = filepath.Join(home, ".ssh/config")
+		PerUserConfigFile = filepath.Join(home, ".zssh/config.lua")
 	}
-
 }
 
 var ZSH_COMPLETION = `
 _zssh_hosts() {
     local -a __zssh_hosts
-    local -a __zssh_macros
     PRE_IFS=$IFS
     IFS=$'\n'
-    __zssh_hosts=($(zssh --hosts | awk -F'\t' '{print $1":"$2}'))
-    __zssh_macros=($(zssh --macros | awk -F'\t' '{print $1":"$2}'))
+    __zssh_hosts=($(zssh --hosts --verbose | awk -F'\t' '{print $1":"$2}'))
     IFS=$PRE_IFS
     _describe -t host "host" __zssh_hosts
-    _describe -t macro "macro" __zssh_macros
 }
 
 _zssh () {
