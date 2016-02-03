@@ -126,13 +126,13 @@ Host "web01.localhost" {
 ZSSH supports easily running a bash script on the remote server.
 
 ```
-zssh --shell /path/to/script.sh web01.localhost
+$ zssh --shell /path/to/script.sh web01.localhost
 ```
 
-And also supports to get script using http.
+Also you can get a script using http instead of local filesystem.
 
 ```
-zssh --shell https://example/script.sh web01.localhost
+$ zssh --shell https://example/script.sh web01.localhost
 ```
 
 ## Other options
