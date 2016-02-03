@@ -9,6 +9,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"bytes"
+	"net/http"
+	"crypto/tls"
 )
 
 // system configurations.
@@ -22,7 +25,7 @@ var IgnoreError flag.ErrorHandling = 9999
 
 func Start() error {
 	var printFlag, configFlag, systemConfigFlag, debugFlag, hostsFlag, verboseFlag, tagsFlag, zshCompletinFlag bool
-	var configFile string
+	var configFile, shellPath string
 	filters := []string{}
 
 	if len(os.Args) == 1 {
@@ -69,6 +72,14 @@ func Start() error {
 			args = args[1:]
 		} else if strings.HasPrefix(arg, "--config-file=") {
 			configFile = strings.Split(arg, "=")[1]
+		} else if arg == "--shell" {
+			if len(args) < 2 {
+				return fmt.Errorf("--shell reguires an argument.")
+			}
+			shellPath = args[1]
+			args = args[1:]
+		} else if strings.HasPrefix(arg, "--shell=") {
+			shellPath = strings.Split(arg, "=")[1]
 		} else {
 			break
 		}
@@ -89,6 +100,46 @@ func Start() error {
 	if systemConfigFlag {
 		Run("$EDITOR " + SystemWideConfigFile)
 		return nil
+	}
+
+	var shellContent []byte
+
+	if shellPath != "" {
+		if strings.HasPrefix(shellPath, "http://") || strings.HasPrefix(shellPath, "https://") {
+			// get script from remote using http.
+			if debugFlag {
+				fmt.Printf("[zssh debug] get script using http from '%s'\n", shellPath)
+			}
+
+			var httpClient *http.Client
+			if strings.HasPrefix(shellPath, "https://") {
+				tr := &http.Transport{
+					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				}
+				httpClient = &http.Client{Transport: tr}
+			} else {
+				httpClient = &http.Client{}
+			}
+
+			resp, err := httpClient.Get(shellPath)
+			if err != nil {
+				return err
+			}
+			defer resp.Body.Close()
+			b, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+
+			shellContent = b
+		} else {
+			// get script from the file system.
+			b, err :=ioutil.ReadFile(shellPath)
+			if err != nil {
+				return err
+			}
+			shellContent = b
+		}
 	}
 
 	// set up the lua state.
@@ -211,51 +262,68 @@ func Start() error {
 		return err
 	}
 
-	// get hooks
-	var hooks map[string]func() error
 
-	// Limitation!: hooks fires only when the hostname is specified by the first argument.
-	if len(args) > 0 {
-		hostname := args[0]
-		if host := GetHost(hostname); host != nil {
-			hooks = host.Hooks
-		}
-	}
+	if shellPath == "" {
+		// get hooks
+		var hooks map[string]func() error
 
-	// run before hook
-	if before := hooks["before"]; before != nil {
-		if debugFlag {
-			fmt.Printf("[zssh debug] run before hook\n")
+		// Limitation!: hooks fires only when the hostname is specified by the first argument.
+		if len(args) > 0 {
+			hostname := args[0]
+			if host := GetHost(hostname); host != nil {
+				hooks = host.Hooks
+			}
 		}
-		err := before()
-		if err != nil {
-			return err
-		}
-	}
 
-	// register after hook
-	defer func() {
-		// after hook
-		if after := hooks["after"]; after != nil {
+		// run before hook
+		if before := hooks["before"]; before != nil {
 			if debugFlag {
-				fmt.Printf("[zssh debug] run after hook\n")
+				fmt.Printf("[zssh debug] run before hook\n")
 			}
-			err := after()
+			err := before()
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
-	}()
+
+		// register after hook
+		defer func() {
+			// after hook
+			if after := hooks["after"]; after != nil {
+				if debugFlag {
+					fmt.Printf("[zssh debug] run after hook\n")
+				}
+				err := after()
+				if err != nil {
+					panic(err)
+				}
+			}
+		}()
+	}
 
 	// setup ssh command
 	sshComandArgs := []string{"-F", generatedSSHConfigFile}
 	sshComandArgs = append(sshComandArgs, args[:]...)
+	if shellPath != "" {
+		sshComandArgs = append(sshComandArgs, "bash", "-se")
+	}
 
 	// execute ssh commmand
 	cmd := exec.Command("ssh", sshComandArgs[:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
+
+	if shellPath != "" {
+		// input shell script from stdin.
+		cmd.Stdin = bytes.NewBuffer(shellContent)
+
+		if debugFlag {
+			fmt.Printf("[zssh debug] shell content:\n%s\n", string(shellContent))
+		}
+
+	} else {
+		cmd.Stdin = os.Stdin
+	}
 
 	if debugFlag {
 		fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
@@ -281,10 +349,11 @@ zssh options:
   --config                Edit per-user config file.
   --system-config         Edit system wide config file.
   --config-file <FILE>    Load configuration from the specific file.
-  --hosts                 List hosts. This option can use with additional options
-     --filter <TAG>         Show only the hosts configured with a tag.
-     --verbose              List hosts with description.
+  --hosts                 List hosts. This option can use with additional options.
+  --filter <TAG>          (Using with --hosts option) Show only the hosts configured with a tag.
+  --verbose               (Using with --hosts option) List hosts with description.
   --tags                  List tags.
+  --shell <PATH>          Executed shell script of the path on the remote host.
   --zsh-completion        Output zsh completion code.
   --debug                 Output debug log
 
