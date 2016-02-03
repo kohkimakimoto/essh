@@ -18,14 +18,6 @@ ZSSH is provided as a single binary. You can download it and drop it in your $PA
 
 [Download latest version](https://github.com/kohkimakimoto/zssh/releases/latest)
 
-#### Using ***go get*** command
-
-Run `go get` command.
-
-```
-go get github.com/kohkimakimoto/zssh/cmd/zssh
-```
-
 ## Usage
 
 Create and edit `~/.zssh/config.lua`. This is a main configuration file for ZSSH.
@@ -128,6 +120,44 @@ Host "web01.localhost" {
 ```
 
 `before` hook fires before you connect a server via SSH. `after` hook fires after you disconnect SSH connection.
+
+## Running shell script
+
+ZSSH supports easily running a bash script on the remote server.
+
+```
+zssh --shell /path/to/script.sh web01.localhost
+```
+
+And also supports to get script using http.
+
+```
+zssh --shell https://example/script.sh web01.localhost
+```
+
+## Other options
+
+Please check command line help that showed by running `zssh` command without any options.
+
+```
+Usage: zssh [<options>] <ssh command options and args...>
+
+zssh is an extended ssh command.
+version 0.5.0
+
+zssh options:
+  --print                 Print generated ssh config.
+  --config                Edit per-user config file.
+  --system-config         Edit system wide config file.
+  --config-file <FILE>    Load configuration from the specific file.
+  --hosts                 List hosts. This option can use with additional options.
+  --filter <TAG>          (Using with --hosts option) Show only the hosts configured with a tag.
+  --verbose               (Using with --hosts option) List hosts with description.
+  --tags                  List tags.
+  --shell <PATH>          Executed shell script of the path on the remote host.
+  --zsh-completion        Output zsh completion code.
+  --debug                 Output debug log
+```
 
 ## Author
 
