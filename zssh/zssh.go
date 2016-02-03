@@ -380,6 +380,9 @@ func printUsage() {
 zssh is an extended ssh command.
 version ` + Version + `
 
+Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+The MIT License (MIT)
+
 zssh options:
   --print                 Print generated ssh config.
   --config                Edit per-user config file.
