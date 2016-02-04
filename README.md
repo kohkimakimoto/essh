@@ -57,7 +57,7 @@ Host web02.localhost
 ```
 
 ZSSH uses the generated config by default. And automatically removes the temporary file when `zssh` process finishes.
-So You can connect a server using below simple command.
+So you can connect a server using below simple command.
 
 ```
 $ zssh web01.localhost
