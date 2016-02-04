@@ -21,6 +21,7 @@ ZSSH is provided as a single binary. You can download it and drop it in your $PA
 ## Usage
 
 Create and edit `~/.zssh/config.lua`. This is a main configuration file for ZSSH.
+The configuration is written in Lua programming language.
 
 ```lua
 Host "web01.localhost" {
