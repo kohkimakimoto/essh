@@ -21,6 +21,7 @@ var (
 
 // flags
 var (
+	versionFlag bool
 	printFlag bool
 	configFlag bool
 	systemConfigFlag bool
@@ -53,6 +54,8 @@ func Start() error {
 		arg := args[0]
 		if arg == "--print" {
 			printFlag = true
+		} else if arg == "--version" {
+			versionFlag = true
 		} else if arg == "--config" {
 			configFlag = true
 		} else if arg == "--system-config" {
@@ -96,6 +99,11 @@ func Start() error {
 		}
 
 		args = args[1:]
+	}
+
+	if versionFlag {
+		fmt.Printf("%s (%s)\n", Version, CommitHash)
+		return nil
 	}
 
 	if zshCompletinFlag {
@@ -441,6 +449,7 @@ Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
 The MIT License (MIT)
 
 Options:
+  --version               Print version.
   --print                 Print generated ssh config.
   --config                Edit per-user config file.
   --system-config         Edit system wide config file.
@@ -496,7 +505,6 @@ Running scp:
 
 See also:
   ssh, rsync, scp
-
 `)
 }
 

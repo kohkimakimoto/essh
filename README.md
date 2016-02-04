@@ -160,12 +160,13 @@ Please check command line help that showed by running `zssh` command without any
 Usage: zssh [<options>] [<ssh options and args...>]
 
 ZSSH is an extended ssh command.
-version 0.5.0
+version 0.5.0 (075d81f9600e3f3bb73ccbbd1a3b3e7a41678b95)
 
 Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
 The MIT License (MIT)
 
 Options:
+  --version               Print version.
   --print                 Print generated ssh config.
   --config                Edit per-user config file.
   --system-config         Edit system wide config file.
