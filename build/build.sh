@@ -208,7 +208,11 @@ do_dev() {
     echo "--> Building ${txtyellow}${txtbold}dev${txtreset} binary."
 
     cd ..
-    gom build -ldflags="-X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" -o="build/dev/${name}" cmd/${name}/${name}.go
+    gom build \
+        -ldflags="-X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
+        -o="build/dev/${name}" \
+        ./cmd/${name}/${name}.go
+
     if [ $? -eq 0 ]; then
         echo "Updated $(pwd)/build/dev/${name}" | indent
     fi
