@@ -4,13 +4,11 @@ Extended ssh command.
 
 * This is a single binary CLI app.
 * Simply wraps `ssh` command. You can use it in the same way as `ssh`.
-* Automatically generates `~/.ssh/config` from `~/.ssh/zssh.lua`. You can write SSH configuration in Lua programming language.
+* Supports to write SSH configuration in Lua programming language.
 * Supports zsh completion.
 * Provides some hook functions.
-* You can define macros to execute command via SSH.
 
 ![zssh.gif](zssh.gif)
-
 
 ## Installation
 
@@ -20,20 +18,10 @@ ZSSH is provided as a single binary. You can download it and drop it in your $PA
 
 [Download latest version](https://github.com/kohkimakimoto/zssh/releases/latest)
 
-#### Using ***go get*** command
-
-Run `go get` command.
-
-```
-go get github.com/kohkimakimoto/zssh/cmd/zssh
-```
-
 ## Usage
 
-At first, you should copy your `~/.ssh/config` to `~/.ssh/config.backup` to keep a backup.
-ZSSH override `~/.ssh/config` automatically when it runs.
-
-Create and edit `~/.ssh/zssh.lua`.
+Create and edit `~/.zssh/config.lua`. This is a main configuration file for ZSSH.
+The configuration is written in Lua programming language.
 
 ```lua
 Host "web01.localhost" {
@@ -53,7 +41,7 @@ Host "web02.localhost" {
 }
 ```
 
-This configuration generates the below ssh config when you run `zssh`.
+This configuration generates the below ssh config to the temporary file when you run `zssh`.
 
 ```
 Host web01.localhost
@@ -69,13 +57,14 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
-You can connect a server using below command.
+ZSSH uses the generated config by default. And automatically removes the temporary file when `zssh` process finishes.
+So you can connect a server using below simple command.
 
 ```
 $ zssh web01.localhost
 ```
 
-If you set a first character of keys as lower case like `description`, it is not SSH config.
+If you set a first character of keys as lower case like `description` in the config file, it is not SSH config.
 It is used for specific functionality. Read the next section **Zsh Completion**.
 
 ### Zsh Completion
@@ -103,7 +92,6 @@ Host "web01.localhost" {
     Port = "22",
     User = "kohkimakimoto",
     description = "my web01 server",
-
     hidden = true,
 }
 ```
@@ -134,56 +122,73 @@ Host "web01.localhost" {
 
 `before` hook fires before you connect a server via SSH. `after` hook fires after you disconnect SSH connection.
 
+## Running shell script
 
-### Macros
-
-You can define macros to run commands local or remote hosts.
-
-```lua
-Host "web01.localhost" {
-    HostName = "192.168.0.11",
-    Port = "22",
-    User = "kohkimakimoto",
-    ForwardAgent = "yes",
-    description = "my web01 server",
-    tags = {
-        role = "web"
-    },
-}
-
-Host "web02.localhost" {
-    HostName = "192.168.0.12",
-    Port = "22",
-    User = "kohkimakimoto",
-    ForwardAgent = "yes",
-    description = "my web02 server",
-    tags = {
-        role = "web"
-    },
-}
-
-Macro "example" {
-    -- parallel execution: default false
-    parallel = true,
-    -- display confirm prompt: default false
-    confirm = "Are you OK?",
-    -- description that is showed on zsh completion.
-    description = "example macro",
-    -- specify remote servers to run a command by tags. if it isn't set, runs command locally.
-    on = {role = "web"},
-    -- allocate tty: default false
-    tty = false,
-    -- command.
-    command = [[
-        ls -la
-    ]],
-}
-```
-
-Run a macro.
+ZSSH supports easily running a bash script on the remote server.
 
 ```
-$ zssh example
+$ zssh --shell web01.localhost /path/to/script.sh
+```
+
+Also you can get a script using http instead of local filesystem.
+
+```
+$ zssh --shell web01.localhost https://example/script.sh
+```
+
+## Running rsync
+
+You can use zssh config for rsync using `--rsync` option.
+
+```
+$ zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
+```
+
+## Running scp
+
+You can use zssh config for scp using `--scp` option.
+
+```
+$ zssh --scp web01.localhost:/path/to/file ./local/file
+```
+
+## Other options
+
+Please check command line help that showed by running `zssh` command without any options.
+
+```
+Usage: zssh [<options>] [<ssh options and args...>]
+
+ZSSH is an extended ssh command.
+version 0.5.0 (075d81f9600e3f3bb73ccbbd1a3b3e7a41678b95)
+
+Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+The MIT License (MIT)
+
+Options:
+  --version               Print version.
+  --print                 Print generated ssh config.
+  --config                Edit per-user config file.
+  --system-config         Edit system wide config file.
+  --config-file <file>    Load configuration from the specific file.
+                          If you use this option, it does not use other default config files like a "/etc/zssh/config.lua".
+
+  --hosts                 List hosts. This option can use with additional options.
+  --filter <tag>          (Using with --hosts option) Show only the hosts configured with a tag.
+  --verbose               (Using with --hosts option) List hosts with description.
+
+  --tags                  List tags.
+
+  --zsh-completion        Output zsh completion code.
+  --debug                 Output debug log
+
+  --shell     Change behavior to execute a shell script on the remote host.
+              Take a look "Running shell script" section.
+  --rsync     Change behavior to execute rsync.
+              Take a look "Running rsync" section.
+  --scp       Change behavior to execute scp.
+              Take a look "Running scp" section.
+...
 ```
 
 ## Author
@@ -192,4 +197,4 @@ Kohki Makimoto <kohki.makimoto@gmail.com>
 
 ## License
 
-MIT license.
+The MIT License (MIT)

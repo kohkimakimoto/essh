@@ -1,0 +1,70 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+name = "zssh"
+
+Vagrant.configure(2) do |config|
+
+  %w{
+    centos-6.5
+    centos-7.0
+  }.each_with_index do |platform, index|
+
+    config.vbguest.auto_update = false
+    config.vm.define platform do |c|
+
+      c.vm.box = "opscode-#{platform}"
+      c.vm.box_url = "http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_#{platform}_chef-provisionerless.box"
+      c.vm.hostname = "#{name}-packaging-#{platform}"
+      c.vm.network :private_network, type: "dhcp"
+      c.vm.synced_folder __dir__ + "/../dist", "/var/dist"
+
+      case platform
+        when 'centos-5.10'
+          epel = "sudo rpm -Uvh http://ftp-srv2.kddilabs.jp/Linux/distributions/fedora/epel/5/x86_64/epel-release-5-4.noarch.rpm"
+          extra = "gcc44 gcc44-c++"
+        when 'centos-6.5'
+          epel = "sudo yum -y install http://ftp.riken.jp/Linux/fedora/epel/6/x86_64/epel-release-6-8.noarch.rpm"
+          extra = ""
+        when 'centos-7.0'
+          epel = "sudo yum -y install epel-release"
+          extra = ""
+        else
+          raise "Unknown platform: #{platform}"
+      end
+
+      c.vm.provision :shell, privileged: false, :inline => <<-EOT
+        echo "Provisioning started, installing packages..."
+
+        echo "Install epel repository..."
+        #{epel}
+
+        echo "Cleaning generated directory..."
+        rm -rf /var/dist/rpm/#{platform}
+
+        echo "Setting up rpm dev tree..."
+        sudo yum -y install rpmdevtools mock
+        rpmdev-setuptree
+
+        echo "Copying files..."
+        cp -pr /vagrant/SPECS $HOME/rpmbuild/
+        cp -pr /vagrant/SOURCES $HOME/rpmbuild/
+        cp -p /var/dist/#{name}_linux_amd64.zip $HOME/rpmbuild/SOURCES/#{name}_linux_amd64.zip
+
+        echo "Building rpm..."
+        cd $HOME
+        rpmbuild -ba rpmbuild/SPECS/#{name}.spec
+
+        echo "Copying rpms back to shared folder..."
+        mkdir -p /var/dist/#{platform}
+        cp -pr $HOME/rpmbuild/RPMS /var/dist/#{platform}/
+        cp -pr $HOME/rpmbuild/SRPMS /var/dist/#{platform}/
+      EOT
+
+      c.vm.provider :virtualbox do |vb|
+        vb.gui = false
+        vb.customize ["modifyvm", :id, "--memory", "2048"]
+      end
+    end
+  end
+end

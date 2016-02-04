@@ -1,5 +1,1 @@
-gom 'github.com/yuin/gopher-lua', :commit => 'f918613776713b6f81c708f3a2126b542c3efdd4'
-gom 'github.com/yuin/gluamapper', :commit => 'd836955830e75240d46ce9f0e6d148d94f2e1d3a'
-gom 'github.com/shiena/ansicolor', :commit => 'd445752f6f66f9cd987722f109149f6799cdf1de'
-gom 'github.com/fatih/color', :commit => '9aae6aaa22315390f03959adca2c4d395b02fcef'
-gom 'github.com/mattn/go-shellwords', :commit => 'f4e566c536cf69158e808ec28ef4182a37fdc981'
+gom 'github.com/yuin/gopher-lua', :commit => 'cbab8d20d579272a56e78ab4395236bb21dcbbbf'
