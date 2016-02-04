@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-#
-# bash boilerplate.
-# You should edit it for your purpose.
-#
-
 ##################################################
 # General functions, initializing and etc..
 # You probably should not edit this section.

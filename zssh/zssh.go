@@ -3,7 +3,6 @@ package zssh
 import (
 	"bytes"
 	"crypto/tls"
-	"flag"
 	"fmt"
 	"github.com/yuin/gopher-lua"
 	"io/ioutil"
@@ -21,14 +20,25 @@ var (
 	Version              = "0.5.0"
 )
 
-var IgnoreError flag.ErrorHandling = 9999
+// flags
+var (
+	printFlag bool
+	configFlag bool
+	systemConfigFlag bool
+	debugFlag bool
+	hostsFlag bool
+	verboseFlag bool
+	tagsFlag bool
+	zshCompletinFlag bool
+	bashCompletinFlag bool
+	shellFlag bool
+	rsyncFlag bool
+
+	configFile string
+	filters []string = []string{}
+)
 
 func Start() error {
-	var printFlag, configFlag, systemConfigFlag, debugFlag, hostsFlag, verboseFlag, tagsFlag, zshCompletinFlag, bashCompletinFlag bool
-	var configFile, shellPath string
-	var rsyncArg string
-	filters := []string{}
-
 	if len(os.Args) == 1 {
 		printUsage()
 		return nil
@@ -76,21 +86,9 @@ func Start() error {
 		} else if strings.HasPrefix(arg, "--config-file=") {
 			configFile = strings.Split(arg, "=")[1]
 		} else if arg == "--shell" {
-			if len(args) < 2 {
-				return fmt.Errorf("--shell reguires an argument.")
-			}
-			shellPath = args[1]
-			args = args[1:]
-		} else if strings.HasPrefix(arg, "--shell=") {
-			shellPath = strings.Split(arg, "=")[1]
+			shellFlag = true
 		} else if arg == "--rsync" {
-			if len(args) < 2 {
-				return fmt.Errorf("--rsync reguires an argument.")
-			}
-			rsyncArg = args[1]
-			args = args[1:]
-		} else if strings.HasPrefix(arg, "--rsync=") {
-			rsyncArg = strings.Split(arg, "=")[1]
+			rsyncFlag = true
 		} else {
 			break
 		}
@@ -109,53 +107,13 @@ func Start() error {
 	}
 
 	if configFlag {
-		ShellExec("$EDITOR " + PerUserConfigFile)
+		shellExec("$EDITOR " + PerUserConfigFile)
 		return nil
 	}
 
 	if systemConfigFlag {
-		ShellExec("$EDITOR " + SystemWideConfigFile)
+		shellExec("$EDITOR " + SystemWideConfigFile)
 		return nil
-	}
-
-	var shellContent []byte
-
-	if shellPath != "" {
-		if strings.HasPrefix(shellPath, "http://") || strings.HasPrefix(shellPath, "https://") {
-			// get script from remote using http.
-			if debugFlag {
-				fmt.Printf("[zssh debug] get script using http from '%s'\n", shellPath)
-			}
-
-			var httpClient *http.Client
-			if strings.HasPrefix(shellPath, "https://") {
-				tr := &http.Transport{
-					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-				}
-				httpClient = &http.Client{Transport: tr}
-			} else {
-				httpClient = &http.Client{}
-			}
-
-			resp, err := httpClient.Get(shellPath)
-			if err != nil {
-				return err
-			}
-			defer resp.Body.Close()
-			b, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return err
-			}
-
-			shellContent = b
-		} else {
-			// get script from the file system.
-			b, err := ioutil.ReadFile(shellPath)
-			if err != nil {
-				return err
-			}
-			shellContent = b
-		}
 	}
 
 	// set up the lua state.
@@ -244,6 +202,7 @@ func Start() error {
 		return nil
 	}
 
+	// only print tags list
 	if tagsFlag {
 		for _, tag := range Tags() {
 			fmt.Printf("%s\n", tag)
@@ -278,136 +237,223 @@ func Start() error {
 		return err
 	}
 
-	if shellPath == "" && rsyncArg == "" {
-		// get hooks
-		var hooks map[string]func() error
 
-		// Limitation!: hooks fires only when the hostname is specified by the first argument.
-		if len(args) > 0 {
-			hostname := args[0]
-			if host := GetHost(hostname); host != nil {
-				hooks = host.Hooks
-			}
+	// select running mode and run it.
+
+	if shellFlag {
+		err = runShellScript(generatedSSHConfigFile, args)
+	} else if rsyncFlag {
+		err = runRsync(generatedSSHConfigFile, args)
+	} else {
+		err = runSSH(generatedSSHConfigFile, args)
+	}
+
+	return err
+}
+
+func runSSH(config string, args []string) error {
+	// hooks
+	var hooks map[string]func() error
+
+	// Limitation!
+	// hooks fires only when the hostname is specified by the first argument.
+	if len(args) > 0 {
+		hostname := args[0]
+		if host := GetHost(hostname); host != nil {
+			hooks = host.Hooks
 		}
+	}
 
-		// run before hook
-		if before := hooks["before"]; before != nil {
+	// run before hook
+	if before := hooks["before"]; before != nil {
+		if debugFlag {
+			fmt.Printf("[zssh debug] run before hook\n")
+		}
+		err := before()
+		if err != nil {
+			return err
+		}
+	}
+
+	// register after hook
+	defer func() {
+		// after hook
+		if after := hooks["after"]; after != nil {
 			if debugFlag {
-				fmt.Printf("[zssh debug] run before hook\n")
+				fmt.Printf("[zssh debug] run after hook\n")
 			}
-			err := before()
+			err := after()
 			if err != nil {
-				return err
+				panic(err)
 			}
 		}
+	}()
 
-		// register after hook
-		defer func() {
-			// after hook
-			if after := hooks["after"]; after != nil {
-				if debugFlag {
-					fmt.Printf("[zssh debug] run after hook\n")
-				}
-				err := after()
-				if err != nil {
-					panic(err)
-				}
+	// setup ssh command args
+	sshComandArgs := []string{"-F", config}
+	sshComandArgs = append(sshComandArgs, args[:]...)
+
+	// execute ssh commmand
+	cmd := exec.Command("ssh", sshComandArgs[:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
+	}
+
+	return cmd.Run()
+}
+
+func runShellScript(config string, args []string) error {
+	if len(args) < 2 {
+		return fmt.Errorf("shell script mode requires 2 parameters at least.")
+	}
+
+	// In the shell script mode.
+	// the last argument must be a script file path.
+	shellPath := args[len(args)-1]
+	// remove it
+	args = args[:len(args)-1]
+
+	var scriptContent []byte
+	if strings.HasPrefix(shellPath, "http://") || strings.HasPrefix(shellPath, "https://") {
+		// get script from remote using http.
+		if debugFlag {
+			fmt.Printf("[zssh debug] get script using http from '%s'\n", shellPath)
+		}
+
+		var httpClient *http.Client
+		if strings.HasPrefix(shellPath, "https://") {
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			}
-		}()
+			httpClient = &http.Client{Transport: tr}
+		} else {
+			httpClient = &http.Client{}
+		}
+
+		resp, err := httpClient.Get(shellPath)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		scriptContent = b
+	} else {
+		// get script from the file system.
+		b, err := ioutil.ReadFile(shellPath)
+		if err != nil {
+			return err
+		}
+		scriptContent = b
+	}
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] script:\n%s\n", string(scriptContent))
 	}
 
 	// setup ssh command args
-	sshComandArgs := []string{"-F", generatedSSHConfigFile}
+	sshComandArgs := []string{"-F", config}
 	sshComandArgs = append(sshComandArgs, args[:]...)
-	if shellPath != "" {
-		sshComandArgs = append(sshComandArgs, "bash", "-se")
+	sshComandArgs = append(sshComandArgs, "bash", "-se")
+
+	cmd := exec.Command("ssh", sshComandArgs[:]...)
+	cmd.Stdin = bytes.NewBuffer(scriptContent)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
 	}
 
-	if rsyncArg != "" {
-		// rsync mode.
-		if debugFlag {
-			fmt.Printf("[zssh debug] use rsync mode.\n")
-		}
+	return cmd.Run()
+}
 
-		rsyncSSHOption := `-e "ssh ` + strings.Join(sshComandArgs, " ") + `"`
-		rsyncCommand := "rsync " + rsyncSSHOption + " " + rsyncArg
-
-		if debugFlag {
-			fmt.Printf("[zssh debug] real rsync command: %v\n", rsyncCommand)
-		}
-
-		err := ShellExec(rsyncCommand)
-		if err != nil {
-			return err
-		}
-	} else {
-		// normal ssh mode.
-
-		// execute ssh commmand
-		cmd := exec.Command("ssh", sshComandArgs[:]...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		if shellPath != "" {
-			// input shell script from stdin.
-			cmd.Stdin = bytes.NewBuffer(shellContent)
-
-			if debugFlag {
-				fmt.Printf("[zssh debug] shell content:\n%s\n", string(shellContent))
-			}
-
-		} else {
-			cmd.Stdin = os.Stdin
-		}
-
-		if debugFlag {
-			fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
-		}
-
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
+func runRsync(config string, args []string) error {
+	if debugFlag {
+		fmt.Printf("[zssh debug] use rsync mode.\n")
 	}
 
-	return nil
+	if len(args) < 1 {
+		return fmt.Errorf("rsync mode requires 1 parameters at least.")
+	}
+
+	// In the rsync mode.
+	// the arguments must be rsync command options and args.
+	sshComandArgs := []string{"-F", config}
+	rsyncSSHOption := `-e "ssh ` + strings.Join(sshComandArgs, " ") + `"`
+
+	rsyncCommand := "rsync " + rsyncSSHOption + " " + strings.Join(args, " ")
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] real rsync command: %v\n", rsyncCommand)
+	}
+
+	return shellExec(rsyncCommand)
 }
 
 func printUsage() {
 	// print usage.
 	fmt.Println(`Usage: zssh [<options>] [<ssh options and args...>]
 
-zssh is an extended ssh command.
+ZSSH is an extended ssh command.
 version ` + Version + `
 
 Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
 The MIT License (MIT)
 
-zssh options:
+Options:
   --print                 Print generated ssh config.
   --config                Edit per-user config file.
   --system-config         Edit system wide config file.
-  --config-file <FILE>    Load configuration from the specific file.
+  --config-file <file>    Load configuration from the specific file.
+                          If you use this option, it does not use other default config files like a "/etc/zssh/config.lua".
+
   --hosts                 List hosts. This option can use with additional options.
-  --filter <TAG>          (Using with --hosts option) Show only the hosts configured with a tag.
+  --filter <tag>          (Using with --hosts option) Show only the hosts configured with a tag.
   --verbose               (Using with --hosts option) List hosts with description.
+
   --tags                  List tags.
+
   --zsh-completion        Output zsh completion code.
   --debug                 Output debug log
 
-zssh options for convenient functionalities:
-  --shell <PATH> <HOSTNAME>              Execute a shell script of the path on the remote host.
-  --rsync <rsync options and args...>    Execute rsync using zssh config.
+  --shell     Change behavior to execute a shell script on the remote host.
+              Take a look "Running shell script" section.
+  --rsync     Change behavior to execute rsync.
+              Take a look "Running rsync" section.
 
+Running shell script:
+  ZSSH supports easily running a bash script on the remote server.
+  Syntax:
 
-And the following is original ssh command usage...
+    zssh --shell [<ssh options and args...> <script path|script url>
+
+  Examples:
+
+    zssh --shell web01.localhost /path/to/script.sh
+    zssh --shell web01.localhost https://example/script.sh
+
+Running rsyc:
+  You can use zssh config for rsync using --rsync option.
+  Syntax:
+
+    zssh --rsync <rsync options and args...>
+
+  Examples:
+
+    zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
+
+See also:
+  ssh, rsync
+
 `)
-	// show ssh help
-	cmd := exec.Command("ssh")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	cmd.Run()
 }
 
 func init() {

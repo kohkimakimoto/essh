@@ -126,13 +126,13 @@ Host "web01.localhost" {
 ZSSH supports easily running a bash script on the remote server.
 
 ```
-$ zssh --shell /path/to/script.sh web01.localhost
+$ zssh --shell web01.localhost /path/to/script.sh
 ```
 
 Also you can get a script using http instead of local filesystem.
 
 ```
-$ zssh --shell https://example/script.sh web01.localhost
+$ zssh --shell web01.localhost https://example/script.sh
 ```
 
 ## Running rsync
@@ -140,7 +140,7 @@ $ zssh --shell https://example/script.sh web01.localhost
 You can use zssh config for rsync using `--rsync` option.
 
 ```
-$ zssh --rsync "-avz /local/dir/ web01.localhost:/path/to/remote/dir"
+$ zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
 ```
 
 ## Other options
@@ -150,24 +150,56 @@ Please check command line help that showed by running `zssh` command without any
 ```
 Usage: zssh [<options>] [<ssh options and args...>]
 
-zssh is an extended ssh command.
+ZSSH is an extended ssh command.
 version 0.5.0
 
-zssh options:
+Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+The MIT License (MIT)
+
+Options:
   --print                 Print generated ssh config.
   --config                Edit per-user config file.
   --system-config         Edit system wide config file.
-  --config-file <FILE>    Load configuration from the specific file.
+  --config-file <file>    Load configuration from the specific file.
+                          If you use this option, it does not use other default config files like a "/etc/zssh/config.lua".
+
   --hosts                 List hosts. This option can use with additional options.
-  --filter <TAG>          (Using with --hosts option) Show only the hosts configured with a tag.
+  --filter <tag>          (Using with --hosts option) Show only the hosts configured with a tag.
   --verbose               (Using with --hosts option) List hosts with description.
+
   --tags                  List tags.
+
   --zsh-completion        Output zsh completion code.
   --debug                 Output debug log
 
-zssh options for convenient functionalities:
-  --shell <PATH> <HOSTNAME>              Execute a shell script of the path on the remote host.
-  --rsync <rsync options and args...>    Execute rsync using zssh config.
+  --shell     Change behavior to execute a shell script on the remote host.
+              Take a look "Running shell script" section.
+  --rsync     Change behavior to execute rsync.
+              Take a look "Running rsync" section.
+
+Running shell script:
+  ZSSH supports easily running a bash script on the remote server.
+  Syntax:
+
+    zssh --shell [<ssh options and args...> <script path|script url>
+
+  Examples:
+
+    zssh --shell web01.localhost /path/to/script.sh
+    zssh --shell web01.localhost https://example/script.sh
+
+Running rsyc:
+  You can use zssh config for rsync using --rsync option.
+  Syntax:
+
+    zssh --rsync <rsync options and args...>
+
+  Examples:
+
+    zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
+
+See also:
+  ssh, rsync
 ```
 
 ## Author

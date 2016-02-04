@@ -9,13 +9,13 @@ import (
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Fprintf(os.Stderr, "[zssh error] %v", err)
+			fmt.Fprintf(os.Stderr, "[zssh error] %v\n", err)
 			os.Exit(1)
 		}
 	}()
 
 	if err := zssh.Start(); err != nil {
-		fmt.Fprintf(os.Stderr, "[zssh error] %v", err)
+		fmt.Fprintf(os.Stderr, "[zssh error] %v\n", err)
 		os.Exit(1)
 	}
 
