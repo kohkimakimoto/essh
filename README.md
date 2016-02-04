@@ -14,8 +14,6 @@ Extended ssh command.
 
 ## Installation
 
-#### Compiled binary
-
 ZSSH is provided as a single binary. You can download it and drop it in your $PATH.
 
 [Download latest version](https://github.com/kohkimakimoto/zssh/releases/latest)
