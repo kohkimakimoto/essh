@@ -8,6 +8,8 @@ Extended ssh command.
 * Supports zsh completion.
 * Provides some hook functions.
 
+**There are many breaking changes from v0.3.0**
+
 ![zssh.gif](zssh.gif)
 
 ## Installation
