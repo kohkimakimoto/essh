@@ -1,6 +1,6 @@
 Name:           zssh
 Version:        0.5.0
-Release:        1%{?dist}
+Release:        1.el%{rhel}
 Summary:        zssh is an extended ssh command.
 
 Group:          Development/Tools

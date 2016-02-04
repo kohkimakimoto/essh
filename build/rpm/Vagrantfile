@@ -36,14 +36,19 @@ Vagrant.configure(2) do |config|
       c.vm.provision :shell, privileged: false, :inline => <<-EOT
         echo "Provisioning started, installing packages..."
 
-        echo "Install epel repository..."
-        #{epel}
+        sudo rpm -qa | grep epel > /dev/null
+        if [ $? -ne 0 ]; then
+            echo "Install epel repository..."
+            #{epel}
+        fi
 
-        echo "Cleaning generated directory..."
-        rm -rf /var/dist/rpm/#{platform}
+        sudo rpm -qa | grep rpmdevtools > /dev/null
+        if [ $? -ne 0 ]; then
+            echo "Setting up rpm dev tree..."
+            sudo yum -y install rpmdevtools mock
+        fi
 
-        echo "Setting up rpm dev tree..."
-        sudo yum -y install rpmdevtools mock
+        rm -rf $HOME/rpmbuild
         rpmdev-setuptree
 
         echo "Copying files..."

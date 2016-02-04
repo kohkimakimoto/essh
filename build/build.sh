@@ -255,7 +255,15 @@ do_packaging() {
     cd $script_dir
     echo "--> Start ${txtyellow}${txtbold}packaigng${txtreset}."
     cd rpm
-    vagrant up | indent
+
+    vagrant status | grep running > /dev/null &&:
+    if [ $? -eq 0 ]; then
+        vagrant provision | indent
+    else
+        vagrant up | indent
+    fi
+
+    echo "--> Done."
 }
 
 do_destroy() {
