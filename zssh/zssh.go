@@ -17,7 +17,6 @@ import (
 var (
 	SystemWideConfigFile string
 	PerUserConfigFile    string
-	Version              = "0.5.0"
 )
 
 // flags
@@ -436,7 +435,7 @@ func printUsage() {
 	fmt.Println(`Usage: zssh [<options>] [<ssh options and args...>]
 
 ZSSH is an extended ssh command.
-version ` + Version + `
+version ` + Version + ` (` + CommitHash + `)
 
 Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
 The MIT License (MIT)

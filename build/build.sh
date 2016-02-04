@@ -208,7 +208,7 @@ do_dev() {
     echo "--> Building ${txtyellow}${txtbold}dev${txtreset} binary."
 
     cd ..
-    go build -o="build/dev/${name}" cmd/${name}/${name}.go
+    gom build -ldflags="-X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" -o="build/dev/${name}" cmd/${name}/${name}.go
     if [ $? -eq 0 ]; then
         echo "Updated $(pwd)/build/dev/${name}" | indent
     fi
@@ -226,6 +226,7 @@ do_dist() {
     cd ..
     gom exec gox \
         -os="linux darwin" \
+        -ldflags="-X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
         -output "build/dist/${name}_{{.OS}}_{{.Arch}}" \
         ./cmd/${name} \
         | indent & loading
