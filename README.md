@@ -144,6 +144,14 @@ You can use zssh config for rsync using `--rsync` option.
 $ zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
 ```
 
+## Running scp
+
+You can use zssh config for scp using `--scp` option.
+
+```
+$ zssh --scp web01.localhost:/path/to/file ./local/file
+```
+
 ## Other options
 
 Please check command line help that showed by running `zssh` command without any options.
@@ -177,30 +185,9 @@ Options:
               Take a look "Running shell script" section.
   --rsync     Change behavior to execute rsync.
               Take a look "Running rsync" section.
-
-Running shell script:
-  ZSSH supports easily running a bash script on the remote server.
-  Syntax:
-
-    zssh --shell [<ssh options and args...> <script path|script url>
-
-  Examples:
-
-    zssh --shell web01.localhost /path/to/script.sh
-    zssh --shell web01.localhost https://example/script.sh
-
-Running rsyc:
-  You can use zssh config for rsync using --rsync option.
-  Syntax:
-
-    zssh --rsync <rsync options and args...>
-
-  Examples:
-
-    zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
-
-See also:
-  ssh, rsync
+  --scp       Change behavior to execute scp.
+              Take a look "Running scp" section.
+...
 ```
 
 ## Author

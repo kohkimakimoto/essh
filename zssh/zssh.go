@@ -33,6 +33,7 @@ var (
 	bashCompletinFlag bool
 	shellFlag bool
 	rsyncFlag bool
+	scpFlag bool
 
 	configFile string
 	filters []string = []string{}
@@ -89,6 +90,8 @@ func Start() error {
 			shellFlag = true
 		} else if arg == "--rsync" {
 			rsyncFlag = true
+		} else if arg == "--scp" {
+			scpFlag = true
 		} else {
 			break
 		}
@@ -244,6 +247,8 @@ func Start() error {
 		err = runShellScript(generatedSSHConfigFile, args)
 	} else if rsyncFlag {
 		err = runRsync(generatedSSHConfigFile, args)
+	} else if scpFlag {
+		err = runSCP(generatedSSHConfigFile, args)
 	} else {
 		err = runSSH(generatedSSHConfigFile, args)
 	}
@@ -375,6 +380,34 @@ func runShellScript(config string, args []string) error {
 	return cmd.Run()
 }
 
+func runSCP(config string, args []string) error {
+	if debugFlag {
+		fmt.Printf("[zssh debug] use scp mode.\n")
+	}
+
+	if len(args) < 2 {
+		return fmt.Errorf("scp mode requires 2 parameters at least.")
+	}
+
+	// In the scp mode.
+	// the arguments must be scp command options and args.
+	sshComandArgs := []string{"-F", config}
+	sshComandArgs = append(sshComandArgs, args[:]...)
+
+	// execute ssh commmand
+	cmd := exec.Command("scp", sshComandArgs[:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
+	}
+
+	return cmd.Run()
+}
+
+
 func runRsync(config string, args []string) error {
 	if debugFlag {
 		fmt.Printf("[zssh debug] use rsync mode.\n")
@@ -428,6 +461,8 @@ Options:
               Take a look "Running shell script" section.
   --rsync     Change behavior to execute rsync.
               Take a look "Running rsync" section.
+  --scp       Change behavior to execute scp.
+              Take a look "Running scp" section.
 
 Running shell script:
   ZSSH supports easily running a bash script on the remote server.
@@ -450,8 +485,18 @@ Running rsyc:
 
     zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
 
+Running scp:
+  You can use zssh config for scp using --scp option.
+  Syntax:
+
+    zssh --scp <scp options and args...>
+
+  Examples:
+
+    zssh --scp web01.localhost:/path/to/file ./local/file
+
 See also:
-  ssh, rsync
+  ssh, rsync, scp
 
 `)
 }
