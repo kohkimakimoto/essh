@@ -130,12 +130,35 @@ func Start() error {
 	L := lua.NewState()
 	defer L.Close()
 
-	// load lua custom functions
-	LoadFunctions(L)
+	// init lua state
+	InitLuaState(L)
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] loaded lua functions\n")
+		fmt.Printf("[zssh debug] init lua state\n")
 	}
+
+	// generate temporary ssh config file
+	tmpFile, err := ioutil.TempFile("", "zssh.ssh_config.")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		tmpFile.Close()
+		os.Remove(tmpFile.Name())
+
+		if debugFlag {
+			fmt.Printf("[zssh debug] deleted config file: %s \n", tmpFile.Name())
+		}
+
+	}()
+	generatedSSHConfigFile := tmpFile.Name()
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] generated config file: %s \n", generatedSSHConfigFile)
+	}
+
+	// set temporary ssh config file path
+	lzssh.RawSetString("ssh_config", lua.LString(generatedSSHConfigFile))
 
 	// load specific config file
 	if configFile != "" {
@@ -221,35 +244,13 @@ func Start() error {
 		return nil
 	}
 
-	// generate temporary ssh config file
-	tmpFile, err := ioutil.TempFile("", "zssh.ssh_config.")
-	if err != nil {
-		return err
-	}
-	defer func() {
-		tmpFile.Close()
-		os.Remove(tmpFile.Name())
-
-		if debugFlag {
-			fmt.Printf("[zssh debug] deleted config file: %s \n", tmpFile.Name())
-		}
-
-	}()
-	generatedSSHConfigFile := tmpFile.Name()
-
-	if debugFlag {
-		fmt.Printf("[zssh debug] generated config file: %s \n", generatedSSHConfigFile)
-	}
-
-	// update temporary sss config file
+	// update temporary ssh config file
 	err = ioutil.WriteFile(generatedSSHConfigFile, content, 0644)
 	if err != nil {
 		return err
 	}
-
-
+	
 	// select running mode and run it.
-
 	if shellFlag {
 		err = runShellScript(generatedSSHConfigFile, args)
 	} else if rsyncFlag {

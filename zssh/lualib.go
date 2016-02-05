@@ -6,8 +6,24 @@ import (
 	"unicode"
 )
 
-func LoadFunctions(L *lua.LState) {
+var (
+	lzssh *lua.LTable
+)
+
+func InitLuaState(L *lua.LState) {
 	L.SetGlobal("Host", L.NewFunction(coreHost))
+
+	lzssh = L.NewTable()
+	L.SetGlobal("zssh", lzssh)
+
+	lzssh.RawSetString("ssh_config", lua.LNil)
+}
+
+func sshConfig(L *lua.LState) int {
+
+	L.Push(lua.LString("aaaaaaa"))
+
+	return 0
 }
 
 func coreHost(L *lua.LState) int {
