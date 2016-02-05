@@ -268,9 +268,9 @@ func runSSH(config string, args []string) error {
 	var hooks map[string]func() error
 
 	// Limitation!
-	// hooks fires only when the hostname is specified by the first argument.
+	// hooks fires only when the hostname is specified by the last argument.
 	if len(args) > 0 {
-		hostname := args[0]
+		hostname := args[len(args)-1]
 		if host := GetHost(hostname); host != nil {
 			hooks = host.Hooks
 		}
