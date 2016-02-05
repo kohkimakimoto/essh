@@ -263,6 +263,7 @@ do_packaging() {
         vagrant up | indent
     fi
 
+    vagrant halt
     echo "--> Done."
 }
 
