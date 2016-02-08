@@ -260,10 +260,10 @@ do_packaging() {
     if [ $? -eq 0 ]; then
         vagrant provision | indent
     else
-        vagrant up | indent
+        vagrant up --provision | indent
     fi
-
     vagrant halt
+
     echo "--> Done."
 }
 
