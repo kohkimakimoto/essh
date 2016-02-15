@@ -130,7 +130,9 @@ ZSSH provides `zssh` object to the Lua context. And you can set and get below va
 
 `zssh.ssh_config`: Generated config file path. At default, a temporary file path when you run `zssh`. You can set static file path. For instance, If you set `zssh.ssh_config = os.getenv("HOME") .. "/.ssh/config"`, ZSSH overrides `~/.ssh/config` that is standard ssh config file per user.
 
-## Running shell script
+## Useful functionality
+
+### Running shell script
 
 ZSSH supports easily running a bash script on the remote server.
 
@@ -144,7 +146,7 @@ Also you can get a script using http instead of local filesystem.
 $ zssh --shell web01.localhost https://example/script.sh
 ```
 
-## Running rsync
+### Running rsync
 
 You can use zssh config for rsync using `--rsync` option.
 
@@ -152,7 +154,7 @@ You can use zssh config for rsync using `--rsync` option.
 $ zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
 ```
 
-## Running scp
+### Running scp
 
 You can use zssh config for scp using `--scp` option.
 
