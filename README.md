@@ -132,7 +132,7 @@ ZSSH provides `zssh` object to the Lua context. And you can set and get below va
 
 `ssh_config` is generated config file path. At default, a temporary file path when you run `zssh`.
 
-You can set static file path. For instance, If you set `zssh.ssh_config = os.getenv("HOME") .. "/.ssh/config"`, ZSSH overrides `~/.ssh/config` that is standard ssh config file per user.
+You can set static file path. For instance, you set `zssh.ssh_config = os.getenv("HOME") .. "/.ssh/config"`, ZSSH overrides `~/.ssh/config` that is standard ssh config file per user.
 
 Example:
 
