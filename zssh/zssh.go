@@ -29,6 +29,7 @@ var (
 	hostsFlag bool
 	verboseFlag bool
 	tagsFlag bool
+	genFlag bool
 	zshCompletinFlag bool
 	bashCompletinFlag bool
 	shellFlag bool
@@ -76,6 +77,8 @@ func Start() error {
 			filters = append(filters, strings.Split(arg, "=")[1])
 		} else if arg == "--tags" {
 			tagsFlag = true
+		} else if arg == "--gen" {
+			genFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletinFlag = true
 		} else if arg == "--bash-completion" {
@@ -151,14 +154,14 @@ func Start() error {
 		}
 
 	}()
-	generatedSSHConfigFile := tmpFile.Name()
+	temporarySSHConfigFile := tmpFile.Name()
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] generated config file: %s \n", generatedSSHConfigFile)
+		fmt.Printf("[zssh debug] generated config file: %s \n", temporarySSHConfigFile)
 	}
 
 	// set temporary ssh config file path
-	lzssh.RawSetString("ssh_config", lua.LString(generatedSSHConfigFile))
+	lzssh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
 
 	// load specific config file
 	if configFile != "" {
@@ -200,6 +203,7 @@ func Start() error {
 
 		}
 	}
+
 
 	// generate ssh hosts config
 	content, err := GenHostsConfig()
@@ -244,21 +248,35 @@ func Start() error {
 		return nil
 	}
 
+	outputConfig, ok := toString(lzssh.RawGetString("ssh_config"))
+	if !ok {
+		return fmt.Errorf("invalid value %v in the 'ssh_config'", lzssh.RawGetString("ssh_config"))
+	}
+
+	if debugFlag {
+		fmt.Printf("[zssh debug] output ssh_config contents to the file: %s \n", outputConfig)
+	}
+
 	// update temporary ssh config file
-	err = ioutil.WriteFile(generatedSSHConfigFile, content, 0644)
+	err = ioutil.WriteFile(outputConfig, content, 0644)
 	if err != nil {
 		return err
 	}
-	
+
+	// only generating contents
+	if genFlag {
+		return nil
+	}
+
 	// select running mode and run it.
 	if shellFlag {
-		err = runShellScript(generatedSSHConfigFile, args)
+		err = runShellScript(outputConfig, args)
 	} else if rsyncFlag {
-		err = runRsync(generatedSSHConfigFile, args)
+		err = runRsync(outputConfig, args)
 	} else if scpFlag {
-		err = runSCP(generatedSSHConfigFile, args)
+		err = runSCP(outputConfig, args)
 	} else {
-		err = runSSH(generatedSSHConfigFile, args)
+		err = runSSH(outputConfig, args)
 	}
 
 	return err
@@ -452,6 +470,7 @@ The MIT License (MIT)
 Options:
   --version               Print version.
   --print                 Print generated ssh config.
+  --gen                   Only generating ssh config.
   --config                Edit per-user config file.
   --system-config         Edit system wide config file.
   --config-file <file>    Load configuration from the specific file.

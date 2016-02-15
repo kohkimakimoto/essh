@@ -124,6 +124,12 @@ Host "web01.localhost" {
 
 `before` hook fires before you connect a server via SSH. `after` hook fires after you disconnect SSH connection.
 
+### Variables
+
+ZSSH provides `zssh` object to the Lua context. And you can set and get below variable.
+
+`zssh.ssh_config`: Generated config file path. At default, a temporary file path when you run `zssh`. You can set static file path. For instance, If you set `zssh.ssh_config = os.getenv("HOME") .. "/.ssh/config"`, ZSSH overrides `~/.ssh/config` that is standard ssh config file per user.
+
 ## Running shell script
 
 ZSSH supports easily running a bash script on the remote server.
