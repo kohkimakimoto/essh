@@ -41,7 +41,7 @@ Host "web02.localhost" {
 }
 ```
 
-This configuration generates the below ssh config to the temporary file when you run `zssh`.
+This configuration generates the below ssh config to the temporary file like the `/tmp/zssh.ssh_config.260398422` when you run `zssh`.
 
 ```
 Host web01.localhost
@@ -57,7 +57,9 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
-ZSSH uses the generated config by default. And automatically removes the temporary file when `zssh` process finishes.
+ZSSH uses the generated config file by default.
+It internally runs the command like the `ssh -F /tmp/zssh.ssh_config.260398422 <hostname>`.
+And automatically removes the temporary file when `zssh` process finishes.
 So you can connect a server using below simple command.
 
 ```
