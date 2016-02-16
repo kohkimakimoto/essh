@@ -148,7 +148,13 @@ Host "web01.localhost" {
     hidden = true,
 }
 ```
+### Using with git
 
+Write the following line in your `~/.zshrc`.
+
+```
+export GIT_SSH=zssh
+```
 
 ## Useful functionality
 
