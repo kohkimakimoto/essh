@@ -17,6 +17,7 @@ import (
 var (
 	SystemWideConfigFile string
 	PerUserConfigFile    string
+	CurrentDirConfigFile    string
 )
 
 // flags
@@ -188,7 +189,6 @@ func Start() error {
 			if debugFlag {
 				fmt.Printf("[zssh debug] loaded config file: %s \n", SystemWideConfigFile)
 			}
-
 		}
 
 		// load per-user wide config
@@ -200,7 +200,19 @@ func Start() error {
 			if debugFlag {
 				fmt.Printf("[zssh debug] loaded config file: %s \n", PerUserConfigFile)
 			}
+		}
 
+		// load current dir config
+		if CurrentDirConfigFile != "" {
+			if _, err := os.Stat(CurrentDirConfigFile); err == nil {
+				if err := L.DoFile(CurrentDirConfigFile); err != nil {
+					return err
+				}
+
+				if debugFlag {
+					fmt.Printf("[zssh debug] loaded config file: %s \n", CurrentDirConfigFile)
+				}
+			}
 		}
 	}
 
@@ -535,6 +547,15 @@ func init() {
 	if PerUserConfigFile == "" {
 		home := userHomeDir()
 		PerUserConfigFile = filepath.Join(home, ".zssh/config.lua")
+	}
+
+	if CurrentDirConfigFile == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			fmt.Printf("couldn't get working dir %v\n", err)
+		} else {
+			CurrentDirConfigFile = filepath.Join(wd, ".zssh.lua")
+		}
 	}
 }
 
