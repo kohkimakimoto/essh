@@ -209,7 +209,7 @@ do_dev() {
 
     cd ..
     gom build \
-        -ldflags="-X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
+        -ldflags="-w -X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
         -o="build/dev/${name}" \
         ./cmd/${name}/${name}.go
 
@@ -230,7 +230,7 @@ do_dist() {
     cd ..
     gom exec gox \
         -os="linux darwin" \
-        -ldflags="-X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
+        -ldflags="-w -X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
         -output "build/dist/${name}_{{.OS}}_{{.Arch}}" \
         ./cmd/${name} \
         | indent & loading
