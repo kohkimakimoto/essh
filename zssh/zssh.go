@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"encoding/json"
 )
 
 // system configurations.
@@ -39,6 +40,7 @@ var (
 
 	configFile string
 	filters []string = []string{}
+	format string
 )
 
 func Start() error {
@@ -76,6 +78,14 @@ func Start() error {
 			args = args[1:]
 		} else if strings.HasPrefix(arg, "--filter=") {
 			filters = append(filters, strings.Split(arg, "=")[1])
+		} else if arg == "--format" {
+			if len(args) < 2 {
+				return fmt.Errorf("--format reguires an argument.")
+			}
+			format = args[1]
+			args = args[1:]
+		} else if strings.HasPrefix(arg, "--format=") {
+			format = strings.Split(arg, "=")[1]
 		} else if arg == "--tags" {
 			tagsFlag = true
 		} else if arg == "--gen" {
@@ -238,12 +248,18 @@ func Start() error {
 			hosts = Hosts
 		}
 
-		for _, host := range hosts {
-			if !host.Hidden {
-				if verboseFlag {
-					fmt.Printf("%s\t%s\n", host.Name, host.Description)
-				} else {
-					fmt.Printf("%s\n", host.Name)
+		if format == "json" {
+			printJson(hosts, "")
+		} else if format == "prettyjson" {
+			printJson(hosts, "    ")
+		} else {
+			for _, host := range hosts {
+				if !host.Hidden {
+					if verboseFlag {
+						fmt.Printf("%s\t%s\n", host.Name, host.Description)
+					} else {
+						fmt.Printf("%s\n", host.Name)
+					}
 				}
 			}
 		}
@@ -293,6 +309,43 @@ func Start() error {
 
 	return err
 }
+
+func printJson(hosts []*Host, indent string) {
+	convHosts := []map[string]map[string]interface{}{}
+
+	for _, host :=range hosts {
+		h := map[string]map[string]interface{}{}
+
+		hv := map[string]interface{}{}
+		for _, pair := range host.Values() {
+			for k, v := range pair {
+				hv[k] = v
+			}
+		}
+		h[host.Name] = hv
+
+		hv["description"] = host.Description
+		hv["Hidden"] = host.Hidden
+		hv["tags"] = host.Tags
+
+		convHosts = append(convHosts, h)
+	}
+
+	if indent == "" {
+		b, err := json.Marshal(convHosts)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(b))
+	} else {
+		b, err := json.MarshalIndent(convHosts, "", indent)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(b))
+	}
+}
+
 
 func runSSH(config string, args []string) error {
 	// hooks
@@ -493,6 +546,7 @@ Options:
   --verbose               (Using with --hosts option) List hosts with description.
 
   --tags                  List tags.
+  --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
 
   --zsh-completion        Output zsh completion code.
   --debug                 Output debug log

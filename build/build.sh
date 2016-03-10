@@ -208,7 +208,7 @@ do_dev() {
     echo "--> Building ${txtyellow}${txtbold}dev${txtreset} binary."
 
     cd ..
-    gom build \
+    go build \
         -ldflags="-w -X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
         -o="build/dev/${name}" \
         ./cmd/${name}/${name}.go
@@ -228,7 +228,7 @@ do_dist() {
 
     echo "--> Building binaries..."
     cd ..
-    gom exec gox \
+    gox \
         -os="linux darwin" \
         -ldflags="-w -X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
         -output "build/dist/${name}_{{.OS}}_{{.Arch}}" \

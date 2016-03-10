@@ -1,4 +1,4 @@
-.PHONY: default dev dist packaging test testv deps updatedeps
+.PHONY: default dev dist packaging fmt test testv deps updatedeps
 
 default: dev
 
@@ -17,6 +17,9 @@ packaging:
 # destroy remove all vagrant vm used to create packages.
 destroy:
 	@sh -c "$(CURDIR)/build/build.sh destroy"
+
+fmt:
+	go fmt ./...
 
 test:
 	gom test ./... -cover

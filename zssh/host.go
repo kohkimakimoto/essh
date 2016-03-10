@@ -9,8 +9,8 @@ import (
 
 type Host struct {
 	Name        string
-	Config      *lua.LTable
-	Hooks       map[string]func() error
+	Config      *lua.LTable             `json:"-"`
+	Hooks       map[string]func() error `json:"-"`
 	Description string
 	Hidden      bool
 	Tags        []string
