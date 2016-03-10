@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-name = "zssh"
+name = "zssh-cli"
 
 Vagrant.configure(2) do |config|
 
