@@ -1,1 +1,1 @@
-gom 'github.com/yuin/gopher-lua', :commit => 'cbab8d20d579272a56e78ab4395236bb21dcbbbf'
+gom 'github.com/yuin/gopher-lua', :commit => 'e5faab4db06a81efb60d8e16c1d205e1d93736a9'
