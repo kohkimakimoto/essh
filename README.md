@@ -100,7 +100,7 @@ Host "web01.localhost" {
 
 ### Hooks
 
-You can add hook functions `before` and `after` in a host configuration.
+You can add hook `before_connect`, `after_connect` and `after_disconnect` in a host configuration.
 
 ```lua
 Host "web01.localhost" {
@@ -110,19 +110,21 @@ Host "web01.localhost" {
     ForwardAgent = "yes",
     description = "my web01 server",
     hooks = {
-        before = function()
-            -- This is an example to change screen color to red.
-            os.execute("osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Red Sands\"'")
-        end,
-        after = function()
-            -- This is an example to change screen color to black.
-            os.execute("osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Pro\"'")
-        end,
+        -- Runs the script on the local before connecting. This is an example to change screen color to red.
+        before_connect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Red Sands\"'",
+
+        -- Runs the script on the remote after connecting.
+        after_connect = [=[
+        echo "Connected to $(hostname)"
+        ]=],
+
+        -- Runs the script on the local after disconnecting. This is an example to change screen color to black.
+        after_disconnect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Pro\"'",
     }
 }
 ```
 
-`before` hook fires before you connect a server via SSH. `after` hook fires after you disconnect SSH connection.
+`before_connect` and `after_disconnect` also can be written as Lua function instead of shell script.
 
 ### Variables
 
