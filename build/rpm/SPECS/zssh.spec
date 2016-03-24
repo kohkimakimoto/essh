@@ -1,5 +1,5 @@
 Name:           zssh-cli
-Version:        0.9.0
+Version:        0.10.0
 Release:        1.el%{rhel}
 Summary:        zssh is an extended ssh command.
 
