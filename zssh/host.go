@@ -10,7 +10,7 @@ import (
 type Host struct {
 	Name        string
 	Config      *lua.LTable             `json:"-"`
-	Hooks       map[string]func() error `json:"-"`
+	Hooks       map[string]interface{}  `json:"-"`
 	Description string
 	Hidden      bool
 	Tags        []string

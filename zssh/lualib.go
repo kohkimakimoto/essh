@@ -63,34 +63,36 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	h := &Host{
 		Name:   name,
 		Config: newConfig,
-		Hooks:  map[string]func() error{},
+		Hooks:  map[string]interface{}{},
 		Tags:   []string{},
 	}
 
 	hooks := config.RawGetString("hooks")
 	if hookTb, ok := toLTable(hooks); ok {
-		hookBefore := hookTb.RawGetString("before")
-		if hookBeforeFn, ok := toLFunction(hookBefore); ok {
-			h.Hooks["before"] = func() error {
-				err := L.CallByParam(lua.P{
-					Fn:      hookBeforeFn,
-					NRet:    0,
-					Protect: true,
-				})
-				return err
-			}
+		// before depricated. use before_connect
+		err := registerHook(L, h, "before", hookTb.RawGetString("before"))
+		if err != nil {
+			panic(err)
+		}
+		err = registerHook(L, h, "before_connect", hookTb.RawGetString("before_connect"))
+		if err != nil {
+			panic(err)
 		}
 
-		hookAfter := hookTb.RawGetString("after")
-		if hookAfterFn, ok := toLFunction(hookAfter); ok {
-			h.Hooks["after"] = func() error {
-				err := L.CallByParam(lua.P{
-					Fn:      hookAfterFn,
-					NRet:    0,
-					Protect: true,
-				})
-				return err
-			}
+		err = registerRemoteHook(L, h, "after_connect", hookTb.RawGetString("after_connect"))
+		if err != nil {
+			panic(err)
+		}
+
+		// after depricated. use after_disconnect
+		err = registerHook(L, h, "after", hookTb.RawGetString("after"))
+		if err != nil {
+			panic(err)
+		}
+
+		err = registerHook(L, h, "after_disconnect", hookTb.RawGetString("after_disconnect"))
+		if err != nil {
+			panic(err)
 		}
 	}
 
@@ -122,6 +124,38 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	}
 
 	Hosts = append(Hosts, h)
+}
+
+func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
+	if hook != lua.LNil {
+		if hookFn, ok := toLFunction(hook); ok {
+			host.Hooks[hookPoint] = func() error {
+				err := L.CallByParam(lua.P{
+					Fn:      hookFn,
+					NRet:    0,
+					Protect: true,
+				})
+				return err
+			}
+		} else if hookString, ok := toString(hook); ok {
+			host.Hooks[hookPoint] = hookString
+		} else {
+			return fmt.Errorf("invalid hook type %v", hook)
+		}
+	}
+	return nil
+}
+
+func registerRemoteHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
+	if hook != lua.LNil {
+		if hookString, ok := toString(hook); ok {
+			host.Hooks[hookPoint] = hookString
+		} else {
+			return fmt.Errorf("invalid hook type %v", hook)
+		}
+	}
+
+	return nil
 }
 
 // This code refers to https://github.com/yuin/gluamapper/blob/master/gluamapper.go

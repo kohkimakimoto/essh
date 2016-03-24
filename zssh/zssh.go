@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"encoding/json"
+	"runtime"
 )
 
 // system configurations.
@@ -349,7 +350,7 @@ func printJson(hosts []*Host, indent string) {
 
 func runSSH(config string, args []string) error {
 	// hooks
-	var hooks map[string]func() error
+	var hooks map[string]interface{}
 
 	// Limitation!
 	// hooks fires only when the hostname is specified by the last argument.
@@ -361,11 +362,20 @@ func runSSH(config string, args []string) error {
 	}
 
 	// run before hook
-	if before := hooks["before"]; before != nil {
+	if before := hooks["before_connect"]; before != nil {
+		if debugFlag {
+			fmt.Printf("[zssh debug] run before_connect hook\n")
+		}
+		err := runHook(before)
+		if err != nil {
+			return err
+		}
+	} else if before := hooks["before"]; before != nil {
+		// for backward compatibility
 		if debugFlag {
 			fmt.Printf("[zssh debug] run before hook\n")
 		}
-		err := before()
+		err := runHook(before)
 		if err != nil {
 			return err
 		}
@@ -374,11 +384,20 @@ func runSSH(config string, args []string) error {
 	// register after hook
 	defer func() {
 		// after hook
-		if after := hooks["after"]; after != nil {
+		if after := hooks["after_disconnect"]; after != nil {
+			if debugFlag {
+				fmt.Printf("[zssh debug] run after_disconnect hook\n")
+			}
+			err := runHook(after)
+			if err != nil {
+				panic(err)
+			}
+		} else if after := hooks["after"]; after != nil {
+			// for backward compatibility
 			if debugFlag {
 				fmt.Printf("[zssh debug] run after hook\n")
 			}
-			err := after()
+			err := runHook(after)
 			if err != nil {
 				panic(err)
 			}
@@ -386,8 +405,22 @@ func runSSH(config string, args []string) error {
 	}()
 
 	// setup ssh command args
-	sshComandArgs := []string{"-F", config}
-	sshComandArgs = append(sshComandArgs, args[:]...)
+	var sshComandArgs []string
+
+	if afterConnect := hooks["after_connect"]; afterConnect != nil {
+		sshComandArgs = []string{"-t", "-F", config}
+		sshComandArgs = append(sshComandArgs, args[:]...)
+
+		script := afterConnect.(string)
+		script += `
+exec $SHELL
+`
+		sshComandArgs = append(sshComandArgs, script)
+
+	} else {
+		sshComandArgs = []string{"-F", config}
+		sshComandArgs = append(sshComandArgs, args[:]...)
+	}
 
 	// execute ssh commmand
 	cmd := exec.Command("ssh", sshComandArgs[:]...)
@@ -401,6 +434,24 @@ func runSSH(config string, args []string) error {
 
 	return cmd.Run()
 }
+
+func runHook(hook interface{}) error {
+	if hookFunc, ok := hook.(func() error); ok {
+		err := hookFunc()
+		if err != nil {
+			return err
+		}
+	} else if hookString, ok := hook.(string); ok {
+		err := runCommand(hookString)
+		if err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("invalid type hook: %v", hook)
+	}
+	return nil
+}
+
 
 func runShellScript(config string, args []string) error {
 	if len(args) < 2 {
@@ -521,6 +572,24 @@ func runRsync(config string, args []string) error {
 
 	return shellExec(rsyncCommand)
 }
+
+func runCommand(command string) error {
+	var shell, flag string
+	if runtime.GOOS == "windows" {
+		shell = "cmd"
+		flag = "/C"
+	} else {
+		shell = "/bin/sh"
+		flag = "-c"
+	}
+	cmd := exec.Command(shell, flag, command)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	cmd.Stdin =  os.Stdin
+
+	return cmd.Run()
+}
+
 
 func printUsage() {
 	// print usage.
