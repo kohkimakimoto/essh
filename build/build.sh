@@ -187,7 +187,7 @@ progversion="0.1.0"
 ##################################################
 # Actions.
 ##################################################
-name="zssh"
+name="essh"
 
 usage() {
     echo "Usage: $progname [OPTIONS] ${txtunderline}COMMAND${txtreset}"

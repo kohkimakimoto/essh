@@ -1,4 +1,4 @@
-package zssh
+package essh
 
 import (
 	"os"

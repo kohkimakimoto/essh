@@ -1,4 +1,4 @@
--- zssh configuration file.
+-- essh configuration file.
 
 -- Host "example.local" {
 --     ForwardAgent = "yes",
