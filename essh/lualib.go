@@ -1,4 +1,4 @@
-package zssh
+package essh
 
 import (
 	"fmt"
@@ -7,23 +7,16 @@ import (
 )
 
 var (
-	lzssh *lua.LTable
+	lessh *lua.LTable
 )
 
 func InitLuaState(L *lua.LState) {
 	L.SetGlobal("Host", L.NewFunction(coreHost))
 
-	lzssh = L.NewTable()
-	L.SetGlobal("zssh", lzssh)
+	lessh = L.NewTable()
+	L.SetGlobal("essh", lessh)
 
-	lzssh.RawSetString("ssh_config", lua.LNil)
-}
-
-func sshConfig(L *lua.LState) int {
-
-	L.Push(lua.LString("aaaaaaa"))
-
-	return 0
+	lessh.RawSetString("ssh_config", lua.LNil)
 }
 
 func coreHost(L *lua.LState) int {

@@ -187,7 +187,7 @@ progversion="0.1.0"
 ##################################################
 # Actions.
 ##################################################
-name="zssh"
+name="essh"
 
 usage() {
     echo "Usage: $progname [OPTIONS] ${txtunderline}COMMAND${txtreset}"
@@ -209,7 +209,7 @@ do_dev() {
 
     cd ..
     go build \
-        -ldflags="-w -X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
+        -ldflags="-X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
         -o="build/dev/${name}" \
         ./cmd/${name}/${name}.go
 

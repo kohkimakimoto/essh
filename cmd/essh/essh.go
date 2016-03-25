@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/kohkimakimoto/zssh/zssh"
+	"github.com/kohkimakimoto/essh/essh"
 	"os"
 )
 
@@ -14,7 +14,7 @@ func main() {
 		}
 	}()
 
-	if err := zssh.Start(); err != nil {
+	if err := essh.Start(); err != nil {
 		fmt.Fprintf(os.Stderr, "[zssh error] %v\n", err)
 		os.Exit(1)
 	}

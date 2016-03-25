@@ -1,4 +1,4 @@
-package zssh
+package essh
 
 import (
 	"bytes"
@@ -25,6 +25,7 @@ var (
 // flags
 var (
 	versionFlag bool
+	helpFlag bool
 	printFlag bool
 	configFlag bool
 	systemConfigFlag bool
@@ -61,6 +62,8 @@ func Start() error {
 			printFlag = true
 		} else if arg == "--version" {
 			versionFlag = true
+		} else if arg == "--help" {
+			helpFlag = true
 		} else if arg == "--config" {
 			configFlag = true
 		} else if arg == "--system-config" {
@@ -116,6 +119,11 @@ func Start() error {
 		args = args[1:]
 	}
 
+	if helpFlag {
+		printUsage()
+		return nil
+	}
+	
 	if versionFlag {
 		fmt.Printf("%s (%s)\n", Version, CommitHash)
 		return nil
@@ -149,11 +157,11 @@ func Start() error {
 	InitLuaState(L)
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] init lua state\n")
+		fmt.Printf("[essh debug] init lua state\n")
 	}
 
 	// generate temporary ssh config file
-	tmpFile, err := ioutil.TempFile("", "zssh.ssh_config.")
+	tmpFile, err := ioutil.TempFile("", "essh.ssh_config.")
 	if err != nil {
 		return err
 	}
@@ -162,18 +170,18 @@ func Start() error {
 		os.Remove(tmpFile.Name())
 
 		if debugFlag {
-			fmt.Printf("[zssh debug] deleted config file: %s \n", tmpFile.Name())
+			fmt.Printf("[essh debug] deleted config file: %s \n", tmpFile.Name())
 		}
 
 	}()
 	temporarySSHConfigFile := tmpFile.Name()
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] generated config file: %s \n", temporarySSHConfigFile)
+		fmt.Printf("[essh debug] generated config file: %s \n", temporarySSHConfigFile)
 	}
 
 	// set temporary ssh config file path
-	lzssh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
+	lessh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
 
 	// load specific config file
 	if configFile != "" {
@@ -187,7 +195,7 @@ func Start() error {
 		}
 
 		if debugFlag {
-			fmt.Printf("[zssh debug] loaded config file: %s \n", configFile)
+			fmt.Printf("[essh debug] loaded config file: %s \n", configFile)
 		}
 
 	} else {
@@ -198,7 +206,7 @@ func Start() error {
 			}
 
 			if debugFlag {
-				fmt.Printf("[zssh debug] loaded config file: %s \n", SystemWideConfigFile)
+				fmt.Printf("[essh debug] loaded config file: %s \n", SystemWideConfigFile)
 			}
 		}
 
@@ -209,7 +217,7 @@ func Start() error {
 			}
 
 			if debugFlag {
-				fmt.Printf("[zssh debug] loaded config file: %s \n", PerUserConfigFile)
+				fmt.Printf("[essh debug] loaded config file: %s \n", PerUserConfigFile)
 			}
 		}
 
@@ -221,7 +229,7 @@ func Start() error {
 				}
 
 				if debugFlag {
-					fmt.Printf("[zssh debug] loaded config file: %s \n", CurrentDirConfigFile)
+					fmt.Printf("[essh debug] loaded config file: %s \n", CurrentDirConfigFile)
 				}
 			}
 		}
@@ -277,13 +285,13 @@ func Start() error {
 		return nil
 	}
 
-	outputConfig, ok := toString(lzssh.RawGetString("ssh_config"))
+	outputConfig, ok := toString(lessh.RawGetString("ssh_config"))
 	if !ok {
-		return fmt.Errorf("invalid value %v in the 'ssh_config'", lzssh.RawGetString("ssh_config"))
+		return fmt.Errorf("invalid value %v in the 'ssh_config'", lessh.RawGetString("ssh_config"))
 	}
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] output ssh_config contents to the file: %s \n", outputConfig)
+		fmt.Printf("[essh debug] output ssh_config contents to the file: %s \n", outputConfig)
 	}
 
 	// update temporary ssh config file
@@ -364,7 +372,7 @@ func runSSH(config string, args []string) error {
 	// run before hook
 	if before := hooks["before_connect"]; before != nil {
 		if debugFlag {
-			fmt.Printf("[zssh debug] run before_connect hook\n")
+			fmt.Printf("[essh debug] run before_connect hook\n")
 		}
 		err := runHook(before)
 		if err != nil {
@@ -373,7 +381,7 @@ func runSSH(config string, args []string) error {
 	} else if before := hooks["before"]; before != nil {
 		// for backward compatibility
 		if debugFlag {
-			fmt.Printf("[zssh debug] run before hook\n")
+			fmt.Printf("[essh debug] run before hook\n")
 		}
 		err := runHook(before)
 		if err != nil {
@@ -386,7 +394,7 @@ func runSSH(config string, args []string) error {
 		// after hook
 		if after := hooks["after_disconnect"]; after != nil {
 			if debugFlag {
-				fmt.Printf("[zssh debug] run after_disconnect hook\n")
+				fmt.Printf("[essh debug] run after_disconnect hook\n")
 			}
 			err := runHook(after)
 			if err != nil {
@@ -395,7 +403,7 @@ func runSSH(config string, args []string) error {
 		} else if after := hooks["after"]; after != nil {
 			// for backward compatibility
 			if debugFlag {
-				fmt.Printf("[zssh debug] run after hook\n")
+				fmt.Printf("[essh debug] run after hook\n")
 			}
 			err := runHook(after)
 			if err != nil {
@@ -429,7 +437,7 @@ exec $SHELL
 	cmd.Stderr = os.Stderr
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
+		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
 	}
 
 	return cmd.Run()
@@ -468,7 +476,7 @@ func runShellScript(config string, args []string) error {
 	if strings.HasPrefix(shellPath, "http://") || strings.HasPrefix(shellPath, "https://") {
 		// get script from remote using http.
 		if debugFlag {
-			fmt.Printf("[zssh debug] get script using http from '%s'\n", shellPath)
+			fmt.Printf("[essh debug] get script using http from '%s'\n", shellPath)
 		}
 
 		var httpClient *http.Client
@@ -502,7 +510,7 @@ func runShellScript(config string, args []string) error {
 	}
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] script:\n%s\n", string(scriptContent))
+		fmt.Printf("[essh debug] script:\n%s\n", string(scriptContent))
 	}
 
 	// setup ssh command args
@@ -516,7 +524,7 @@ func runShellScript(config string, args []string) error {
 	cmd.Stderr = os.Stderr
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
+		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
 	}
 
 	return cmd.Run()
@@ -524,7 +532,7 @@ func runShellScript(config string, args []string) error {
 
 func runSCP(config string, args []string) error {
 	if debugFlag {
-		fmt.Printf("[zssh debug] use scp mode.\n")
+		fmt.Printf("[essh debug] use scp mode.\n")
 	}
 
 	if len(args) < 2 {
@@ -543,7 +551,7 @@ func runSCP(config string, args []string) error {
 	cmd.Stderr = os.Stderr
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] real ssh command: %v \n", cmd.Args)
+		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
 	}
 
 	return cmd.Run()
@@ -552,7 +560,7 @@ func runSCP(config string, args []string) error {
 
 func runRsync(config string, args []string) error {
 	if debugFlag {
-		fmt.Printf("[zssh debug] use rsync mode.\n")
+		fmt.Printf("[essh debug] use rsync mode.\n")
 	}
 
 	if len(args) < 1 {
@@ -567,7 +575,7 @@ func runRsync(config string, args []string) error {
 	rsyncCommand := "rsync " + rsyncSSHOption + " " + strings.Join(args, " ")
 
 	if debugFlag {
-		fmt.Printf("[zssh debug] real rsync command: %v\n", rsyncCommand)
+		fmt.Printf("[essh debug] real rsync command: %v\n", rsyncCommand)
 	}
 
 	return shellExec(rsyncCommand)
@@ -593,9 +601,9 @@ func runCommand(command string) error {
 
 func printUsage() {
 	// print usage.
-	fmt.Println(`Usage: zssh [<options>] [<ssh options and args...>]
+	fmt.Println(`Usage: essh [<options>] [<ssh options and args...>]
 
-ZSSH is an extended ssh command.
+essh is an extended ssh command.
 version ` + Version + ` (` + CommitHash + `)
 
 Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
@@ -603,12 +611,13 @@ The MIT License (MIT)
 
 Options:
   --version               Print version.
+  --help                  Print help.
   --print                 Print generated ssh config.
   --gen                   Only generating ssh config.
   --config                Edit per-user config file.
   --system-config         Edit system wide config file.
   --config-file <file>    Load configuration from the specific file.
-                          If you use this option, it does not use other default config files like a "/etc/zssh/config.lua".
+                          If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
 
   --hosts                 List hosts. This option can use with additional options.
   --filter <tag>          (Using with --hosts option) Show only the hosts configured with a tag.
@@ -628,35 +637,35 @@ Options:
               Take a look "Running scp" section.
 
 Running shell script:
-  ZSSH supports easily running a bash script on the remote server.
+  ESSH supports easily running a bash script on the remote server.
   Syntax:
 
-    zssh --shell [<ssh options and args...> <script path|script url>
+    essh --shell [<ssh options and args...> <script path|script url>
 
   Examples:
 
-    zssh --shell web01.localhost /path/to/script.sh
-    zssh --shell web01.localhost https://example/script.sh
+    essh --shell web01.localhost /path/to/script.sh
+    essh --shell web01.localhost https://example/script.sh
 
 Running rsyc:
-  You can use zssh config for rsync using --rsync option.
+  You can use essh config for rsync using --rsync option.
   Syntax:
 
-    zssh --rsync <rsync options and args...>
+    essh --rsync <rsync options and args...>
 
   Examples:
 
-    zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
+    essh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
 
 Running scp:
-  You can use zssh config for scp using --scp option.
+  You can use essh config for scp using --scp option.
   Syntax:
 
-    zssh --scp <scp options and args...>
+    essh --scp <scp options and args...>
 
   Examples:
 
-    zssh --scp web01.localhost:/path/to/file ./local/file
+    essh --scp web01.localhost:/path/to/file ./local/file
 
 See also:
   ssh, rsync, scp
@@ -665,11 +674,11 @@ See also:
 
 func init() {
 	if SystemWideConfigFile == "" {
-		SystemWideConfigFile = "/etc/zssh/config.lua"
+		SystemWideConfigFile = "/etc/essh/config.lua"
 	}
 	if PerUserConfigFile == "" {
 		home := userHomeDir()
-		PerUserConfigFile = filepath.Join(home, ".zssh/config.lua")
+		PerUserConfigFile = filepath.Join(home, ".essh/config.lua")
 	}
 
 	if CurrentDirConfigFile == "" {
@@ -677,22 +686,22 @@ func init() {
 		if err != nil {
 			fmt.Printf("couldn't get working dir %v\n", err)
 		} else {
-			CurrentDirConfigFile = filepath.Join(wd, ".zssh.lua")
+			CurrentDirConfigFile = filepath.Join(wd, ".essh.lua")
 		}
 	}
 }
 
 var ZSH_COMPLETION = `
-_zssh_hosts() {
-    local -a __zssh_hosts
+_essh_hosts() {
+    local -a __essh_hosts
     PRE_IFS=$IFS
     IFS=$'\n'
-    __zssh_hosts=($(zssh --hosts --verbose | awk -F'\t' '{print $1":"$2}'))
+    __essh_hosts=($(essh --hosts --verbose | awk -F'\t' '{print $1":"$2}'))
     IFS=$PRE_IFS
-    _describe -t host "host" __zssh_hosts
+    _describe -t host "host" __essh_hosts
 }
 
-_zssh () {
+_essh () {
     local curcontext="$curcontext" state line
     typeset -A opt_args
 
@@ -701,7 +710,7 @@ _zssh () {
 
     case $state in
         command)
-            _zssh_hosts
+            _essh_hosts
             ;;
         *)
             _files
@@ -709,20 +718,20 @@ _zssh () {
     esac
 }
 
-compdef _zssh zssh
+compdef _essh essh
 
 `
 
 var BASH_COMPLETION = `
-_zssh_hosts() {
+_essh_hosts() {
 
 }
 
-_zssh () {
+_essh () {
 
 }
 
-complete -F _zssh zssh
+complete -F _essh essh
 
 `
 

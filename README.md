@@ -1,4 +1,4 @@
-# ZSSH
+# ESSH
 
 Extended ssh command.
 
@@ -8,19 +8,17 @@ Extended ssh command.
 * Supports zsh completion.
 * Provides some hook functions.
 
-**There are many breaking changes from v0.3.0**
-
-![zssh.gif](zssh.gif)
+**Now it is on unstable stage**
 
 ## Installation
 
-ZSSH is provided as a single binary. You can download it and drop it in your $PATH.
+ESSH is provided as a single binary. You can download it and drop it in your $PATH.
 
-[Download latest version](https://github.com/kohkimakimoto/zssh/releases/latest)
+[Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
 
 ## Usage
 
-Create and edit `~/.zssh/config.lua`. This is a main configuration file for ZSSH.
+Create and edit `~/.essh/config.lua`. This is a main configuration file for ESSH.
 The configuration is written in Lua programming language.
 
 ```lua
@@ -41,7 +39,7 @@ Host "web02.localhost" {
 }
 ```
 
-This configuration generates the below ssh config to the temporary file like the `/tmp/zssh.ssh_config.260398422` when you run `zssh`.
+This configuration generates the below ssh config to the temporary file like the `/tmp/essh.ssh_config.260398422` when you run `essh`.
 
 ```
 Host web01.localhost
@@ -57,13 +55,13 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
-ZSSH uses the generated config file by default.
-It internally runs the command like the `ssh -F /tmp/zssh.ssh_config.260398422 <hostname>`.
-And automatically removes the temporary file when `zssh` process finishes.
+ESSH uses the generated config file by default.
+It internally runs the command like the `ssh -F /tmp/essh.ssh_config.260398422 <hostname>`.
+And automatically removes the temporary file when `essh` process finishes.
 So you can connect a server using below simple command.
 
 ```
-$ zssh web01.localhost
+$ essh web01.localhost
 ```
 
 If you set a first character of keys as lower case like `description` in the config file, it is not SSH config.
@@ -74,13 +72,13 @@ It is used for specific functionality. Read the next section **Zsh Completion**.
 If you want to use zsh completion, add the following code in your `~/.zshrc`
 
 ```
-eval "$(zssh --zsh-completion)"
+eval "$(essh --zsh-completion)"
 ```
 
 You will get completion about hosts.
 
 ```
-$ zssh [TAB]
+$ essh [TAB]
 web01.localhost          -- my web01 server
 web02.localhost          -- my web02 server
 ```
@@ -128,18 +126,18 @@ Host "web01.localhost" {
 
 ### Variables
 
-ZSSH provides `zssh` object to the Lua context. And you can set and get below variable.
+ESSH provides `essh` object to the Lua context. And you can set and get below variable.
 
 #### ssh_config
 
-`ssh_config` is generated config file path. At default, a temporary file path when you run `zssh`.
+`ssh_config` is generated config file path. At default, a temporary file path when you run `essh`.
 
-You can set static file path. For instance, you set `zssh.ssh_config = os.getenv("HOME") .. "/.ssh/config"`, ZSSH overrides `~/.ssh/config` that is standard ssh config file per user.
+You can set static file path. For instance, you set `essh.ssh_config = os.getenv("HOME") .. "/.ssh/config"`, ESSH overrides `~/.ssh/config` that is standard ssh config file per user.
 
 Example:
 
 ```lua
-zssh.ssh_config = os.getenv("HOME") .. "/.ssh/config"
+essh.ssh_config = os.getenv("HOME") .. "/.ssh/config"
 
 Host "web01.localhost" {
     ForwardAgent = "yes",
@@ -155,49 +153,49 @@ Host "web01.localhost" {
 Write the following line in your `~/.zshrc`.
 
 ```
-export GIT_SSH=zssh
+export GIT_SSH=essh
 ```
 
 ## Useful functionality
 
 ### Running shell script
 
-ZSSH supports easily running a bash script on the remote server.
+ESSH supports easily running a bash script on the remote server.
 
 ```
-$ zssh --shell web01.localhost /path/to/script.sh
+$ essh --shell web01.localhost /path/to/script.sh
 ```
 
 Also you can get a script using http instead of local filesystem.
 
 ```
-$ zssh --shell web01.localhost https://example/script.sh
+$ essh --shell web01.localhost https://example/script.sh
 ```
 
 ### Running rsync
 
-You can use zssh config for rsync using `--rsync` option.
+You can use essh config for rsync using `--rsync` option.
 
 ```
-$ zssh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
+$ essh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
 ```
 
 ### Running scp
 
-You can use zssh config for scp using `--scp` option.
+You can use essh config for scp using `--scp` option.
 
 ```
-$ zssh --scp web01.localhost:/path/to/file ./local/file
+$ essh --scp web01.localhost:/path/to/file ./local/file
 ```
 
 ## Other options
 
-Please check command line help that showed by running `zssh` command without any options.
+Please check command line help that showed by running `essh` command without any options.
 
 ```
-Usage: zssh [<options>] [<ssh options and args...>]
+Usage: essh [<options>] [<ssh options and args...>]
 
-ZSSH is an extended ssh command.
+essh is an extended ssh command.
 version 0.5.0 (075d81f9600e3f3bb73ccbbd1a3b3e7a41678b95)
 
 Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
@@ -209,7 +207,7 @@ Options:
   --config                Edit per-user config file.
   --system-config         Edit system wide config file.
   --config-file <file>    Load configuration from the specific file.
-                          If you use this option, it does not use other default config files like a "/etc/zssh/config.lua".
+                          If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
 
   --hosts                 List hosts. This option can use with additional options.
   --filter <tag>          (Using with --hosts option) Show only the hosts configured with a tag.
