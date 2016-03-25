@@ -12,13 +12,13 @@ Extended ssh command.
 
 ## Installation
 
-ZSSH is provided as a single binary. You can download it and drop it in your $PATH.
+ESSH is provided as a single binary. You can download it and drop it in your $PATH.
 
 [Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
 
 ## Usage
 
-Create and edit `~/.essh/config.lua`. This is a main configuration file for ZSSH.
+Create and edit `~/.essh/config.lua`. This is a main configuration file for ESSH.
 The configuration is written in Lua programming language.
 
 ```lua
@@ -55,7 +55,7 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
-ZSSH uses the generated config file by default.
+ESSH uses the generated config file by default.
 It internally runs the command like the `ssh -F /tmp/essh.ssh_config.260398422 <hostname>`.
 And automatically removes the temporary file when `essh` process finishes.
 So you can connect a server using below simple command.
