@@ -1,4 +1,4 @@
-# ZSSH
+# ESSH
 
 Extended ssh command.
 
@@ -8,7 +8,7 @@ Extended ssh command.
 * Supports zsh completion.
 * Provides some hook functions.
 
-**There are many breaking changes from v0.3.0**
+**Now it is on unstable stage**
 
 ![zssh.gif](zssh.gif)
 
