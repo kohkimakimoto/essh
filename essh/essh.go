@@ -25,6 +25,7 @@ var (
 // flags
 var (
 	versionFlag bool
+	helpFlag bool
 	printFlag bool
 	configFlag bool
 	systemConfigFlag bool
@@ -61,6 +62,8 @@ func Start() error {
 			printFlag = true
 		} else if arg == "--version" {
 			versionFlag = true
+		} else if arg == "--help" {
+			helpFlag = true
 		} else if arg == "--config" {
 			configFlag = true
 		} else if arg == "--system-config" {
@@ -116,6 +119,11 @@ func Start() error {
 		args = args[1:]
 	}
 
+	if helpFlag {
+		printUsage()
+		return nil
+	}
+	
 	if versionFlag {
 		fmt.Printf("%s (%s)\n", Version, CommitHash)
 		return nil
@@ -603,6 +611,7 @@ The MIT License (MIT)
 
 Options:
   --version               Print version.
+  --help                  Print help.
   --print                 Print generated ssh config.
   --gen                   Only generating ssh config.
   --config                Edit per-user config file.
