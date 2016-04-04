@@ -171,6 +171,11 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		Name:   name,
 	}
 
+	description := config.RawGetString("description")
+	if descStr, ok := toString(description); ok {
+		task.Description = descStr
+	}
+
 	Tasks = append(Tasks, task)
 }
 

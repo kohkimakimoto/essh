@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"github.com/kohkimakimoto/essh/helper"
 )
 
 // system configurations.
@@ -31,11 +32,14 @@ var (
 	systemConfigFlag  bool
 	debugFlag         bool
 	hostsFlag         bool
-	verboseFlag       bool
+	quietFlag         bool
 	tagsFlag          bool
 	genFlag           bool
-	zshCompletinFlag  bool
-	bashCompletinFlag bool
+	zshCompletionFlag bool
+	zshCompletionHostsFlag bool
+	zshCompletionTasksFlag bool
+
+	bashCompletionFlag bool
 	shellFlag         bool
 	rsyncFlag         bool
 	scpFlag           bool
@@ -51,13 +55,15 @@ func Start() error {
 		return nil
 	}
 
-	args := os.Args[1:]
+	osArgs := os.Args[1:]
+	args := []string{}
+
 	for {
-		if len(args) == 0 {
+		if len(osArgs) == 0 {
 			break
 		}
 
-		arg := args[0]
+		arg := osArgs[0]
 		if arg == "--print" {
 			printFlag = true
 		} else if arg == "--version" {
@@ -72,22 +78,22 @@ func Start() error {
 			debugFlag = true
 		} else if arg == "--hosts" {
 			hostsFlag = true
-		} else if arg == "--verbose" {
-			verboseFlag = true
+		} else if arg == "--quiet" {
+			quietFlag = true
 		} else if arg == "--filter" {
-			if len(args) < 2 {
+			if len(osArgs) < 2 {
 				return fmt.Errorf("--filter reguires an argument.")
 			}
-			filters = append(filters, args[1])
-			args = args[1:]
+			filters = append(filters, osArgs[1])
+			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--filter=") {
 			filters = append(filters, strings.Split(arg, "=")[1])
 		} else if arg == "--format" {
-			if len(args) < 2 {
+			if len(osArgs) < 2 {
 				return fmt.Errorf("--format reguires an argument.")
 			}
-			format = args[1]
-			args = args[1:]
+			format = osArgs[1]
+			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--format=") {
 			format = strings.Split(arg, "=")[1]
 		} else if arg == "--tags" {
@@ -95,15 +101,19 @@ func Start() error {
 		} else if arg == "--gen" {
 			genFlag = true
 		} else if arg == "--zsh-completion" {
-			zshCompletinFlag = true
+			zshCompletionFlag = true
+		} else if arg == "--zsh-completion-hosts" {
+			zshCompletionHostsFlag = true
+		} else if arg == "--zsh-completion-tasks" {
+			zshCompletionTasksFlag = true
 		} else if arg == "--bash-completion" {
-			bashCompletinFlag = true
+			bashCompletionFlag = true
 		} else if arg == "--config-file" {
-			if len(args) < 2 {
+			if len(osArgs) < 2 {
 				return fmt.Errorf("--config-file reguires an argument.")
 			}
-			configFile = args[1]
-			args = args[1:]
+			configFile = osArgs[1]
+			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--config-file=") {
 			configFile = strings.Split(arg, "=")[1]
 		} else if arg == "--shell" {
@@ -112,11 +122,14 @@ func Start() error {
 			rsyncFlag = true
 		} else if arg == "--scp" {
 			scpFlag = true
+		} else if strings.HasPrefix(arg, "--") {
+			return fmt.Errorf("invalid option '%s'.", arg)
 		} else {
-			break
+			// restructure args to remove essh options.
+			args = append(args, arg)
 		}
 
-		args = args[1:]
+		osArgs = osArgs[1:]
 	}
 
 	if helpFlag {
@@ -129,12 +142,12 @@ func Start() error {
 		return nil
 	}
 
-	if zshCompletinFlag {
+	if zshCompletionFlag {
 		fmt.Print(ZSH_COMPLETION)
 		return nil
 	}
 
-	if bashCompletinFlag {
+	if bashCompletionFlag {
 		fmt.Print(BASH_COMPLETION)
 		return nil
 	}
@@ -247,6 +260,25 @@ func Start() error {
 		return nil
 	}
 
+	// show hosts for zsh completion
+	if zshCompletionHostsFlag {
+		for _, host := range Hosts {
+			if !host.Hidden {
+				fmt.Printf("%s\t%s\n", host.Name, host.Description)
+			}
+		}
+
+		return nil
+	}
+
+	// show tasks for zsh completion
+	if zshCompletionTasksFlag {
+		for _, task := range Tasks {
+			fmt.Printf("%s\t%s\n", task.Name, task.Description)
+		}
+		return nil
+	}
+
 	// only print hosts list
 	if hostsFlag {
 		var hosts []*Host
@@ -261,15 +293,20 @@ func Start() error {
 		} else if format == "prettyjson" {
 			printJson(hosts, "    ")
 		} else {
+			tb := helper.NewPlainTable(os.Stdout)
+			if !quietFlag {
+				tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS"})
+			}
 			for _, host := range hosts {
 				if !host.Hidden {
-					if verboseFlag {
-						fmt.Printf("%s\t%s\n", host.Name, host.Description)
+					if quietFlag {
+						tb.Append([]string{host.Name})
 					} else {
-						fmt.Printf("%s\n", host.Name)
+						tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ",")})
 					}
 				}
 			}
+			tb.Render()
 		}
 
 		return nil
@@ -312,10 +349,22 @@ func Start() error {
 	} else if scpFlag {
 		err = runSCP(outputConfig, args)
 	} else {
+		// try to get a task.
+		if len(args) > 0 {
+			taskName := args[0]
+			task := GetTask(taskName)
+			if task != nil {
+				return runTask(outputConfig, task, args)
+			}
+		}
 		err = runSSH(outputConfig, args)
 	}
 
 	return err
+}
+
+func getTarget(name string) interface{} {
+	return nil
 }
 
 func printJson(hosts []*Host, indent string) {
@@ -352,6 +401,11 @@ func printJson(hosts []*Host, indent string) {
 		}
 		fmt.Println(string(b))
 	}
+}
+
+func runTask(config string, task *Task, args []string) error {
+
+	return nil
 }
 
 func runSSH(config string, args []string) error {
@@ -615,8 +669,8 @@ Options:
                           If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
 
   --hosts                 List hosts. This option can use with additional options.
-  --filter <tag>          (Using with --hosts option) Show only the hosts configured with a tag.
-  --verbose               (Using with --hosts option) List hosts with description.
+  --filter <tag>          (Using with --hosts option) Show only the hosts filtered with a tag.
+  --quiet                 (Using with --hosts option) Show only host names.
 
   --tags                  List tags.
   --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
@@ -687,13 +741,34 @@ func init() {
 }
 
 var ZSH_COMPLETION = `
-_essh_hosts() {
+_essh_targets() {
+    local -a __essh_tasks
     local -a __essh_hosts
     PRE_IFS=$IFS
     IFS=$'\n'
-    __essh_hosts=($(essh --hosts --verbose | awk -F'\t' '{print $1":"$2}'))
+    __essh_tasks=($(essh --zsh-completion-tasks | awk -F'\t' '{print $1":"$2}'))
+    __essh_hosts=($(essh --zsh-completion-hosts | awk -F'\t' '{print $1":"$2}'))
     IFS=$PRE_IFS
+    _describe -t task "task" __essh_tasks
     _describe -t host "host" __essh_hosts
+}
+
+_essh_options() {
+    local -a __options
+    __essh_options=(
+        '--version:Print version.'
+        '--help:Print help.'
+        '--print:Print generated ssh config.'
+        '--gen:Only generating ssh config.'
+        '--config:Edit per-user config file.'
+        '--system-config:Edit system wide config file.'
+        '--config-file:Load configuration from the specific file.'
+        '--hosts:List hosts.'
+        '--filter:Show only the hosts filtered with a tag.'
+        '--quiet:Show only host names.'
+        '--tags:List tags.'
+     )
+    _describe -t option "option" __essh_options
 }
 
 _essh () {
@@ -705,20 +780,21 @@ _essh () {
 
     case $state in
         command)
-            _essh_hosts
+            _essh_targets
+            _essh_options
             ;;
         *)
+            _essh_options
             _files
             ;;
     esac
 }
 
 compdef _essh essh
-
 `
 
 var BASH_COMPLETION = `
-_essh_hosts() {
+_essh_targets() {
 
 }
 
