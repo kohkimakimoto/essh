@@ -3,6 +3,7 @@ package essh
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"github.com/yuin/gopher-lua"
 	"io/ioutil"
@@ -10,39 +11,38 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
-	"encoding/json"
 	"runtime"
+	"strings"
 )
 
 // system configurations.
 var (
 	SystemWideConfigFile string
 	PerUserConfigFile    string
-	CurrentDirConfigFile    string
+	CurrentDirConfigFile string
 )
 
 // flags
 var (
-	versionFlag bool
-	helpFlag bool
-	printFlag bool
-	configFlag bool
-	systemConfigFlag bool
-	debugFlag bool
-	hostsFlag bool
-	verboseFlag bool
-	tagsFlag bool
-	genFlag bool
-	zshCompletinFlag bool
+	versionFlag       bool
+	helpFlag          bool
+	printFlag         bool
+	configFlag        bool
+	systemConfigFlag  bool
+	debugFlag         bool
+	hostsFlag         bool
+	verboseFlag       bool
+	tagsFlag          bool
+	genFlag           bool
+	zshCompletinFlag  bool
 	bashCompletinFlag bool
-	shellFlag bool
-	rsyncFlag bool
-	scpFlag bool
+	shellFlag         bool
+	rsyncFlag         bool
+	scpFlag           bool
 
 	configFile string
-	filters []string = []string{}
-	format string
+	filters    []string = []string{}
+	format     string
 )
 
 func Start() error {
@@ -123,7 +123,7 @@ func Start() error {
 		printUsage()
 		return nil
 	}
-	
+
 	if versionFlag {
 		fmt.Printf("%s (%s)\n", Version, CommitHash)
 		return nil
@@ -235,7 +235,6 @@ func Start() error {
 		}
 	}
 
-
 	// generate ssh hosts config
 	content, err := GenHostsConfig()
 	if err != nil {
@@ -322,7 +321,7 @@ func Start() error {
 func printJson(hosts []*Host, indent string) {
 	convHosts := []map[string]map[string]interface{}{}
 
-	for _, host :=range hosts {
+	for _, host := range hosts {
 		h := map[string]map[string]interface{}{}
 
 		hv := map[string]interface{}{}
@@ -354,7 +353,6 @@ func printJson(hosts []*Host, indent string) {
 		fmt.Println(string(b))
 	}
 }
-
 
 func runSSH(config string, args []string) error {
 	// hooks
@@ -460,7 +458,6 @@ func runHook(hook interface{}) error {
 	return nil
 }
 
-
 func runShellScript(config string, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("shell script mode requires 2 parameters at least.")
@@ -557,7 +554,6 @@ func runSCP(config string, args []string) error {
 	return cmd.Run()
 }
 
-
 func runRsync(config string, args []string) error {
 	if debugFlag {
 		fmt.Printf("[essh debug] use rsync mode.\n")
@@ -593,11 +589,10 @@ func runCommand(command string) error {
 	cmd := exec.Command(shell, flag, command)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
-	cmd.Stdin =  os.Stdin
+	cmd.Stdin = os.Stdin
 
 	return cmd.Run()
 }
-
 
 func printUsage() {
 	// print usage.
@@ -734,4 +729,3 @@ _essh () {
 complete -F _essh essh
 
 `
-

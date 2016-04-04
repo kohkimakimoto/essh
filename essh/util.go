@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 func userHomeDir() string {
@@ -35,4 +36,8 @@ func shellExec(command string) error {
 	}
 
 	return nil
+}
+
+func ShellEscape(s string) string {
+	return "'" + strings.Replace(s, "'", "'\"'\"'", -1) + "'"
 }

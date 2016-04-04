@@ -9,20 +9,14 @@ import (
 
 type Host struct {
 	Name        string
-	Config      *lua.LTable             `json:"-"`
-	Hooks       map[string]interface{}  `json:"-"`
+	Config      *lua.LTable            `json:"-"`
+	Hooks       map[string]interface{} `json:"-"`
 	Description string
 	Hidden      bool
 	Tags        []string
 }
 
-var (
-	Hosts []*Host = []*Host{}
-	//Tags  map[string][]*Host = map[string][]*Host{}
-)
-
 func (h *Host) Values() []map[string]interface{} {
-
 	values := []map[string]interface{}{}
 
 	var names []string
@@ -44,6 +38,8 @@ func (h *Host) Values() []map[string]interface{} {
 
 	return values
 }
+
+var Hosts []*Host = []*Host{}
 
 func GetHost(hostname string) *Host {
 	for _, host := range Hosts {
@@ -79,7 +75,6 @@ func GenHostsConfig() ([]byte, error) {
 }
 
 func Tags() []string {
-
 	tagsMap := map[string]string{}
 	tags := []string{}
 

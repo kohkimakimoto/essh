@@ -12,6 +12,7 @@ var (
 
 func InitLuaState(L *lua.LState) {
 	L.SetGlobal("Host", L.NewFunction(coreHost))
+	L.SetGlobal("Task", L.NewFunction(coreTask))
 
 	lessh = L.NewTable()
 	L.SetGlobal("essh", lessh)
@@ -32,6 +33,26 @@ func coreHost(L *lua.LState) int {
 	L.Push(L.NewFunction(func(L *lua.LState) int {
 		tb := L.CheckTable(1)
 		registerHost(L, name, tb)
+
+		return 0
+	}))
+
+	return 1
+}
+
+func coreTask(L *lua.LState) int {
+	name := L.CheckString(1)
+
+	if L.GetTop() == 2 {
+		tb := L.CheckTable(2)
+		registerTask(L, name, tb)
+
+		return 0
+	}
+
+	L.Push(L.NewFunction(func(L *lua.LState) int {
+		tb := L.CheckTable(1)
+		registerTask(L, name, tb)
 
 		return 0
 	}))
@@ -104,12 +125,6 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		tagsTb.ForEach(func(_ lua.LValue, v lua.LValue) {
 			if vs, ok := toString(v); ok {
 				h.Tags = append(h.Tags, vs)
-				//if hosts, ok := Tags[vs]; ok {
-				//	hosts = append(hosts, h)
-				//} else {
-				//	hosts = []*Host{h}
-				//	Tags[vs] = hosts
-				//}
 			} else {
 				L.RaiseError("unsupported format of tags.")
 			}
@@ -149,6 +164,14 @@ func registerRemoteHook(L *lua.LState, host *Host, hookPoint string, hook lua.LV
 	}
 
 	return nil
+}
+
+func registerTask(L *lua.LState, name string, config *lua.LTable) {
+	task := &Task{
+		Name:   name,
+	}
+
+	Tasks = append(Tasks, task)
 }
 
 // This code refers to https://github.com/yuin/gluamapper/blob/master/gluamapper.go
