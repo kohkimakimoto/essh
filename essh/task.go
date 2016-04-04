@@ -6,12 +6,7 @@ type Task struct {
 	Prepare     func(task *Task, payload string) error
 	Tty         bool
 	Script      string
-	On          string
-}
-
-func (m *Task) Run() error {
-
-	return nil
+	On          []string
 }
 
 var Tasks []*Task = []*Task{}

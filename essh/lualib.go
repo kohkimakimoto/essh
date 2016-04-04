@@ -169,11 +169,67 @@ func registerRemoteHook(L *lua.LState, host *Host, hookPoint string, hook lua.LV
 func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	task := &Task{
 		Name:   name,
+		On: []string{},
 	}
 
 	description := config.RawGetString("description")
 	if descStr, ok := toString(description); ok {
 		task.Description = descStr
+	}
+
+	tty := config.RawGetString("tty")
+	if ttyBool, ok := toBool(tty); ok {
+		task.Tty = ttyBool
+	}
+
+	script := config.RawGetString("script")
+	if scriptStr, ok := toString(script); ok {
+		task.Script = scriptStr
+	}
+
+	on := config.RawGetString("on")
+	if onStr, ok := toString(on); ok {
+		task.On = []string{onStr}
+	} else if onSlice, ok := toSlice(on); ok {
+		for _, target := range onSlice {
+			if targetStr, ok := target.(string); ok {
+				task.On = append(task.On, targetStr)
+			}
+		}
+	}
+
+	prepare := config.RawGetString("prepare")
+	if prepare != lua.LNil {
+		if prepareFn, ok := prepare.(*lua.LFunction); ok {
+			task.Prepare = func(task *Task, payload string) error {
+				ltask := newLTask(L, task)
+				err := L.CallByParam(lua.P{
+					Fn:      prepareFn,
+					NRet:    1,
+					Protect: true,
+				}, ltask, lua.LString(payload))
+				if err != nil {
+					return err
+				}
+
+				ret := L.Get(-1) // returned value
+				L.Pop(1)
+
+				if ret == lua.LNil {
+					return nil
+				} else if retB, ok := ret.(lua.LBool); ok {
+					if retB {
+						return nil
+					} else {
+						return fmt.Errorf("returned false from the prepare function.")
+					}
+				}
+
+				return nil
+			}
+		} else {
+			L.RaiseError("prepare have to be function.")
+		}
 	}
 
 	Tasks = append(Tasks, task)
@@ -193,7 +249,7 @@ func toGoValue(lv lua.LValue) interface{} {
 	case *lua.LTable:
 		maxn := v.MaxN()
 		if maxn == 0 { // table
-			ret := make(map[interface{}]interface{})
+			ret := make(map[string]interface{})
 			v.ForEach(func(key, value lua.LValue) {
 				keystr := fmt.Sprint(toGoValue(key))
 				ret[keystr] = toGoValue(value)
@@ -227,6 +283,22 @@ func toString(v lua.LValue) (string, bool) {
 	}
 }
 
+func toMap(v lua.LValue) (map[string]interface{}, bool) {
+	if lv, ok := toGoValue(v).(map[string]interface{}); ok {
+		return lv, true
+	} else {
+		return nil, false
+	}
+}
+
+func toSlice(v lua.LValue) ([]interface{}, bool) {
+	if lv, ok := toGoValue(v).([]interface{}); ok {
+		return lv, true
+	} else {
+		return nil, false
+	}
+}
+
 func toLFunction(v lua.LValue) (*lua.LFunction, bool) {
 	if lv, ok := v.(*lua.LFunction); ok {
 		return lv, true
@@ -241,4 +313,13 @@ func toLTable(v lua.LValue) (*lua.LTable, bool) {
 	} else {
 		return nil, false
 	}
+}
+
+const LTaskClass = "Task*"
+
+func newLTask(L *lua.LState, task *Task) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = task
+	L.SetMetatable(ud, L.GetTypeMetatable(LTaskClass))
+	return ud
 }

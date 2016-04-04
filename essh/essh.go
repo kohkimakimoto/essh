@@ -248,6 +248,10 @@ func Start() error {
 		}
 	}
 
+	if err := validateConfig(); err != nil {
+		return err
+	}
+
 	// generate ssh hosts config
 	content, err := GenHostsConfig()
 	if err != nil {
@@ -354,17 +358,21 @@ func Start() error {
 			taskName := args[0]
 			task := GetTask(taskName)
 			if task != nil {
-				return runTask(outputConfig, task, args)
+				if len(args) > 2 {
+					return fmt.Errorf("too many arguments.")
+				} else if len(args) == 2 {
+					return runTask(outputConfig, task, args[1])
+				} else {
+					return runTask(outputConfig, task, "")
+				}
 			}
 		}
+
+		// run ssh command
 		err = runSSH(outputConfig, args)
 	}
 
 	return err
-}
-
-func getTarget(name string) interface{} {
-	return nil
 }
 
 func printJson(hosts []*Host, indent string) {
@@ -403,7 +411,11 @@ func printJson(hosts []*Host, indent string) {
 	}
 }
 
-func runTask(config string, task *Task, args []string) error {
+func runTask(config string, task *Task, payload string) error {
+	if debugFlag {
+		fmt.Printf("[essh debug] run task: %s\n", task.Name)
+	}
+
 
 	return nil
 }
@@ -648,6 +660,34 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
+func validateConfig() error {
+	// check duplication of the host and task names
+	names := map[string]bool{}
+	for _, host := range Hosts {
+		if _, ok := names[host.Name]; ok {
+			return fmt.Errorf("'%s' is duplicated", host.Name)
+		}
+		names[host.Name] = true
+	}
+
+	for _, task := range Tasks {
+		if _, ok := names[task.Name]; ok {
+			return fmt.Errorf("'%s' is duplicated", task.Name)
+		}
+		names[task.Name] = true
+	}
+
+	for _, tag := range Tags() {
+		if _, ok := names[tag]; ok {
+			return fmt.Errorf("'%s' is duplicated", tag)
+		}
+		names[tag] = true
+	}
+
+	return nil
+}
+
+
 func printUsage() {
 	// print usage.
 	fmt.Println(`Usage: essh [<options>] [<ssh options and args...>]
@@ -676,7 +716,7 @@ Options:
   --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
 
   --zsh-completion        Output zsh completion code.
-  --debug                 Output debug log
+  --debug                 Output debug log.
 
   --shell     Change behavior to execute a shell script on the remote host.
               Take a look "Running shell script" section.
@@ -767,6 +807,7 @@ _essh_options() {
         '--filter:Show only the hosts filtered with a tag.'
         '--quiet:Show only host names.'
         '--tags:List tags.'
+        '--debug:Output debug log.'
      )
     _describe -t option "option" __essh_options
 }
