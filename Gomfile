@@ -12,3 +12,5 @@ gom "github.com/kohkimakimoto/gluaquestion"
 gom "github.com/fatih/color"
 gom "github.com/shiena/ansicolor"
 
+# dev tool
+gom "github.com/mitchellh/gox"

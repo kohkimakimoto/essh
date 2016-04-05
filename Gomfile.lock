@@ -6,3 +6,4 @@ gom 'github.com/kohkimakimoto/gluafs', :commit => '550a2108241abf5395604a06a93f1
 gom 'github.com/kohkimakimoto/gluaquestion', :commit => 'bda1fcbda38a721c2849ca04cb88d9b50e2da338'
 gom 'github.com/fatih/color', :commit => '533cd7fd8a85905f67a1753afb4deddc85ea174f'
 gom 'github.com/shiena/ansicolor', :commit => 'a422bbe96644373c5753384a59d678f7d261ff10'
+gom 'github.com/mitchellh/gox', :commit => 'dc474e55926b34ea132178d975737fac74420f17'
