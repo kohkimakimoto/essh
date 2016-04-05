@@ -39,6 +39,7 @@ var (
 	hostsFlag              bool
 	quietFlag              bool
 	tagsFlag               bool
+	tasksFlag              bool
 	genFlag                bool
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
@@ -85,6 +86,8 @@ func Start() error {
 			hostsFlag = true
 		} else if arg == "--quiet" {
 			quietFlag = true
+		} else if arg == "--tasks" {
+			tasksFlag = true
 		} else if arg == "--filter" {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--filter reguires an argument.")
@@ -323,9 +326,27 @@ func Start() error {
 
 	// only print tags list
 	if tagsFlag {
-		for _, tag := range Tags() {
-			fmt.Printf("%s\n", tag)
+		tb := helper.NewPlainTable(os.Stdout)
+		if !quietFlag {
+			tb.SetHeader([]string{"NAME"})
 		}
+		for _, tag := range Tags() {
+			tb.Append([]string{tag})
+		}
+		tb.Render()
+
+		return nil
+	}
+
+	if tasksFlag {
+		tb := helper.NewPlainTable(os.Stdout)
+		if !quietFlag {
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "ON"})
+		}
+		for _, t := range Tasks {
+			tb.Append([]string{t.Name, t.Description, strings.Join(t.On, ",")})
+		}
+		tb.Render()
 
 		return nil
 	}
@@ -931,6 +952,8 @@ Options:
   --tags                  List tags.
   --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
 
+  --tasks                 List tasks.
+
   --zsh-completion        Output zsh completion code.
   --debug                 Output debug log.
 
@@ -990,6 +1013,7 @@ _essh_options() {
         '--filter:Show only the hosts filtered with a tag.'
         '--quiet:Show only host names.'
         '--tags:List tags.'
+        '--tasks:List tasks.'
         '--debug:Output debug log.'
         '--shell:Change behavior to execute a shell script on the remote host.'
         '--scp:Change behavior to execute scp.'
