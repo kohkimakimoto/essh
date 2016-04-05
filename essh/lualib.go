@@ -203,6 +203,11 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		task.Parallel = parallelBool
 	}
 
+	privileged := config.RawGetString("privileged")
+	if privilegedBool, ok := toBool(privileged); ok {
+		task.Privileged = privilegedBool
+	}
+
 	prefix := config.RawGetString("prefix")
 	if prefixBool, ok := toBool(prefix); ok {
 		if prefixBool {

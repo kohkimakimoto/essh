@@ -479,9 +479,15 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host) 
 		sshComandArgs = []string{"-F", config, host.Name}
 	}
 
+	var script string
+	if task.Privileged {
+		script = "sudo sudo su - <<EOF-ESSH-PRIVILEGED\n export ESSH_PAYLOAD="+ShellEscape(payload)+"\n"+task.Script + "\n" + "EOF-ESSH-PRIVILEGED"
+	} else {
+		script = "export ESSH_PAYLOAD="+ShellEscape(payload)+"\n"+task.Script
+	}
+
 	delimiter := "EOF-ESSH-SCRIPT"
-	sshComandArgs = append(sshComandArgs, "bash", "-se", "<<",
-		`\`+delimiter+"\n"+"export ESSH_PAYLOAD="+ShellEscape(payload)+"\n"+task.Script+"\n"+delimiter)
+	sshComandArgs = append(sshComandArgs, "bash", "-se", "<<"+delimiter+"\n"+script+"\n"+delimiter)
 
 	cmd := exec.Command("ssh", sshComandArgs[:]...)
 	cmd.Stdin = os.Stdin

@@ -8,6 +8,7 @@ type Task struct {
 	Script      string
 	On          []string
 	Parallel    bool
+	Privileged  bool
 	Prefix      string
 }
 
