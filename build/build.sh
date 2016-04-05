@@ -229,7 +229,7 @@ do_dist() {
     echo "--> Building binaries..."
     cd ..
     gox \
-        -os="linux darwin" \
+        -os="linux darwin windows" \
         -ldflags="-w -X github.com/kohkimakimoto/${name}/${name}.CommitHash=`git log --pretty=format:%H -n 1`" \
         -output "build/dist/${name}_{{.OS}}_{{.Arch}}" \
         ./cmd/${name} \
@@ -246,6 +246,10 @@ do_dist() {
     mv ${name}_linux_386 ${name} && zip ${name}_linux_386.zip ${name}  | indent && rm ${name}
     mv ${name}_linux_amd64 ${name} && zip ${name}_linux_amd64.zip ${name}  | indent && rm ${name}
     mv ${name}_linux_arm ${name} && zip ${name}_linux_arm.zip ${name}  | indent && rm ${name}
+
+    echo "Packaging ${txtyellow}${txtbold}windows${txtreset}" binaries | indent
+    mv ${name}_windows_386.exe ${name}.exe && zip ${name}_windows_386.zip ${name}.exe | indent && rm ${name}.exe
+    mv ${name}_windows_amd64.exe ${name}.exe && zip ${name}_windows_amd64.zip ${name}.exe | indent && rm ${name}.exe
 
     echo "Updated $(pwd)" | indent
     echo "--> Done."
