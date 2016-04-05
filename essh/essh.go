@@ -136,7 +136,7 @@ func Start() error {
 	}
 
 	if helpFlag {
-		printUsage()
+		printHelp()
 		return nil
 	}
 
@@ -836,44 +836,9 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-func printUsage() {
-	// print usage.
-	fmt.Println(`Usage: essh [<options>] [<ssh options and args...>]
-
-essh is an extended ssh command.
-version ` + Version + ` (` + CommitHash + `)
-
-Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
-The MIT License (MIT)
-
-Options:
-  --version               Print version.
-  --help                  Print help.
-  --print                 Print generated ssh config.
-  --gen                   Only generating ssh config.
-  --config                Edit per-user config file.
-  --system-config         Edit system wide config file.
-  --config-file <file>    Load configuration from the specific file.
-                          If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
-
-  --hosts                 List hosts. This option can use with additional options.
-  --filter <tag>          (Using with --hosts option) Show only the hosts filtered with a tag.
-  --quiet                 (Using with --hosts option) Show only host names.
-
-  --tags                  List tags.
-  --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
-
-  --zsh-completion        Output zsh completion code.
-  --debug                 Output debug log.
-
-  --shell     Change behavior to execute a shell script on the remote host.
-              Take a look "Running shell script" section.
-  --rsync     Change behavior to execute rsync.
-              Take a look "Running rsync" section.
-  --scp       Change behavior to execute scp.
-              Take a look "Running scp" section.
-
-Running shell script:
+func printHelp() {
+	printUsage()
+	fmt.Print(`Running shell script:
   ESSH supports easily running a bash script on the remote server.
   Syntax:
 
@@ -906,6 +871,46 @@ Running scp:
 
 See also:
   ssh, rsync, scp
+
+`)
+}
+
+func printUsage() {
+	fmt.Print(`Usage: essh [<options>] [<ssh options and args...>]
+
+  essh is an extended ssh command.
+  version ` + Version + ` (` + CommitHash + `)
+
+  Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+  The MIT License (MIT)
+
+Options:
+  --version               Print version.
+  --help                  Print help.
+  --print                 Print generated ssh config.
+  --gen                   Only generating ssh config.
+  --config                Edit per-user config file.
+  --system-config         Edit system wide config file.
+  --config-file <file>    Load configuration from the specific file.
+                          If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
+
+  --hosts                 List hosts. This option can use with additional options.
+  --filter <tag>          (Using with --hosts option) Show only the hosts filtered with a tag.
+  --quiet                 (Using with --hosts option) Show only host names.
+
+  --tags                  List tags.
+  --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
+
+  --zsh-completion        Output zsh completion code.
+  --debug                 Output debug log.
+
+  --shell     Change behavior to execute a shell script on the remote host.
+              Take a look "Running shell script" section.
+  --rsync     Change behavior to execute rsync.
+              Take a look "Running rsync" section.
+  --scp       Change behavior to execute scp.
+              Take a look "Running scp" section.
+
 `)
 }
 
