@@ -1,1 +1,8 @@
 gom 'github.com/yuin/gopher-lua', :commit => 'e5faab4db06a81efb60d8e16c1d205e1d93736a9'
+gom 'github.com/kohkimakimoto/gluayaml', :commit => '6d511cec9a0b98ff46b402d4cd49567a0a81ee50'
+gom 'github.com/kohkimakimoto/gluatemplate', :commit => '0fcac4b4dd6ecf6e7aa253f3a40755055a434237'
+gom 'github.com/kohkimakimoto/gluajson', :commit => '2c6acf0e9c93500aef548e7add4e4412fd5b9c52'
+gom 'github.com/kohkimakimoto/gluafs', :commit => '550a2108241abf5395604a06a93f148953bb84fb'
+gom 'github.com/kohkimakimoto/gluaquestion', :commit => 'bda1fcbda38a721c2849ca04cb88d9b50e2da338'
+gom 'github.com/fatih/color', :commit => '533cd7fd8a85905f67a1753afb4deddc85ea174f'
+gom 'github.com/shiena/ansicolor', :commit => 'a422bbe96644373c5753384a59d678f7d261ff10'

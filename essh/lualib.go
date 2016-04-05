@@ -2,6 +2,11 @@ package essh
 
 import (
 	"fmt"
+	"github.com/kohkimakimoto/gluafs"
+	"github.com/kohkimakimoto/gluajson"
+	"github.com/kohkimakimoto/gluaquestion"
+	"github.com/kohkimakimoto/gluatemplate"
+	"github.com/kohkimakimoto/gluayaml"
 	"github.com/yuin/gopher-lua"
 	"unicode"
 )
@@ -11,12 +16,23 @@ var (
 )
 
 func InitLuaState(L *lua.LState) {
+	// custom type.
+	registerTaskContextClass(L)
+
+	// global functions
 	L.SetGlobal("Host", L.NewFunction(coreHost))
 	L.SetGlobal("Task", L.NewFunction(coreTask))
 
+	// modules
+	L.PreloadModule("essh.json", gluajson.Loader)
+	L.PreloadModule("essh.fs", gluafs.Loader)
+	L.PreloadModule("essh.yaml", gluayaml.Loader)
+	L.PreloadModule("essh.template", gluatemplate.Loader)
+	L.PreloadModule("essh.question", gluaquestion.Loader)
+
+	// global variables
 	lessh = L.NewTable()
 	L.SetGlobal("essh", lessh)
-
 	lessh.RawSetString("ssh_config", lua.LNil)
 }
 
@@ -168,8 +184,8 @@ func registerRemoteHook(L *lua.LState, host *Host, hookPoint string, hook lua.LV
 
 func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	task := &Task{
-		Name:   name,
-		On: []string{},
+		Name: name,
+		On:   []string{},
 	}
 
 	description := config.RawGetString("description")
@@ -180,6 +196,20 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	tty := config.RawGetString("tty")
 	if ttyBool, ok := toBool(tty); ok {
 		task.Tty = ttyBool
+	}
+
+	parallel := config.RawGetString("parallel")
+	if parallelBool, ok := toBool(parallel); ok {
+		task.Parallel = parallelBool
+	}
+
+	prefix := config.RawGetString("prefix")
+	if prefixBool, ok := toBool(prefix); ok {
+		if prefixBool {
+			task.Prefix = "[{{.Host.Name}}] "
+		}
+	} else if prefixStr, ok := toString(prefix); ok {
+		task.Prefix = prefixStr
 	}
 
 	script := config.RawGetString("script")
@@ -201,13 +231,13 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	prepare := config.RawGetString("prepare")
 	if prepare != lua.LNil {
 		if prepareFn, ok := prepare.(*lua.LFunction); ok {
-			task.Prepare = func(task *Task, payload string) error {
-				ltask := newLTask(L, task)
+			task.Prepare = func(ctx *TaskContext) error {
+				lctx := newLTaskContext(L, ctx)
 				err := L.CallByParam(lua.P{
 					Fn:      prepareFn,
 					NRet:    1,
 					Protect: true,
-				}, ltask, lua.LString(payload))
+				}, lctx)
 				if err != nil {
 					return err
 				}
@@ -315,11 +345,39 @@ func toLTable(v lua.LValue) (*lua.LTable, bool) {
 	}
 }
 
-const LTaskClass = "Task*"
+const LTaskContextClass = "TaskContext*"
 
-func newLTask(L *lua.LState, task *Task) *lua.LUserData {
+func newLTaskContext(L *lua.LState, ctx *TaskContext) *lua.LUserData {
 	ud := L.NewUserData()
-	ud.Value = task
-	L.SetMetatable(ud, L.GetTypeMetatable(LTaskClass))
+	ud.Value = ctx
+	L.SetMetatable(ud, L.GetTypeMetatable(LTaskContextClass))
 	return ud
+}
+
+func registerTaskContextClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LTaskContextClass)
+	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), taskContextMethods))
+}
+
+var taskContextMethods = map[string]lua.LGFunction{
+	"payload": taskContextPayload,
+}
+
+func taskContextPayload(L *lua.LState) int {
+	ctx := checkTaskContext(L)
+	if L.GetTop() == 2 {
+		ctx.Payload = L.CheckString(2)
+		return 0
+	}
+	L.Push(lua.LString(ctx.Payload))
+	return 1
+}
+
+func checkTaskContext(L *lua.LState) *TaskContext {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*TaskContext); ok {
+		return v
+	}
+	L.ArgError(1, "TaskContext expected")
+	return nil
 }

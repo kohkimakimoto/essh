@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/kohkimakimoto/essh/color"
+	"github.com/kohkimakimoto/essh/helper"
 	"github.com/yuin/gopher-lua"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +15,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"github.com/kohkimakimoto/essh/helper"
+	"sync"
+	"text/template"
 )
 
 // system configurations.
@@ -25,24 +28,24 @@ var (
 
 // flags
 var (
-	versionFlag       bool
-	helpFlag          bool
-	printFlag         bool
-	configFlag        bool
-	systemConfigFlag  bool
-	debugFlag         bool
-	hostsFlag         bool
-	quietFlag         bool
-	tagsFlag          bool
-	genFlag           bool
-	zshCompletionFlag bool
+	versionFlag            bool
+	helpFlag               bool
+	printFlag              bool
+	configFlag             bool
+	systemConfigFlag       bool
+	debugFlag              bool
+	hostsFlag              bool
+	quietFlag              bool
+	tagsFlag               bool
+	genFlag                bool
+	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
 	zshCompletionTasksFlag bool
 
 	bashCompletionFlag bool
-	shellFlag         bool
-	rsyncFlag         bool
-	scpFlag           bool
+	shellFlag          bool
+	rsyncFlag          bool
+	scpFlag            bool
 
 	configFile string
 	filters    []string = []string{}
@@ -153,12 +156,12 @@ func Start() error {
 	}
 
 	if configFlag {
-		shellExec("$EDITOR " + PerUserConfigFile)
+		runCommand("$EDITOR " + PerUserConfigFile)
 		return nil
 	}
 
 	if systemConfigFlag {
-		shellExec("$EDITOR " + SystemWideConfigFile)
+		runCommand("$EDITOR " + SystemWideConfigFile)
 		return nil
 	}
 
@@ -416,8 +419,140 @@ func runTask(config string, task *Task, payload string) error {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
 	}
 
+	if task.Prepare != nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] run prepare function.\n")
+		}
+
+		ctx := NewTaskContext(task, payload)
+		err := task.Prepare(ctx)
+		if err != nil {
+			return err
+		}
+
+		payload = ctx.Payload
+	}
+
+	// get target hosts.
+	on := task.On
+	if len(on) > 0 {
+		// run remotely.
+		hosts := HostsByNames(on)
+		wg := &sync.WaitGroup{}
+		for _, host := range hosts {
+			if task.Parallel {
+				wg.Add(1)
+				go func(config string, task *Task, payload string, host *Host) {
+					err := runRemoteTaskScript(config, task, payload, host)
+					if err != nil {
+						fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
+						panic(err)
+					}
+
+					wg.Done()
+				}(config, task, payload, host)
+			} else {
+				err := runRemoteTaskScript(config, task, payload, host)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		wg.Wait()
+	} else {
+		// run locally.
+		err := runLocalTaskScript(task, payload)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
+}
+
+func runRemoteTaskScript(config string, task *Task, payload string, host *Host) error {
+	// setup ssh command args
+	var sshComandArgs []string
+	if task.Tty {
+		sshComandArgs = []string{"-t", "-t", "-F", config, host.Name}
+	} else {
+		sshComandArgs = []string{"-F", config, host.Name}
+	}
+
+	delimiter := "EOF-ESSH-SCRIPT"
+	sshComandArgs = append(sshComandArgs, "bash", "-se", "<<",
+		`\`+delimiter+"\n"+"export ESSH_PAYLOAD="+ShellEscape(payload)+"\n"+task.Script+"\n"+delimiter)
+
+	cmd := exec.Command("ssh", sshComandArgs[:]...)
+	cmd.Stdin = os.Stdin
+
+	if task.Prefix != "" {
+		dict := map[string]interface{}{
+			"Host": host,
+			"Task": task,
+		}
+		tmpl, err := template.New("T").Parse(task.Prefix)
+		if err != nil {
+			return err
+		}
+		var b bytes.Buffer
+		err = tmpl.Execute(&b, dict)
+		if err != nil {
+			return err
+		}
+
+		cmd.Stdout = &CallbackWriter{
+			Func: func(data []byte) {
+				for _, s := range strings.Split(string(data), "\n") {
+					fmt.Fprintf(color.StdoutWriter, "%s%s\n", color.FgCB(b.String()), s)
+				}
+			},
+		}
+
+		cmd.Stderr = &CallbackWriter{
+			Func: func(data []byte) {
+				for _, s := range strings.Split(string(data), "\n") {
+					fmt.Fprintf(color.StderrWriter, "%s%s\n", color.FgCB(b.String()), s)
+				}
+			},
+		}
+
+	} else {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
+
+	if debugFlag {
+		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
+	}
+
+	return cmd.Run()
+}
+
+func runLocalTaskScript(task *Task, payload string) error {
+	var shell, flag string
+	if runtime.GOOS == "windows" {
+		shell = "cmd"
+		flag = "/C"
+	} else {
+		shell = "/bin/sh"
+		flag = "-c"
+	}
+
+	environ := os.Environ()
+	environ = append(environ, "ESSH_PAYLOAD="+payload)
+
+	cmd := exec.Command(shell, flag, task.Script)
+	cmd.Env = environ
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if debugFlag {
+		fmt.Printf("[essh debug] real local command: %v \n", cmd.Args)
+	}
+
+	return cmd.Run()
 }
 
 func runSSH(config string, args []string) error {
@@ -433,7 +568,7 @@ func runSSH(config string, args []string) error {
 		}
 	}
 
-	// run before hook
+	// run before_connect hook
 	if before := hooks["before_connect"]; before != nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] run before_connect hook\n")
@@ -453,7 +588,7 @@ func runSSH(config string, args []string) error {
 		}
 	}
 
-	// register after hook
+	// register after_disconnect hook
 	defer func() {
 		// after hook
 		if after := hooks["after_disconnect"]; after != nil {
@@ -479,14 +614,14 @@ func runSSH(config string, args []string) error {
 	// setup ssh command args
 	var sshComandArgs []string
 
+	// run after_connect hook
 	if afterConnect := hooks["after_connect"]; afterConnect != nil {
 		sshComandArgs = []string{"-t", "-F", config}
 		sshComandArgs = append(sshComandArgs, args[:]...)
 
 		script := afterConnect.(string)
-		script += `
-exec $SHELL
-`
+		script += "\nexec $SHELL\n"
+
 		sshComandArgs = append(sshComandArgs, script)
 
 	} else {
@@ -579,10 +714,13 @@ func runShellScript(config string, args []string) error {
 	// setup ssh command args
 	sshComandArgs := []string{"-F", config}
 	sshComandArgs = append(sshComandArgs, args[:]...)
-	sshComandArgs = append(sshComandArgs, "bash", "-se")
+
+	delimiter := "EOF-ESSH-SCRIPT"
+	sshComandArgs = append(sshComandArgs, "bash", "-se", "<<",
+		`\`+delimiter+"\n"+string(scriptContent)+"\n"+delimiter)
 
 	cmd := exec.Command("ssh", sshComandArgs[:]...)
-	cmd.Stdin = bytes.NewBuffer(scriptContent)
+	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -640,7 +778,7 @@ func runRsync(config string, args []string) error {
 		fmt.Printf("[essh debug] real rsync command: %v\n", rsyncCommand)
 	}
 
-	return shellExec(rsyncCommand)
+	return runCommand(rsyncCommand)
 }
 
 func runCommand(command string) error {
@@ -687,6 +825,16 @@ func validateConfig() error {
 	return nil
 }
 
+type CallbackWriter struct {
+	Func func(data []byte)
+}
+
+func (w *CallbackWriter) Write(data []byte) (int, error) {
+	if w.Func != nil {
+		w.Func(data)
+	}
+	return len(data), nil
+}
 
 func printUsage() {
 	// print usage.
@@ -808,6 +956,9 @@ _essh_options() {
         '--quiet:Show only host names.'
         '--tags:List tags.'
         '--debug:Output debug log.'
+        '--shell:Change behavior to execute a shell script on the remote host.'
+        '--scp:Change behavior to execute scp.'
+        '--rsync:Change behavior to execute rsync.'
      )
     _describe -t option "option" __essh_options
 }
@@ -825,6 +976,7 @@ _essh () {
             _essh_options
             ;;
         *)
+            _essh_targets
             _essh_options
             _files
             ;;

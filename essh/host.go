@@ -96,12 +96,38 @@ func HostsByTags(tags []string) []*Host {
 	var hosts = []*Host{}
 
 	for _, host := range Hosts {
-		alreadyExists := false
+	B:
 		for _, hostTag := range host.Tags {
 			for _, filteredTag := range tags {
-				if hostTag == filteredTag && !alreadyExists {
+				if hostTag == filteredTag {
 					hosts = append(hosts, host)
-					alreadyExists = true
+					break B
+				}
+			}
+		}
+	}
+
+	return hosts
+}
+
+func HostsByNames(names []string) []*Host {
+	var hosts = []*Host{}
+
+	for _, host := range Hosts {
+	B1:
+		for _, name := range names {
+			if host.Name == name {
+				hosts = append(hosts, host)
+				break B1
+			}
+		}
+
+	B2:
+		for _, tag := range host.Tags {
+			for _, name := range names {
+				if tag == name {
+					hosts = append(hosts, host)
+					break B2
 				}
 			}
 		}
