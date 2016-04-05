@@ -17,6 +17,8 @@ import (
 	"strings"
 	"sync"
 	"text/template"
+	"io"
+	"bufio"
 )
 
 // system configurations.
@@ -439,11 +441,12 @@ func runTask(config string, task *Task, payload string) error {
 		// run remotely.
 		hosts := HostsByNames(on)
 		wg := &sync.WaitGroup{}
+		m := new(sync.Mutex)
 		for _, host := range hosts {
 			if task.Parallel {
 				wg.Add(1)
 				go func(config string, task *Task, payload string, host *Host) {
-					err := runRemoteTaskScript(config, task, payload, host)
+					err := runRemoteTaskScript(config, task, payload, host, m)
 					if err != nil {
 						fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
 						panic(err)
@@ -452,7 +455,7 @@ func runTask(config string, task *Task, payload string) error {
 					wg.Done()
 				}(config, task, payload, host)
 			} else {
-				err := runRemoteTaskScript(config, task, payload, host)
+				err := runRemoteTaskScript(config, task, payload, host, m)
 				if err != nil {
 					return err
 				}
@@ -470,7 +473,7 @@ func runTask(config string, task *Task, payload string) error {
 	return nil
 }
 
-func runRemoteTaskScript(config string, task *Task, payload string, host *Host) error {
+func runRemoteTaskScript(config string, task *Task, payload string, host *Host, m *sync.Mutex) error {
 	// setup ssh command args
 	var sshComandArgs []string
 	if task.Tty {
@@ -493,6 +496,10 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host) 
 	cmd := exec.Command("ssh", sshComandArgs[:]...)
 	cmd.Stdin = os.Stdin
 
+	if debugFlag {
+		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
+	}
+
 	if task.Prefix != "" {
 		dict := map[string]interface{}{
 			"Host": host,
@@ -508,32 +515,48 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host) 
 			return err
 		}
 
-		cmd.Stdout = &CallbackWriter{
-			Func: func(data []byte) {
-				for _, s := range strings.Split(string(data), "\n") {
-					fmt.Fprintf(color.StdoutWriter, "%s%s\n", color.FgCB(b.String()), s)
-				}
-			},
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			return err
+		}
+		stderr, err := cmd.StderrPipe()
+		if err != nil {
+			return err
+		}
+		err = cmd.Start()
+		if err != nil {
+			return err
 		}
 
-		cmd.Stderr = &CallbackWriter{
-			Func: func(data []byte) {
-				for _, s := range strings.Split(string(data), "\n") {
-					fmt.Fprintf(color.StderrWriter, "%s%s\n", color.FgCB(b.String()), s)
-				}
-			},
-		}
+		// inspired by https://github.com/fujiwara/nssh/blob/master/nssh.go
+		go scanLines(stdout, color.StdoutWriter, b.String(), m)
+		go scanLines(stderr, color.StderrWriter, b.String(), m)
+
+		return cmd.Wait()
 
 	} else {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
+		if err := cmd.Start(); err != nil {
+			return err
+		}
+		return cmd.Wait()
 	}
+}
 
-	if debugFlag {
-		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
+func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) {
+	scanner := bufio.NewScanner(src)
+	for scanner.Scan() {
+		func (m *sync.Mutex){
+			m.Lock()
+			defer m.Unlock()
+			if prefix != "" {
+				fmt.Fprintf(dest, "%s%s\n", color.FgCB(prefix), scanner.Text())
+			} else {
+				fmt.Fprintf(dest, "%s\n", scanner.Text())
+			}
+		}(m)
 	}
-
-	return cmd.Run()
 }
 
 func runLocalTaskScript(task *Task, payload string) error {
