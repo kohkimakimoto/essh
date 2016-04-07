@@ -48,6 +48,7 @@ var (
 	aliasesFlag            bool
 	fileFlag               bool
 	execFlag               bool
+	localExecFlag          bool
 	noPrefixFlag           bool
 	rsyncFlag              bool
 	scpFlag                bool
@@ -130,6 +131,8 @@ func Start() error {
 			configFile = strings.Split(arg, "=")[1]
 		} else if arg == "--exec" {
 			execFlag = true
+		} else if arg == "--local-exec" {
+			localExecFlag = true
 		} else if arg == "--no-prefix" {
 			noPrefixFlag = true
 		} else if arg == "--file" {
@@ -386,18 +389,29 @@ func Start() error {
 
 	// select running mode and run it.
 	if execFlag {
-		var hosts []*Host
-		if len(filters) > 0 {
-			hosts = HostsByNames(filters)
-		} else {
-			hosts = Hosts
+		if len(filters) == 0 {
+			return fmt.Errorf("exec mode requires --filter option.")
 		}
+
+		hosts := HostsByNames(filters)
 
 		if len(args) != 1 {
 			return fmt.Errorf("exec mode requires 1 parameter that is the executed command string).")
 		}
 
 		err = runExec(outputConfig, args[0], hosts, noPrefixFlag, fileFlag)
+	} else if localExecFlag {
+		if len(filters) == 0 {
+			return fmt.Errorf("local-exec mode requires --filter option.")
+		}
+
+		hosts := HostsByNames(filters)
+
+		if len(args) != 1 {
+			return fmt.Errorf("local-exec mode requires 1 parameter that is the executed command string).")
+		}
+
+		err = runLocalExec(outputConfig, args[0], hosts, noPrefixFlag, fileFlag)
 	} else if rsyncFlag {
 		err = runRsync(outputConfig, args)
 	} else if scpFlag {
@@ -498,6 +512,43 @@ func runExec(config string, command string, hosts []*Host, noPrefixFlag bool, fi
 	return nil
 }
 
+func runLocalExec(config string, command string, hosts []*Host, noPrefixFlag bool, fileFlag bool) error {
+	if debugFlag {
+		hostNames := []string{}
+		for _, h := range hosts {
+			hostNames = append(hostNames, h.Name)
+		}
+		fmt.Printf("[essh debug] target hosts:%s\n", strings.Join(hostNames, ", "))
+	}
+
+	if fileFlag {
+		// if the fileFlag is on. get a command from a file.
+		b, err := getScriptContent(command)
+		if err != nil {
+			return err
+		}
+		command = string(b)
+	}
+
+	wg := &sync.WaitGroup{}
+	m := new(sync.Mutex)
+	for _, host := range hosts {
+		wg.Add(1)
+		go func(config string, command string, host *Host) {
+			err := runLocalScript(config, command, host, m, noPrefixFlag)
+			if err != nil {
+				fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
+				panic(err)
+			}
+
+			wg.Done()
+		}(config, command, host)
+	}
+	wg.Wait()
+
+	return nil
+}
+
 func runTask(config string, task *Task, payload string) error {
 	if debugFlag {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
@@ -560,9 +611,12 @@ func runRemoteScript(config string, command string, host *Host, m *sync.Mutex, n
 	var sshCommandArgs []string
 	sshCommandArgs = []string{"-F", config, host.Name}
 
+	var script string
+	script = "export ESSH_HOSTNAME=" + host.Name + "\n" + command
+
 	// inspired by https://github.com/laravel/envoy
 	delimiter := "EOF-ESSH-SCRIPT"
-	sshCommandArgs = append(sshCommandArgs, "bash", "-se", "<<\\"+delimiter+"\n"+command+"\n"+delimiter)
+	sshCommandArgs = append(sshCommandArgs, "bash", "-se", "<<\\"+delimiter+"\n"+script+"\n"+delimiter)
 
 	cmd := exec.Command("ssh", sshCommandArgs[:]...)
 	if debugFlag {
@@ -607,6 +661,62 @@ func runRemoteScript(config string, command string, host *Host, m *sync.Mutex, n
 	go scanLines(stdout, color.StdoutWriter, prefix, m)
 	go scanLines(stderr, color.StderrWriter, prefix, m)
 
+	return cmd.Wait()
+}
+
+func runLocalScript(config string, command string, host *Host, m *sync.Mutex, noPrefixFlag bool) error {
+	var shell, flag string
+	if runtime.GOOS == "windows" {
+		shell = "cmd"
+		flag = "/C"
+	} else {
+		shell = "/bin/sh"
+		flag = "-c"
+	}
+
+	script := "export ESSH_HOSTNAME=" + host.Name + "\n" + command
+	cmd := exec.Command(shell, flag, script)
+
+	if debugFlag {
+		fmt.Printf("[essh debug] real local command: %v \n", cmd.Args)
+	}
+
+	cmd.Stdin = os.Stdin
+
+	prefix := ""
+	if !noPrefixFlag {
+		dict := map[string]interface{}{
+			"Host": host,
+		}
+		tmpl, err := template.New("T").Parse("[{{.Host.Name}}] ")
+		if err != nil {
+			return err
+		}
+		var b bytes.Buffer
+		err = tmpl.Execute(&b, dict)
+		if err != nil {
+			return err
+		}
+
+		prefix = b.String()
+	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+	// inspired by https://github.com/fujiwara/nssh/blob/master/nssh.go
+	go scanLines(stdout, color.StdoutWriter, prefix, m)
+	go scanLines(stderr, color.StderrWriter, prefix, m)
 	return cmd.Wait()
 }
 
@@ -702,11 +812,8 @@ func runLocalTaskScript(task *Task, payload string) error {
 		flag = "-c"
 	}
 
-	environ := os.Environ()
-	environ = append(environ, "ESSH_PAYLOAD="+payload)
-
-	cmd := exec.Command(shell, flag, task.Script)
-	cmd.Env = environ
+	script := "export ESSH_PAYLOAD=" + payload + "\n" + task.Script
+	cmd := exec.Command(shell, flag, script)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -1019,7 +1126,7 @@ Options:
   --tags                  List tags.
   --quiet                 (Using with --hosts or --tags option) Show only names.
   --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
-  --filter <tag|host>     (Using with --hosts or --exec option) Use only the hosts filtered with a tag or a host.
+  --filter <tag|host>     (Using with --hosts option) Use only the hosts filtered with a tag or a host.
 
   --tasks                 List tasks.
 
@@ -1028,11 +1135,14 @@ Options:
 
   --debug                 Output debug log.
 
-  --exec                  Change behavior to execute a command on the remote host.
-  --no-prefix             (Using with --exec option) Disable outputing hostname prefix.
-  --file                  (Using with --exec option) Load commands from a file.
-  --rsync                 Change behavior to execute rsync.
-  --scp                   Change behavior to execute scp.
+  --exec                  Execute a command on the remote hosts in parallel.
+  --local-exec            Execute a command on the local host in parallel.
+  --filter <tag|host>     (Using with --exec or --local-exec option) Use only the hosts filtered with a tag or a host.
+  --no-prefix             (Using with --exec or --local-exec option) Disable outputing hostname prefix.
+  --file                  (Using with --exec or --local-exec option) Load commands from a file.
+
+  --rsync                 Run rsync with essh configuration.
+  --scp                   Run scp with essh configuration.
 
 `)
 }
@@ -1088,11 +1198,12 @@ _essh_options() {
         '--filter:Use only the hosts filtered with a tag or a host'
         '--tasks:List tasks.'
         '--debug:Output debug log.'
-        '--exec:Change behavior to execute a command on the remote host.'
+        '--exec:Execute a command on the remote hosts.'
+        '--local-exec:Execute a command on the local host.'
         '--no-prefix:Disable outputing hostname prefix.'
         '--file:Load commands from a file.'
-        '--scp:Change behavior to execute scp.'
-        '--rsync:Change behavior to execute rsync.'
+        '--rsync:Run rsync with essh configuration.'
+        '--scp:Run scp with essh configuration.'
         '--zsh-completion:Output zsh completion code.'
         '--aliases:Output aliases code.'
      )
