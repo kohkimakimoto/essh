@@ -37,11 +37,16 @@ func InitLuaState(L *lua.LState) {
 	lessh = L.NewTable()
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
+	L.SetFuncs(lessh, map[string]lua.LGFunction{
+		"host": coreHost,
+		"task":  coreTask,
+	})
 }
 
 func coreHost(L *lua.LState) int {
 	name := L.CheckString(1)
 
+	// procedural style
 	if L.GetTop() == 2 {
 		tb := L.CheckTable(2)
 		registerHost(L, name, tb)
@@ -49,6 +54,7 @@ func coreHost(L *lua.LState) int {
 		return 0
 	}
 
+	// DSL style
 	L.Push(L.NewFunction(func(L *lua.LState) int {
 		tb := L.CheckTable(1)
 		registerHost(L, name, tb)
@@ -62,6 +68,7 @@ func coreHost(L *lua.LState) int {
 func coreTask(L *lua.LState) int {
 	name := L.CheckString(1)
 
+	// procedural style
 	if L.GetTop() == 2 {
 		tb := L.CheckTable(2)
 		registerTask(L, name, tb)
@@ -69,6 +76,7 @@ func coreTask(L *lua.LState) int {
 		return 0
 	}
 
+	// DSL style
 	L.Push(L.NewFunction(func(L *lua.LState) int {
 		tb := L.CheckTable(1)
 		registerTask(L, name, tb)
