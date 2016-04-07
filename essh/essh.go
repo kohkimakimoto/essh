@@ -698,7 +698,7 @@ func runLocalScript(config string, command string, host *Host, m *sync.Mutex, no
 		dict := map[string]interface{}{
 			"Host": host,
 		}
-		tmpl, err := template.New("T").Parse("[{{.Host.Name}}] ")
+		tmpl, err := template.New("T").Parse("[Local - {{.Host.Name}}] ")
 		if err != nil {
 			return err
 		}
