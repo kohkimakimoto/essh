@@ -24,13 +24,13 @@ func GetTask(name string) *Task {
 }
 
 type TaskContext struct {
-	Task *Task
+	Task    *Task
 	Payload string
 }
 
 func NewTaskContext(task *Task, payload string) *TaskContext {
 	return &TaskContext{
-		Task: task,
+		Task:    task,
 		Payload: payload,
 	}
 }

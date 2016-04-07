@@ -1,6 +1,7 @@
 package essh
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
@@ -8,6 +9,7 @@ import (
 	"github.com/kohkimakimoto/essh/color"
 	"github.com/kohkimakimoto/essh/helper"
 	"github.com/yuin/gopher-lua"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -17,8 +19,6 @@ import (
 	"strings"
 	"sync"
 	"text/template"
-	"io"
-	"bufio"
 )
 
 // system configurations.
@@ -44,11 +44,11 @@ var (
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
 	zshCompletionTasksFlag bool
-	bashCompletionFlag bool
-	aliasesFlag bool
-	shellFlag          bool
-	rsyncFlag          bool
-	scpFlag            bool
+	bashCompletionFlag     bool
+	aliasesFlag            bool
+	shellFlag              bool
+	rsyncFlag              bool
+	scpFlag                bool
 
 	configFile string
 	filters    []string = []string{}
@@ -116,7 +116,7 @@ func Start() error {
 			zshCompletionTasksFlag = true
 		} else if arg == "--bash-completion" {
 			bashCompletionFlag = true
-		}else if arg == "--aliases" {
+		} else if arg == "--aliases" {
 			aliasesFlag = true
 		} else if arg == "--config-file" {
 			if len(osArgs) < 2 {
@@ -512,9 +512,9 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 
 	var script string
 	if task.Privileged {
-		script = "sudo sudo su - <<\\EOF-ESSH-PRIVILEGED\n export ESSH_PAYLOAD="+ShellEscape(payload)+"\n"+task.Script + "\n" + "EOF-ESSH-PRIVILEGED"
+		script = "sudo sudo su - <<\\EOF-ESSH-PRIVILEGED\n export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n" + task.Script + "\n" + "EOF-ESSH-PRIVILEGED"
 	} else {
-		script = "export ESSH_PAYLOAD="+ShellEscape(payload)+"\n"+task.Script
+		script = "export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n" + task.Script
 	}
 
 	// inspired by https://github.com/laravel/envoy
@@ -575,7 +575,7 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) {
 	scanner := bufio.NewScanner(src)
 	for scanner.Scan() {
-		func (m *sync.Mutex){
+		func(m *sync.Mutex) {
 			m.Lock()
 			defer m.Unlock()
 			if prefix != "" {
