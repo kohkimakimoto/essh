@@ -2,7 +2,6 @@ package essh
 
 import (
 	"fmt"
-	"net/http"
 	"github.com/cjoudrey/gluahttp"
 	"github.com/kohkimakimoto/gluafs"
 	"github.com/kohkimakimoto/gluajson"
@@ -10,6 +9,7 @@ import (
 	"github.com/kohkimakimoto/gluatemplate"
 	"github.com/kohkimakimoto/gluayaml"
 	"github.com/yuin/gopher-lua"
+	"net/http"
 	"unicode"
 )
 

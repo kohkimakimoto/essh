@@ -495,7 +495,6 @@ func runExec(config string, command string, hosts []*Host, noPrefixFlag bool, fi
 	}
 	wg.Wait()
 
-
 	return nil
 }
 
