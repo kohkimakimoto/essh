@@ -44,8 +44,8 @@ var (
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
 	zshCompletionTasksFlag bool
-
 	bashCompletionFlag bool
+	aliasesFlag bool
 	shellFlag          bool
 	rsyncFlag          bool
 	scpFlag            bool
@@ -116,6 +116,8 @@ func Start() error {
 			zshCompletionTasksFlag = true
 		} else if arg == "--bash-completion" {
 			bashCompletionFlag = true
+		}else if arg == "--aliases" {
+			aliasesFlag = true
 		} else if arg == "--config-file" {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--config-file reguires an argument.")
@@ -152,6 +154,11 @@ func Start() error {
 
 	if zshCompletionFlag {
 		fmt.Print(ZSH_COMPLETION)
+		return nil
+	}
+
+	if aliasesFlag {
+		fmt.Print(ALIASES_CODE)
 		return nil
 	}
 
@@ -955,14 +962,13 @@ Options:
   --tasks                 List tasks.
 
   --zsh-completion        Output zsh completion code.
+  --aliases               Output aliases code.
+
   --debug                 Output debug log.
 
-  --shell     Change behavior to execute a shell script on the remote host.
-              Take a look "Running shell script" section.
-  --rsync     Change behavior to execute rsync.
-              Take a look "Running rsync" section.
-  --scp       Change behavior to execute scp.
-              Take a look "Running scp" section.
+  --shell                 Change behavior to execute a shell script on the remote host.
+  --rsync                 Change behavior to execute rsync.
+  --scp                   Change behavior to execute scp.
 
 `)
 }
@@ -986,7 +992,9 @@ func init() {
 	}
 }
 
-var ZSH_COMPLETION = `
+var ZSH_COMPLETION = `# This is zsh completion code.
+# If you want to use it. write the following code in your '.zshrc'
+#   eval "$(essh --zsh-completion)"
 _essh_targets() {
     local -a __essh_tasks
     local -a __essh_hosts
@@ -1018,6 +1026,8 @@ _essh_options() {
         '--shell:Change behavior to execute a shell script on the remote host.'
         '--scp:Change behavior to execute scp.'
         '--rsync:Change behavior to execute rsync.'
+        '--zsh-completion:Output zsh completion code.'
+        '--aliases:Output aliases code.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1043,6 +1053,13 @@ _essh () {
 }
 
 compdef _essh essh
+`
+
+var ALIASES_CODE = `# This is aliaes code.
+# If you want to use it. write the following code in your '.zshrc'
+#   eval "$(essh --aliases)"
+alias escp='essh --scp'
+alias ersync='essh --rsync'
 `
 
 var BASH_COMPLETION = `
