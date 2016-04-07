@@ -46,7 +46,9 @@ var (
 	zshCompletionTasksFlag bool
 	bashCompletionFlag     bool
 	aliasesFlag            bool
-	shellFlag              bool
+	fileFlag               bool
+	execFlag               bool
+	noPrefixFlag           bool
 	rsyncFlag              bool
 	scpFlag                bool
 
@@ -126,8 +128,12 @@ func Start() error {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--config-file=") {
 			configFile = strings.Split(arg, "=")[1]
-		} else if arg == "--shell" {
-			shellFlag = true
+		} else if arg == "--exec" {
+			execFlag = true
+		} else if arg == "--no-prefix" {
+			noPrefixFlag = true
+		} else if arg == "--file" {
+			fileFlag = true
 		} else if arg == "--rsync" {
 			rsyncFlag = true
 		} else if arg == "--scp" {
@@ -302,7 +308,7 @@ func Start() error {
 	if hostsFlag {
 		var hosts []*Host
 		if len(filters) > 0 {
-			hosts = HostsByTags(filters)
+			hosts = HostsByNames(filters)
 		} else {
 			hosts = Hosts
 		}
@@ -379,8 +385,19 @@ func Start() error {
 	}
 
 	// select running mode and run it.
-	if shellFlag {
-		err = runShellScript(outputConfig, args)
+	if execFlag {
+		var hosts []*Host
+		if len(filters) > 0 {
+			hosts = HostsByNames(filters)
+		} else {
+			hosts = Hosts
+		}
+
+		if len(args) != 1 {
+			return fmt.Errorf("exec mode requires 1 parameter that is the executed command string).")
+		}
+
+		err = runExec(outputConfig, args[0], hosts, noPrefixFlag, fileFlag)
 	} else if rsyncFlag {
 		err = runRsync(outputConfig, args)
 	} else if scpFlag {
@@ -444,6 +461,44 @@ func printJson(hosts []*Host, indent string) {
 	}
 }
 
+func runExec(config string, command string, hosts []*Host, noPrefixFlag bool, fileFlag bool) error {
+	if debugFlag {
+		hostNames := []string{}
+		for _, h := range hosts {
+			hostNames = append(hostNames, h.Name)
+		}
+		fmt.Printf("[essh debug] target hosts:%s\n", strings.Join(hostNames, ", "))
+	}
+
+	if fileFlag {
+		// if the fileFlag is on. get a command from a file.
+		b, err := getScriptContent(command)
+		if err != nil {
+			return err
+		}
+		command = string(b)
+	}
+
+	wg := &sync.WaitGroup{}
+	m := new(sync.Mutex)
+	for _, host := range hosts {
+		wg.Add(1)
+		go func(config string, command string, host *Host) {
+			err := runRemoteScript(config, command, host, m, noPrefixFlag)
+			if err != nil {
+				fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
+				panic(err)
+			}
+
+			wg.Done()
+		}(config, command, host)
+	}
+	wg.Wait()
+
+
+	return nil
+}
+
 func runTask(config string, task *Task, payload string) error {
 	if debugFlag {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
@@ -501,13 +556,68 @@ func runTask(config string, task *Task, payload string) error {
 	return nil
 }
 
+func runRemoteScript(config string, command string, host *Host, m *sync.Mutex, noPrefixFlag bool) error {
+	// setup ssh command args
+	var sshCommandArgs []string
+	sshCommandArgs = []string{"-F", config, host.Name}
+
+	// inspired by https://github.com/laravel/envoy
+	delimiter := "EOF-ESSH-SCRIPT"
+	sshCommandArgs = append(sshCommandArgs, "bash", "-se", "<<\\"+delimiter+"\n"+command+"\n"+delimiter)
+
+	cmd := exec.Command("ssh", sshCommandArgs[:]...)
+	if debugFlag {
+		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
+	}
+
+	cmd.Stdin = os.Stdin
+
+	prefix := ""
+	if !noPrefixFlag {
+		dict := map[string]interface{}{
+			"Host": host,
+		}
+		tmpl, err := template.New("T").Parse("[{{.Host.Name}}] ")
+		if err != nil {
+			return err
+		}
+		var b bytes.Buffer
+		err = tmpl.Execute(&b, dict)
+		if err != nil {
+			return err
+		}
+
+		prefix = b.String()
+	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	// inspired by https://github.com/fujiwara/nssh/blob/master/nssh.go
+	go scanLines(stdout, color.StdoutWriter, prefix, m)
+	go scanLines(stderr, color.StderrWriter, prefix, m)
+
+	return cmd.Wait()
+}
+
 func runRemoteTaskScript(config string, task *Task, payload string, host *Host, m *sync.Mutex) error {
 	// setup ssh command args
-	var sshComandArgs []string
+	var sshCommandArgs []string
 	if task.Tty {
-		sshComandArgs = []string{"-t", "-t", "-F", config, host.Name}
+		sshCommandArgs = []string{"-t", "-t", "-F", config, host.Name}
 	} else {
-		sshComandArgs = []string{"-F", config, host.Name}
+		sshCommandArgs = []string{"-F", config, host.Name}
 	}
 
 	var script string
@@ -519,16 +629,17 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 
 	// inspired by https://github.com/laravel/envoy
 	delimiter := "EOF-ESSH-SCRIPT"
-	sshComandArgs = append(sshComandArgs, "bash", "-se", "<<\\"+delimiter+"\n"+script+"\n"+delimiter)
+	sshCommandArgs = append(sshCommandArgs, "bash", "-se", "<<\\"+delimiter+"\n"+script+"\n"+delimiter)
 
-	cmd := exec.Command("ssh", sshComandArgs[:]...)
-	cmd.Stdin = os.Stdin
-
+	cmd := exec.Command("ssh", sshCommandArgs[:]...)
 	if debugFlag {
 		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
 	}
 
-	if task.Prefix != "" {
+	cmd.Stdin = os.Stdin
+
+	prefix := ""
+	if !noPrefixFlag {
 		dict := map[string]interface{}{
 			"Host": host,
 			"Task": task,
@@ -543,33 +654,28 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 			return err
 		}
 
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			return err
-		}
-		stderr, err := cmd.StderrPipe()
-		if err != nil {
-			return err
-		}
-		err = cmd.Start()
-		if err != nil {
-			return err
-		}
-
-		// inspired by https://github.com/fujiwara/nssh/blob/master/nssh.go
-		go scanLines(stdout, color.StdoutWriter, b.String(), m)
-		go scanLines(stderr, color.StderrWriter, b.String(), m)
-
-		return cmd.Wait()
-
-	} else {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Start(); err != nil {
-			return err
-		}
-		return cmd.Wait()
+		prefix = b.String()
 	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		return err
+	}
+
+	// inspired by https://github.com/fujiwara/nssh/blob/master/nssh.go
+	go scanLines(stdout, color.StdoutWriter, prefix, m)
+	go scanLines(stderr, color.StderrWriter, prefix, m)
+
+	return cmd.Wait()
 }
 
 func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) {
@@ -618,9 +724,9 @@ func runSSH(config string, args []string) error {
 	var hooks map[string]interface{}
 
 	// Limitation!
-	// hooks fires only when the hostname is specified by the last argument.
-	if len(args) > 0 {
-		hostname := args[len(args)-1]
+	// hooks fires only when the hostname is just specified.
+	if len(args) == 1 {
+		hostname := args[0]
 		if host := GetHost(hostname); host != nil {
 			hooks = host.Hooks
 		}
@@ -670,25 +776,25 @@ func runSSH(config string, args []string) error {
 	}()
 
 	// setup ssh command args
-	var sshComandArgs []string
+	var sshCommandArgs []string
 
 	// run after_connect hook
 	if afterConnect := hooks["after_connect"]; afterConnect != nil {
-		sshComandArgs = []string{"-t", "-F", config}
-		sshComandArgs = append(sshComandArgs, args[:]...)
+		sshCommandArgs = []string{"-t", "-F", config}
+		sshCommandArgs = append(sshCommandArgs, args[:]...)
 
 		script := afterConnect.(string)
 		script += "\nexec $SHELL\n"
 
-		sshComandArgs = append(sshComandArgs, script)
+		sshCommandArgs = append(sshCommandArgs, script)
 
 	} else {
-		sshComandArgs = []string{"-F", config}
-		sshComandArgs = append(sshComandArgs, args[:]...)
+		sshCommandArgs = []string{"-F", config}
+		sshCommandArgs = append(sshCommandArgs, args[:]...)
 	}
 
 	// execute ssh commmand
-	cmd := exec.Command("ssh", sshComandArgs[:]...)
+	cmd := exec.Command("ssh", sshCommandArgs[:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -717,17 +823,7 @@ func runHook(hook interface{}) error {
 	return nil
 }
 
-func runShellScript(config string, args []string) error {
-	if len(args) < 2 {
-		return fmt.Errorf("shell script mode requires 2 parameters at least.")
-	}
-
-	// In the shell script mode.
-	// the last argument must be a script file path.
-	shellPath := args[len(args)-1]
-	// remove it
-	args = args[:len(args)-1]
-
+func getScriptContent(shellPath string) ([]byte, error) {
 	var scriptContent []byte
 	if strings.HasPrefix(shellPath, "http://") || strings.HasPrefix(shellPath, "https://") {
 		// get script from remote using http.
@@ -747,12 +843,12 @@ func runShellScript(config string, args []string) error {
 
 		resp, err := httpClient.Get(shellPath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		defer resp.Body.Close()
 		b, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		scriptContent = b
@@ -760,33 +856,12 @@ func runShellScript(config string, args []string) error {
 		// get script from the file system.
 		b, err := ioutil.ReadFile(shellPath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		scriptContent = b
 	}
 
-	if debugFlag {
-		fmt.Printf("[essh debug] script:\n%s\n", string(scriptContent))
-	}
-
-	// setup ssh command args
-	sshComandArgs := []string{"-F", config}
-	sshComandArgs = append(sshComandArgs, args[:]...)
-
-	delimiter := "EOF-ESSH-SCRIPT"
-	sshComandArgs = append(sshComandArgs, "bash", "-se", "<<",
-		`\`+delimiter+"\n"+string(scriptContent)+"\n"+delimiter)
-
-	cmd := exec.Command("ssh", sshComandArgs[:]...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if debugFlag {
-		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
-	}
-
-	return cmd.Run()
+	return scriptContent, nil
 }
 
 func runSCP(config string, args []string) error {
@@ -800,11 +875,11 @@ func runSCP(config string, args []string) error {
 
 	// In the scp mode.
 	// the arguments must be scp command options and args.
-	sshComandArgs := []string{"-F", config}
-	sshComandArgs = append(sshComandArgs, args[:]...)
+	sshCommandArgs := []string{"-F", config}
+	sshCommandArgs = append(sshCommandArgs, args[:]...)
 
 	// execute ssh commmand
-	cmd := exec.Command("scp", sshComandArgs[:]...)
+	cmd := exec.Command("scp", sshCommandArgs[:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -827,8 +902,8 @@ func runRsync(config string, args []string) error {
 
 	// In the rsync mode.
 	// the arguments must be rsync command options and args.
-	sshComandArgs := []string{"-F", config}
-	rsyncSSHOption := `-e "ssh ` + strings.Join(sshComandArgs, " ") + `"`
+	sshCommandArgs := []string{"-F", config}
+	rsyncSSHOption := `-e "ssh ` + strings.Join(sshCommandArgs, " ") + `"`
 
 	rsyncCommand := "rsync " + rsyncSSHOption + " " + strings.Join(args, " ")
 
@@ -857,7 +932,7 @@ func runCommand(command string) error {
 }
 
 func validateConfig() error {
-	// check duplication of the host and task names
+	// check duplication of the host, task and tag names
 	names := map[string]bool{}
 	for _, host := range Hosts {
 		if _, ok := names[host.Name]; ok {
@@ -896,18 +971,7 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 
 func printHelp() {
 	printUsage()
-	fmt.Print(`Running shell script:
-  ESSH supports easily running a bash script on the remote server.
-  Syntax:
-
-    essh --shell [<ssh options and args...> <script path|script url>
-
-  Examples:
-
-    essh --shell web01.localhost /path/to/script.sh
-    essh --shell web01.localhost https://example/script.sh
-
-Running rsyc:
+	fmt.Print(`Running rsyc:
   You can use essh config for rsync using --rsync option.
   Syntax:
 
@@ -952,12 +1016,11 @@ Options:
   --config-file <file>    Load configuration from the specific file.
                           If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
 
-  --hosts                 List hosts. This option can use with additional options.
-  --filter <tag>          (Using with --hosts option) Show only the hosts filtered with a tag.
-  --quiet                 (Using with --hosts option) Show only host names.
-
+  --hosts                 List hosts.
   --tags                  List tags.
+  --quiet                 (Using with --hosts or --tags option) Show only names.
   --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
+  --filter <tag|host>     (Using with --hosts or --exec option) Use only the hosts filtered with a tag or a host.
 
   --tasks                 List tasks.
 
@@ -966,7 +1029,9 @@ Options:
 
   --debug                 Output debug log.
 
-  --shell                 Change behavior to execute a shell script on the remote host.
+  --exec                  Change behavior to execute a command on the remote host.
+  --no-prefix             (Using with --exec option) Disable outputing hostname prefix.
+  --file                  (Using with --exec option) Load commands from a file.
   --rsync                 Change behavior to execute rsync.
   --scp                   Change behavior to execute scp.
 
@@ -1018,12 +1083,15 @@ _essh_options() {
         '--system-config:Edit system wide config file.'
         '--config-file:Load configuration from the specific file.'
         '--hosts:List hosts.'
-        '--filter:Show only the hosts filtered with a tag.'
-        '--quiet:Show only host names.'
         '--tags:List tags.'
+        '--quiet:Show only names.'
+        '--format:Output specified format (json|prettyjson)'
+        '--filter:Use only the hosts filtered with a tag or a host'
         '--tasks:List tasks.'
         '--debug:Output debug log.'
-        '--shell:Change behavior to execute a shell script on the remote host.'
+        '--exec:Change behavior to execute a command on the remote host.'
+        '--no-prefix:Disable outputing hostname prefix.'
+        '--file:Load commands from a file.'
         '--scp:Change behavior to execute scp.'
         '--rsync:Change behavior to execute rsync.'
         '--zsh-completion:Output zsh completion code.'
@@ -1074,3 +1142,76 @@ _essh () {
 complete -F _essh essh
 
 `
+
+//
+//func runShellScript(config string, args []string) error {
+//	if len(args) < 2 {
+//		return fmt.Errorf("shell script mode requires 2 parameters at least.")
+//	}
+//
+//	// In the shell script mode.
+//	// the last argument must be a script file path.
+//	shellPath := args[len(args)-1]
+//	// remove it
+//	args = args[:len(args)-1]
+//
+//	var scriptContent []byte
+//	if strings.HasPrefix(shellPath, "http://") || strings.HasPrefix(shellPath, "https://") {
+//		// get script from remote using http.
+//		if debugFlag {
+//			fmt.Printf("[essh debug] get script using http from '%s'\n", shellPath)
+//		}
+//
+//		var httpClient *http.Client
+//		if strings.HasPrefix(shellPath, "https://") {
+//			tr := &http.Transport{
+//				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+//			}
+//			httpClient = &http.Client{Transport: tr}
+//		} else {
+//			httpClient = &http.Client{}
+//		}
+//
+//		resp, err := httpClient.Get(shellPath)
+//		if err != nil {
+//			return err
+//		}
+//		defer resp.Body.Close()
+//		b, err := ioutil.ReadAll(resp.Body)
+//		if err != nil {
+//			return err
+//		}
+//
+//		scriptContent = b
+//	} else {
+//		// get script from the file system.
+//		b, err := ioutil.ReadFile(shellPath)
+//		if err != nil {
+//			return err
+//		}
+//		scriptContent = b
+//	}
+//
+//	if debugFlag {
+//		fmt.Printf("[essh debug] script:\n%s\n", string(scriptContent))
+//	}
+//
+//	// setup ssh command args
+//	sshCommandArgs := []string{"-F", config}
+//	sshCommandArgs = append(sshCommandArgs, args[:]...)
+//
+//	delimiter := "EOF-ESSH-SCRIPT"
+//	sshCommandArgs = append(sshCommandArgs, "bash", "-se", "<<",
+//		`\`+delimiter+"\n"+string(scriptContent)+"\n"+delimiter)
+//
+//	cmd := exec.Command("ssh", sshCommandArgs[:]...)
+//	cmd.Stdin = os.Stdin
+//	cmd.Stdout = os.Stdout
+//	cmd.Stderr = os.Stderr
+//
+//	if debugFlag {
+//		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
+//	}
+//
+//	return cmd.Run()
+//}

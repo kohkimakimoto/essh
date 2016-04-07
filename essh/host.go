@@ -92,24 +92,6 @@ func Tags() []string {
 	return tags
 }
 
-func HostsByTags(tags []string) []*Host {
-	var hosts = []*Host{}
-
-	for _, host := range Hosts {
-	B:
-		for _, hostTag := range host.Tags {
-			for _, filteredTag := range tags {
-				if hostTag == filteredTag {
-					hosts = append(hosts, host)
-					break B
-				}
-			}
-		}
-	}
-
-	return hosts
-}
-
 func HostsByNames(names []string) []*Host {
 	var hosts = []*Host{}
 
@@ -135,3 +117,22 @@ func HostsByNames(names []string) []*Host {
 
 	return hosts
 }
+
+//func HostsByTags(tags []string) []*Host {
+//	var hosts = []*Host{}
+//
+//	for _, host := range Hosts {
+//	B:
+//		for _, hostTag := range host.Tags {
+//			for _, filteredTag := range tags {
+//				if hostTag == filteredTag {
+//					hosts = append(hosts, host)
+//					break B
+//				}
+//			}
+//		}
+//	}
+//
+//	return hosts
+//}
+

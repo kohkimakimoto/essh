@@ -158,20 +158,6 @@ export GIT_SSH=essh
 
 ## Useful functionality
 
-### Running shell script
-
-ESSH supports easily running a bash script on the remote server.
-
-```
-$ essh --shell web01.localhost /path/to/script.sh
-```
-
-Also you can get a script using http instead of local filesystem.
-
-```
-$ essh --shell web01.localhost https://example/script.sh
-```
-
 ### Running rsync
 
 You can use essh config for rsync using `--rsync` option.
