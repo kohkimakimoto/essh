@@ -1208,7 +1208,7 @@ _essh_tags() {
 
 
 _essh_options() {
-    local -a __options
+    local -a __essh_options
     __essh_options=(
         '--version:Print version.'
         '--help:Print help.'
@@ -1232,6 +1232,26 @@ _essh_options() {
         '--scp:Run scp with essh configuration.'
         '--zsh-completion:Output zsh completion code.'
         '--aliases:Output aliases code.'
+     )
+    _describe -t option "option" __essh_options
+}
+
+_essh_hosts_options() {
+    local -a __essh_options
+    __essh_options=(
+        '--debug:Output debug log.'
+        '--quiet:Show only names.'
+        '--filter:Use only the hosts filtered with a tag or a host'
+     )
+    _describe -t option "option" __essh_options
+}
+
+_essh_exec_options() {
+    local -a __essh_options
+    __essh_options=(
+        '--debug:Output debug log.'
+        '--filter:Use only the hosts filtered with a tag or a host'
+        '--no-prefix:Disable outputing hostname prefix.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1260,10 +1280,10 @@ _essh () {
                     _files
                     ;;
                 --exec|--local-exec)
-                    _essh_options
+                    _essh_exec_options
                     ;;
                 --hosts)
-                    _essh_options
+                    _essh_hosts_options
                     ;;
                 --filter)
                     _essh_hosts
