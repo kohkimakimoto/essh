@@ -2,6 +2,8 @@ package essh
 
 import (
 	"fmt"
+	"net/http"
+	"github.com/cjoudrey/gluahttp"
 	"github.com/kohkimakimoto/gluafs"
 	"github.com/kohkimakimoto/gluajson"
 	"github.com/kohkimakimoto/gluaquestion"
@@ -29,6 +31,7 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("essh.yaml", gluayaml.Loader)
 	L.PreloadModule("essh.template", gluatemplate.Loader)
 	L.PreloadModule("essh.question", gluaquestion.Loader)
+	L.PreloadModule("essh.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 
 	// global variables
 	lessh = L.NewTable()
