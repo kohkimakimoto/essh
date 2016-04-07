@@ -43,6 +43,7 @@ var (
 	genFlag                bool
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
+	zshCompletionTagsFlag  bool
 	zshCompletionTasksFlag bool
 	bashCompletionFlag     bool
 	aliasesFlag            bool
@@ -115,6 +116,8 @@ func Start() error {
 			zshCompletionFlag = true
 		} else if arg == "--zsh-completion-hosts" {
 			zshCompletionHostsFlag = true
+		} else if arg == "--zsh-completion-tags" {
+			zshCompletionTagsFlag = true
 		} else if arg == "--zsh-completion-tasks" {
 			zshCompletionTasksFlag = true
 		} else if arg == "--bash-completion" {
@@ -303,6 +306,13 @@ func Start() error {
 	if zshCompletionTasksFlag {
 		for _, task := range Tasks {
 			fmt.Printf("%s\t%s\n", task.Name, task.Description)
+		}
+		return nil
+	}
+
+	if zshCompletionTagsFlag {
+		for _, tag := range Tags() {
+			fmt.Printf("%s\n", tag)
 		}
 		return nil
 	}
@@ -1169,17 +1179,33 @@ func init() {
 var ZSH_COMPLETION = `# This is zsh completion code.
 # If you want to use it. write the following code in your '.zshrc'
 #   eval "$(essh --zsh-completion)"
-_essh_targets() {
-    local -a __essh_tasks
+_essh_hosts() {
     local -a __essh_hosts
     PRE_IFS=$IFS
     IFS=$'\n'
-    __essh_tasks=($(essh --zsh-completion-tasks | awk -F'\t' '{print $1":"$2}'))
     __essh_hosts=($(essh --zsh-completion-hosts | awk -F'\t' '{print $1":"$2}'))
     IFS=$PRE_IFS
-    _describe -t task "task" __essh_tasks
     _describe -t host "host" __essh_hosts
 }
+
+_essh_tasks() {
+    local -a __essh_tasks
+    PRE_IFS=$IFS
+    IFS=$'\n'
+    __essh_tasks=($(essh --zsh-completion-tasks | awk -F'\t' '{print $1":"$2}'))
+    IFS=$PRE_IFS
+    _describe -t task "task" __essh_tasks
+}
+
+_essh_tags() {
+    local -a __essh_tags
+    PRE_IFS=$IFS
+    IFS=$'\n'
+    __essh_tags=($(essh --zsh-completion-tags))
+    IFS=$PRE_IFS
+    _describe -t tag "tag" __essh_tags
+}
+
 
 _essh_options() {
     local -a __options
@@ -1215,15 +1241,45 @@ _essh () {
     typeset -A opt_args
 
     _arguments \
-        '1: :->command'
+        '1: :->all' \
+        '*: :->args' \
+		&& ret=0
 
     case $state in
-        command)
-            _essh_targets
+        all)
+            _essh_tasks
+            _essh_hosts
             _essh_options
             ;;
+        args)
+            last_arg="${words[${#words[@]}-1]}"
+            case $last_arg in
+                --tags|--tasks|--print|--help|--version|--gen|--config|--system-config)
+                    ;;
+                --file|--config-file)
+                    _files
+                    ;;
+                --exec|--local-exec)
+                    _essh_options
+                    ;;
+                --hosts)
+                    _essh_options
+                    ;;
+                --filter)
+                    _essh_hosts
+                    _essh_tags
+                    ;;
+                *)
+                    _essh_tasks
+                    _essh_hosts
+                    _essh_options
+                    _files
+                    ;;
+            esac
+            ;;
         *)
-            _essh_targets
+            _essh_tasks
+            _essh_hosts
             _essh_options
             _files
             ;;
