@@ -13,5 +13,8 @@ gom "github.com/cjoudrey/gluahttp"
 gom "github.com/fatih/color"
 gom "github.com/shiena/ansicolor"
 
+# go getter
+gom "github.com/hashicorp/go-getter"
+
 # dev tool
 gom "github.com/mitchellh/gox"

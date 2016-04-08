@@ -23,9 +23,12 @@ import (
 
 // system configurations.
 var (
+	UserConfigDir        string
 	SystemWideConfigFile string
-	PerUserConfigFile    string
+	UserConfigFile       string
+	CurrentDataDir       string
 	CurrentDirConfigFile string
+	ModulesDir           string
 )
 
 // flags
@@ -34,6 +37,7 @@ var (
 	helpFlag               bool
 	printFlag              bool
 	configFlag             bool
+	userConfigFlag         bool
 	systemConfigFlag       bool
 	debugFlag              bool
 	hostsFlag              bool
@@ -41,6 +45,7 @@ var (
 	tagsFlag               bool
 	tasksFlag              bool
 	genFlag                bool
+	updateFlag             bool
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
 	zshCompletionTagsFlag  bool
@@ -82,6 +87,8 @@ func Start() error {
 			helpFlag = true
 		} else if arg == "--config" {
 			configFlag = true
+		} else if arg == "--user-config" {
+			userConfigFlag = true
 		} else if arg == "--system-config" {
 			systemConfigFlag = true
 		} else if arg == "--debug" {
@@ -112,6 +119,8 @@ func Start() error {
 			tagsFlag = true
 		} else if arg == "--gen" {
 			genFlag = true
+		} else if arg == "--update" {
+			updateFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletionFlag = true
 		} else if arg == "--zsh-completion-hosts" {
@@ -180,7 +189,12 @@ func Start() error {
 	}
 
 	if configFlag {
-		runCommand("$EDITOR " + PerUserConfigFile)
+		runCommand("$EDITOR " + CurrentDirConfigFile)
+		return nil
+	}
+
+	if userConfigFlag {
+		runCommand("$EDITOR " + UserConfigFile)
 		return nil
 	}
 
@@ -251,13 +265,13 @@ func Start() error {
 		}
 
 		// load per-user wide config
-		if _, err := os.Stat(PerUserConfigFile); err == nil {
-			if err := L.DoFile(PerUserConfigFile); err != nil {
+		if _, err := os.Stat(UserConfigFile); err == nil {
+			if err := L.DoFile(UserConfigFile); err != nil {
 				return err
 			}
 
 			if debugFlag {
-				fmt.Printf("[essh debug] loaded config file: %s \n", PerUserConfigFile)
+				fmt.Printf("[essh debug] loaded config file: %s \n", UserConfigFile)
 			}
 		}
 
@@ -440,6 +454,12 @@ func Start() error {
 					return runTask(outputConfig, task, "")
 				}
 			}
+		}
+
+		// no argument
+		if len(args) == 0 {
+			printUsage()
+			return nil
 		}
 
 		// run ssh command
@@ -1127,7 +1147,9 @@ Options:
   --help                  Print help.
   --print                 Print generated ssh config.
   --gen                   Only generating ssh config.
-  --config                Edit per-user config file.
+  --update                Update modules.
+  --config                Edit config file in the current directory.
+  --user-config           Edit per-user config file.
   --system-config         Edit system wide config file.
   --config-file <file>    Load configuration from the specific file.
                           If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
@@ -1161,17 +1183,45 @@ func init() {
 	if SystemWideConfigFile == "" {
 		SystemWideConfigFile = "/etc/essh/config.lua"
 	}
-	if PerUserConfigFile == "" {
+
+	if UserConfigDir == "" {
 		home := userHomeDir()
-		PerUserConfigFile = filepath.Join(home, ".essh/config.lua")
+		UserConfigDir = filepath.Join(home, ".essh")
+	}
+
+	if _, err := os.Stat(UserConfigDir); os.IsNotExist(err) {
+		err = os.MkdirAll(UserConfigDir, os.FileMode(0755))
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}
+
+	if UserConfigFile == "" {
+		UserConfigFile = filepath.Join(UserConfigDir, "config.lua")
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("couldn't get working dir %v\n", err)
+		panic(err)
+	}
+
+	if CurrentDataDir == "" {
+		CurrentDataDir = filepath.Join(wd, ".essh")
+	}
+
+	if ModulesDir == "" {
+		ModulesDir = filepath.Join(CurrentDataDir, "modules")
 	}
 
 	if CurrentDirConfigFile == "" {
-		wd, err := os.Getwd()
-		if err != nil {
-			fmt.Printf("couldn't get working dir %v\n", err)
-		} else {
+		CurrentDirConfigFile = filepath.Join(wd, "essh.lua")
+		if _, err := os.Stat(CurrentDirConfigFile); os.IsNotExist(err) {
+			// try to get .essh.lua for backend compatibility
 			CurrentDirConfigFile = filepath.Join(wd, ".essh.lua")
+			if _, err := os.Stat(CurrentDirConfigFile); os.IsNotExist(err) {
+				CurrentDirConfigFile = filepath.Join(wd, "essh.lua")
+			}
 		}
 	}
 }
@@ -1214,7 +1264,9 @@ _essh_options() {
         '--help:Print help.'
         '--print:Print generated ssh config.'
         '--gen:Only generating ssh config.'
-        '--config:Edit per-user config file.'
+        '--update:Update modules.'
+        '--config:Edit config file in the current directory.'
+        '--user-config:Edit per-user config file.'
         '--system-config:Edit system wide config file.'
         '--config-file:Load configuration from the specific file.'
         '--hosts:List hosts.'
@@ -1328,76 +1380,3 @@ _essh () {
 complete -F _essh essh
 
 `
-
-//
-//func runShellScript(config string, args []string) error {
-//	if len(args) < 2 {
-//		return fmt.Errorf("shell script mode requires 2 parameters at least.")
-//	}
-//
-//	// In the shell script mode.
-//	// the last argument must be a script file path.
-//	shellPath := args[len(args)-1]
-//	// remove it
-//	args = args[:len(args)-1]
-//
-//	var scriptContent []byte
-//	if strings.HasPrefix(shellPath, "http://") || strings.HasPrefix(shellPath, "https://") {
-//		// get script from remote using http.
-//		if debugFlag {
-//			fmt.Printf("[essh debug] get script using http from '%s'\n", shellPath)
-//		}
-//
-//		var httpClient *http.Client
-//		if strings.HasPrefix(shellPath, "https://") {
-//			tr := &http.Transport{
-//				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-//			}
-//			httpClient = &http.Client{Transport: tr}
-//		} else {
-//			httpClient = &http.Client{}
-//		}
-//
-//		resp, err := httpClient.Get(shellPath)
-//		if err != nil {
-//			return err
-//		}
-//		defer resp.Body.Close()
-//		b, err := ioutil.ReadAll(resp.Body)
-//		if err != nil {
-//			return err
-//		}
-//
-//		scriptContent = b
-//	} else {
-//		// get script from the file system.
-//		b, err := ioutil.ReadFile(shellPath)
-//		if err != nil {
-//			return err
-//		}
-//		scriptContent = b
-//	}
-//
-//	if debugFlag {
-//		fmt.Printf("[essh debug] script:\n%s\n", string(scriptContent))
-//	}
-//
-//	// setup ssh command args
-//	sshCommandArgs := []string{"-F", config}
-//	sshCommandArgs = append(sshCommandArgs, args[:]...)
-//
-//	delimiter := "EOF-ESSH-SCRIPT"
-//	sshCommandArgs = append(sshCommandArgs, "bash", "-se", "<<",
-//		`\`+delimiter+"\n"+string(scriptContent)+"\n"+delimiter)
-//
-//	cmd := exec.Command("ssh", sshCommandArgs[:]...)
-//	cmd.Stdin = os.Stdin
-//	cmd.Stdout = os.Stdout
-//	cmd.Stderr = os.Stderr
-//
-//	if debugFlag {
-//		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
-//	}
-//
-//	return cmd.Run()
-//}

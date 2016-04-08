@@ -38,8 +38,9 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
-		"host": coreHost,
-		"task":  coreTask,
+		"host":    coreHost,
+		"task":    coreTask,
+		"require": coreRequire,
 	})
 }
 
@@ -279,6 +280,18 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	}
 
 	Tasks = append(Tasks, task)
+}
+
+func coreRequire(L *lua.LState) int {
+	name := L.CheckString(1)
+	module := NewModule(name)
+
+	err := module.GetModule(updateFlag)
+	if err != nil {
+		panic(err)
+	}
+
+	return 1
 }
 
 // This code refers to https://github.com/yuin/gluamapper/blob/master/gluamapper.go

@@ -7,4 +7,5 @@ gom 'github.com/kohkimakimoto/gluaquestion', :commit => 'bda1fcbda38a721c2849ca0
 gom 'github.com/cjoudrey/gluahttp', :commit => '1128ce320b775e8e3fa2b8095b9c2116aa6869db'
 gom 'github.com/fatih/color', :commit => '533cd7fd8a85905f67a1753afb4deddc85ea174f'
 gom 'github.com/shiena/ansicolor', :commit => 'a422bbe96644373c5753384a59d678f7d261ff10'
+gom 'github.com/hashicorp/go-getter', :commit => 'ef5edd3d8f6f482b775199be2f3734fd20e04d4a'
 gom 'github.com/mitchellh/gox', :commit => 'dc474e55926b34ea132178d975737fac74420f17'
