@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-getter"
 	"github.com/kohkimakimoto/essh/color"
+	"github.com/yuin/gopher-lua"
 	"os"
 	"path"
 	"strings"
 )
+
+var LoadedModules = map[string]*Module{}
 
 type Module struct {
 	// Name is url that is used as go-getter src.
@@ -15,6 +18,8 @@ type Module struct {
 	//   github.com/aaa/bbb
 	//   git::github.com/aaa/bbb.git
 	Name string
+	// Value is a lua value that is returned when a module's 'index.lua' file is evaluated.
+	Value lua.LValue
 }
 
 func NewModule(name string) *Module {
@@ -23,21 +28,12 @@ func NewModule(name string) *Module {
 	}
 }
 
-func (m *Module) GetModule(update bool) error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	source, err := getter.Detect(m.Name, wd, getter.Detectors)
-	if err != nil {
-		return err
-	}
-
-	dir := m.Dir()
+func (m *Module) Load(update bool) error {
+	src := m.Name
+	dst := m.Dir()
 
 	if !update {
-		if _, err := os.Stat(dir); err == nil {
+		if _, err := os.Stat(dst); err == nil {
 			// If the directory already exists, then we're done since
 			// we're not updating.
 			return nil
@@ -49,22 +45,35 @@ func (m *Module) GetModule(update bool) error {
 	}
 
 	if debugFlag {
-		fmt.Printf("[essh debug] module src '%s'", source)
+		fmt.Printf("[essh debug] module src '%s'\n", src)
 	}
 
 	fmt.Fprintf(color.StdoutWriter, "Getting module: '%s'\n", color.FgYB(m.Name))
 
-	err = getter.Get(dir, source)
+	pwd, err := os.Getwd()
 	if err != nil {
-		os.RemoveAll(dir)
+		return err
+	}
+
+	client := &getter.Client{
+		Src:  src,
+		Dst:  dst,
+		Pwd:  pwd,
+		Mode: getter.ClientModeDir,
+	}
+	if err := client.Get(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+func (m *Module) IndexFile() string {
+	return path.Join(m.Dir(), "index.lua")
+}
+
 func (m *Module) Dir() string {
-	return path.Join(ModulesDir, m.Key())
+	return path.Join(ModulesDir(), m.Key())
 }
 
 func (m *Module) Key() string {

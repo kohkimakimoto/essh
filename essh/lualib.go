@@ -10,6 +10,7 @@ import (
 	"github.com/kohkimakimoto/gluayaml"
 	"github.com/yuin/gopher-lua"
 	"net/http"
+	"os"
 	"unicode"
 )
 
@@ -22,8 +23,8 @@ func InitLuaState(L *lua.LState) {
 	registerTaskContextClass(L)
 
 	// global functions
-	L.SetGlobal("Host", L.NewFunction(coreHost))
-	L.SetGlobal("Task", L.NewFunction(coreTask))
+	L.SetGlobal("Host", L.NewFunction(esshHost))
+	L.SetGlobal("Task", L.NewFunction(esshTask))
 
 	// modules
 	L.PreloadModule("essh.json", gluajson.Loader)
@@ -38,13 +39,14 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
-		"host":    coreHost,
-		"task":    coreTask,
-		"require": coreRequire,
+		"host":    esshHost,
+		"task":    esshTask,
+		"require": esshRequire,
+		"reset":   esshReset,
 	})
 }
 
-func coreHost(L *lua.LState) int {
+func esshHost(L *lua.LState) int {
 	name := L.CheckString(1)
 
 	// procedural style
@@ -66,7 +68,7 @@ func coreHost(L *lua.LState) int {
 	return 1
 }
 
-func coreTask(L *lua.LState) int {
+func esshTask(L *lua.LState) int {
 	name := L.CheckString(1)
 
 	// procedural style
@@ -86,6 +88,13 @@ func coreTask(L *lua.LState) int {
 	}))
 
 	return 1
+}
+
+func esshReset(L *lua.LState) int {
+	Tasks = []*Task{}
+	Hosts = []*Host{}
+
+	return 0
 }
 
 func registerHost(L *lua.LState, name string, config *lua.LTable) {
@@ -282,14 +291,34 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	Tasks = append(Tasks, task)
 }
 
-func coreRequire(L *lua.LState) int {
+func esshRequire(L *lua.LState) int {
 	name := L.CheckString(1)
-	module := NewModule(name)
 
-	err := module.GetModule(updateFlag)
-	if err != nil {
-		panic(err)
+	module := LoadedModules[name]
+	if module == nil {
+		module = NewModule(name)
+		err := module.Load(updateFlag)
+		if err != nil {
+			L.RaiseError("%v", err)
+		}
+
+		indexFile := module.IndexFile()
+		if _, err := os.Stat(indexFile); err != nil {
+			L.RaiseError("Could not load essh module: %v", err)
+		}
+		if err := L.DoFile(indexFile); err != nil {
+			L.RaiseError("%v", err)
+		}
+
+		// get a module return value
+		ret := L.Get(-1)
+		module.Value = ret
+
+		// register loaded module.
+		LoadedModules[name] = module
 	}
+
+	L.Push(module.Value)
 
 	return 1
 }

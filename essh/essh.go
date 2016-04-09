@@ -23,12 +23,11 @@ import (
 
 // system configurations.
 var (
-	UserConfigDir        string
+	UserDataDir          string
+	CurrentDataDir       string
 	SystemWideConfigFile string
 	UserConfigFile       string
-	CurrentDataDir       string
-	CurrentDirConfigFile string
-	ModulesDir           string
+	CurrentConfigFile    string
 )
 
 // flags
@@ -46,6 +45,7 @@ var (
 	tasksFlag              bool
 	genFlag                bool
 	updateFlag             bool
+	cleanFlag              bool
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
 	zshCompletionTagsFlag  bool
@@ -121,6 +121,8 @@ func Start() error {
 			genFlag = true
 		} else if arg == "--update" {
 			updateFlag = true
+		} else if arg == "--clean" {
+			cleanFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletionFlag = true
 		} else if arg == "--zsh-completion-hosts" {
@@ -168,6 +170,14 @@ func Start() error {
 		return nil
 	}
 
+	if cleanFlag {
+		err := removeModules()
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	if versionFlag {
 		fmt.Printf("%s (%s)\n", Version, CommitHash)
 		return nil
@@ -189,7 +199,7 @@ func Start() error {
 	}
 
 	if configFlag {
-		runCommand("$EDITOR " + CurrentDirConfigFile)
+		runCommand("$EDITOR " + CurrentConfigFile)
 		return nil
 	}
 
@@ -276,14 +286,14 @@ func Start() error {
 		}
 
 		// load current dir config
-		if CurrentDirConfigFile != "" {
-			if _, err := os.Stat(CurrentDirConfigFile); err == nil {
-				if err := L.DoFile(CurrentDirConfigFile); err != nil {
+		if CurrentConfigFile != "" {
+			if _, err := os.Stat(CurrentConfigFile); err == nil {
+				if err := L.DoFile(CurrentConfigFile); err != nil {
 					return err
 				}
 
 				if debugFlag {
-					fmt.Printf("[essh debug] loaded config file: %s \n", CurrentDirConfigFile)
+					fmt.Printf("[essh debug] loaded config file: %s \n", CurrentConfigFile)
 				}
 			}
 		}
@@ -456,12 +466,16 @@ func Start() error {
 			}
 		}
 
+		if updateFlag && len(args) == 0 {
+			// run just "essh --update"
+			return nil
+		}
+
 		// no argument
 		if len(args) == 0 {
 			printUsage()
 			return nil
 		}
-
 		// run ssh command
 		err = runSSH(outputConfig, args)
 	}
@@ -1105,6 +1119,17 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
+func removeModules() error {
+	if _, err := os.Stat(ModulesDir()); err == nil {
+		err = os.RemoveAll(ModulesDir())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func printHelp() {
 	printUsage()
 	fmt.Print(`Running rsyc:
@@ -1148,6 +1173,7 @@ Options:
   --print                 Print generated ssh config.
   --gen                   Only generating ssh config.
   --update                Update modules.
+  --clean                 Clean the downloaded modules and cache.
   --config                Edit config file in the current directory.
   --user-config           Edit per-user config file.
   --system-config         Edit system wide config file.
@@ -1179,25 +1205,36 @@ Options:
 `)
 }
 
+func ModulesDir() string {
+	return filepath.Join(DataDir(), "modules")
+}
+
+func DataDir() string {
+	if CurrentDataDir == "" {
+		return UserDataDir
+	}
+
+	return CurrentDataDir
+}
+
 func init() {
-	if SystemWideConfigFile == "" {
-		SystemWideConfigFile = "/etc/essh/config.lua"
-	}
+	// set SystemWideConfigFile
+	SystemWideConfigFile = "/etc/essh/config.lua"
 
-	if UserConfigDir == "" {
-		home := userHomeDir()
-		UserConfigDir = filepath.Join(home, ".essh")
-	}
+	// set UserDataDir
+	home := userHomeDir()
+	UserDataDir = filepath.Join(home, ".essh")
 
-	if _, err := os.Stat(UserConfigDir); os.IsNotExist(err) {
-		err = os.MkdirAll(UserConfigDir, os.FileMode(0755))
+	// create UserDataDir, if it doesn't exist
+	if _, err := os.Stat(UserDataDir); os.IsNotExist(err) {
+		err = os.MkdirAll(UserDataDir, os.FileMode(0755))
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			panic(err)
 		}
 	}
 
 	if UserConfigFile == "" {
-		UserConfigFile = filepath.Join(UserConfigDir, "config.lua")
+		UserConfigFile = filepath.Join(UserDataDir, "config.lua")
 	}
 
 	wd, err := os.Getwd()
@@ -1206,23 +1243,20 @@ func init() {
 		panic(err)
 	}
 
-	if CurrentDataDir == "" {
-		CurrentDataDir = filepath.Join(wd, ".essh")
-	}
-
-	if ModulesDir == "" {
-		ModulesDir = filepath.Join(CurrentDataDir, "modules")
-	}
-
-	if CurrentDirConfigFile == "" {
-		CurrentDirConfigFile = filepath.Join(wd, "essh.lua")
-		if _, err := os.Stat(CurrentDirConfigFile); os.IsNotExist(err) {
+	if CurrentConfigFile == "" {
+		CurrentConfigFile = filepath.Join(wd, "essh.lua")
+		if _, err := os.Stat(CurrentConfigFile); os.IsNotExist(err) {
 			// try to get .essh.lua for backend compatibility
-			CurrentDirConfigFile = filepath.Join(wd, ".essh.lua")
-			if _, err := os.Stat(CurrentDirConfigFile); os.IsNotExist(err) {
-				CurrentDirConfigFile = filepath.Join(wd, "essh.lua")
+			CurrentConfigFile = filepath.Join(wd, ".essh.lua")
+			if _, err := os.Stat(CurrentConfigFile); os.IsNotExist(err) {
+				CurrentConfigFile = filepath.Join(wd, "essh.lua")
 			}
 		}
+	}
+
+	// set CurrentDataDir if it uses CurrentDirConfigFile
+	if CurrentConfigFile != "" {
+		CurrentDataDir = filepath.Join(wd, ".essh")
 	}
 }
 
@@ -1265,6 +1299,7 @@ _essh_options() {
         '--print:Print generated ssh config.'
         '--gen:Only generating ssh config.'
         '--update:Update modules.'
+        '--clean:Clean the downloaded modules and cache.'
         '--config:Edit config file in the current directory.'
         '--user-config:Edit per-user config file.'
         '--system-config:Edit system wide config file.'
