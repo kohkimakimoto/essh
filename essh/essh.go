@@ -1171,9 +1171,9 @@ Options:
   --version               Print version.
   --help                  Print help.
   --print                 Print generated ssh config.
-  --gen                   Only generating ssh config.
+  --gen                   Only generate ssh config.
   --update                Update modules.
-  --clean                 Clean the downloaded modules and cache.
+  --clean                 Clean the downloaded modules.
   --config                Edit config file in the current directory.
   --user-config           Edit per-user config file.
   --system-config         Edit system wide config file.
@@ -1185,7 +1185,6 @@ Options:
   --quiet                 (Using with --hosts or --tags option) Show only names.
   --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
   --filter <tag|host>     (Using with --hosts option) Use only the hosts filtered with a tag or a host.
-
   --tasks                 List tasks.
 
   --zsh-completion        Output zsh completion code.
@@ -1297,9 +1296,9 @@ _essh_options() {
         '--version:Print version.'
         '--help:Print help.'
         '--print:Print generated ssh config.'
-        '--gen:Only generating ssh config.'
+        '--gen:Only generate ssh config.'
         '--update:Update modules.'
-        '--clean:Clean the downloaded modules and cache.'
+        '--clean:Clean the downloaded modules.'
         '--config:Edit config file in the current directory.'
         '--user-config:Edit per-user config file.'
         '--system-config:Edit system wide config file.'
