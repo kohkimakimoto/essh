@@ -1162,8 +1162,8 @@ manage hosts, tags and tasks.
   --tasks                       List tasks.
 
 manage modules.
-  --update    Update modules.
-  --clean     Clean the downloaded modules.
+  --update                      Update modules.
+  --clean                       Clean the downloaded modules.
 
 execute commands using hosts configuration.
   --exec                        Execute commands with the hosts.
