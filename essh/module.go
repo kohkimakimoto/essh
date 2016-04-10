@@ -73,7 +73,7 @@ func (m *Module) IndexFile() string {
 }
 
 func (m *Module) Dir() string {
-	return path.Join(ModulesDir(), m.Key())
+	return path.Join(modulesDir(), m.Key())
 }
 
 func (m *Module) Key() string {

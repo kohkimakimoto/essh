@@ -204,19 +204,17 @@ func registerRemoteHook(L *lua.LState, host *Host, hookPoint string, hook lua.LV
 }
 
 func registerTask(L *lua.LState, name string, config *lua.LTable) {
-	task := &Task{
-		Name: name,
-		On:   []string{},
-	}
+	task := NewTask()
+	task.Name = name
 
 	description := config.RawGetString("description")
 	if descStr, ok := toString(description); ok {
 		task.Description = descStr
 	}
 
-	tty := config.RawGetString("tty")
-	if ttyBool, ok := toBool(tty); ok {
-		task.Tty = ttyBool
+	pty := config.RawGetString("pty")
+	if ptyBool, ok := toBool(pty); ok {
+		task.Pty = ptyBool
 	}
 
 	parallel := config.RawGetString("parallel")
@@ -229,18 +227,18 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		task.Privileged = privilegedBool
 	}
 
-	prefix := config.RawGetString("prefix")
-	if prefixBool, ok := toBool(prefix); ok {
-		if prefixBool {
-			task.Prefix = "[{{.Host.Name}}] "
-		}
-	} else if prefixStr, ok := toString(prefix); ok {
-		task.Prefix = prefixStr
-	}
-
 	script := config.RawGetString("script")
 	if scriptStr, ok := toString(script); ok {
 		task.Script = scriptStr
+	}
+
+	file := config.RawGetString("file")
+	if fileStr, ok := toString(file); ok {
+		task.File = fileStr
+	}
+
+	if task.File != "" && task.Script != "" {
+		L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
 	}
 
 	on := config.RawGetString("on")
@@ -252,6 +250,34 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 				task.On = append(task.On, targetStr)
 			}
 		}
+	}
+
+	foreach := config.RawGetString("foreach")
+	if foreachStr, ok := toString(foreach); ok {
+		task.Foreach = []string{foreachStr}
+	} else if foreachSlice, ok := toSlice(foreach); ok {
+		for _, target := range foreachSlice {
+			if targetStr, ok := target.(string); ok {
+				task.Foreach = append(task.Foreach, targetStr)
+			}
+		}
+	}
+
+	if len(task.Foreach) >= 1 && len(task.On) >= 1 {
+		L.RaiseError("invalid task definition: can't use 'foreach' and 'on' at the same time.")
+	}
+
+	prefix := config.RawGetString("prefix")
+	if prefixBool, ok := toBool(prefix); ok {
+		if prefixBool {
+			if task.IsRemoteTask() {
+				task.Prefix = DefaultPrefixRemote
+			} else {
+				task.Prefix = DefaultPrefixLocal
+			}
+		}
+	} else if prefixStr, ok := toString(prefix); ok {
+		task.Prefix = prefixStr
 	}
 
 	prepare := config.RawGetString("prepare")

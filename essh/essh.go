@@ -52,16 +52,21 @@ var (
 	zshCompletionTasksFlag bool
 	bashCompletionFlag     bool
 	aliasesFlag            bool
-	fileFlag               bool
 	execFlag               bool
-	localExecFlag          bool
-	noPrefixFlag           bool
+	fileFlag               bool
+	prefixFlag             bool
+	parallelFlag           bool
+	privilegedFlag         bool
+	ptyFlag                bool
 	rsyncFlag              bool
 	scpFlag                bool
 
 	configFile string
-	filters    []string = []string{}
-	format     string
+	filtersVar    []string = []string{}
+	onVar         []string = []string{}
+	foreachVar         []string = []string{}
+	prefixStringVar string
+	formatVar string
 )
 
 func Start() error {
@@ -103,18 +108,18 @@ func Start() error {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--filter reguires an argument.")
 			}
-			filters = append(filters, osArgs[1])
+			filtersVar = append(filtersVar, osArgs[1])
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--filter=") {
-			filters = append(filters, strings.Split(arg, "=")[1])
+			filtersVar = append(filtersVar, strings.Split(arg, "=")[1])
 		} else if arg == "--format" {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--format reguires an argument.")
 			}
-			format = osArgs[1]
+			formatVar = osArgs[1]
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--format=") {
-			format = strings.Split(arg, "=")[1]
+			formatVar = strings.Split(arg, "=")[1]
 		} else if arg == "--tags" {
 			tagsFlag = true
 		} else if arg == "--gen" {
@@ -145,12 +150,34 @@ func Start() error {
 			configFile = strings.Split(arg, "=")[1]
 		} else if arg == "--exec" {
 			execFlag = true
-		} else if arg == "--local-exec" {
-			localExecFlag = true
-		} else if arg == "--no-prefix" {
-			noPrefixFlag = true
+		} else if arg == "--on" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--on reguires an argument.")
+			}
+			onVar = append(onVar, osArgs[1])
+			osArgs = osArgs[1:]
+		} else if arg == "--foreach" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--foreach reguires an argument.")
+			}
+			foreachVar = append(foreachVar, osArgs[1])
+			osArgs = osArgs[1:]
+		} else if arg == "--privileged" {
+			privilegedFlag = true
+		} else if arg == "--parallel" {
+			parallelFlag = true
+		} else if arg == "--prefix" {
+			prefixFlag = true
+		} else if arg == "--prefix-string" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--prefix-string reguires an argument.")
+			}
+			prefixStringVar = osArgs[1]
+			osArgs = osArgs[1:]
 		} else if arg == "--file" {
 			fileFlag = true
+		} else if arg == "--pty" {
+			ptyFlag = true
 		} else if arg == "--rsync" {
 			rsyncFlag = true
 		} else if arg == "--scp" {
@@ -344,15 +371,15 @@ func Start() error {
 	// only print hosts list
 	if hostsFlag {
 		var hosts []*Host
-		if len(filters) > 0 {
-			hosts = HostsByNames(filters)
+		if len(filtersVar) > 0 {
+			hosts = HostsByNames(filtersVar)
 		} else {
 			hosts = Hosts
 		}
 
-		if format == "json" {
+		if formatVar == "json" {
 			printJson(hosts, "")
-		} else if format == "prettyjson" {
+		} else if formatVar == "prettyjson" {
 			printJson(hosts, "    ")
 		} else {
 			tb := helper.NewPlainTable(os.Stdout)
@@ -391,10 +418,15 @@ func Start() error {
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "ON"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "HOSTS/TAGS", "TYPE"})
 		}
 		for _, t := range Tasks {
-			tb.Append([]string{t.Name, t.Description, strings.Join(t.On, ",")})
+			if t.IsRemoteTask() {
+				tb.Append([]string{t.Name, t.Description, strings.Join(t.On, ","), "remote"})
+			} else {
+				tb.Append([]string{t.Name, t.Description, strings.Join(t.Foreach, ","), "local"})
+			}
+
 		}
 		tb.Render()
 
@@ -423,29 +455,47 @@ func Start() error {
 
 	// select running mode and run it.
 	if execFlag {
-		if len(filters) == 0 {
-			return fmt.Errorf("exec mode requires --filter option.")
+		if len(args) == 0 {
+			return fmt.Errorf("exec mode requires 1 parameter at latest.")
 		}
 
-		hosts := HostsByNames(filters)
-
-		if len(args) != 1 {
-			return fmt.Errorf("exec mode requires 1 parameter that is the executed command string).")
+		command := args[0]
+		payload := ""
+		if len(args) == 2 {
+			payload = args[1]
 		}
 
-		err = runExec(outputConfig, args[0], hosts, noPrefixFlag, fileFlag)
-	} else if localExecFlag {
-		if len(filters) == 0 {
-			return fmt.Errorf("local-exec mode requires --filter option.")
+		// create temporary task
+		task := NewTask()
+		task.Name = "exec"
+		task.Pty = ptyFlag
+		task.Parallel = parallelFlag
+		task.Privileged = privilegedFlag
+		if fileFlag {
+			task.File = command
+		} else {
+			task.Script = command
+		}
+		task.On = onVar
+		task.Foreach = foreachVar
+
+		if len(task.Foreach) >= 1 && len(task.On) >= 1 {
+			return fmt.Errorf("invalid options: can't use '--foreach' and '--on' at the same time.")
 		}
 
-		hosts := HostsByNames(filters)
-
-		if len(args) != 1 {
-			return fmt.Errorf("local-exec mode requires 1 parameter that is the executed command string).")
+		if prefixStringVar == "" {
+			if prefixFlag {
+				if task.IsRemoteTask() {
+					task.Prefix = DefaultPrefixRemote
+				} else {
+					task.Prefix = DefaultPrefixLocal
+				}
+			}
+		} else {
+			task.Prefix = prefixStringVar
 		}
 
-		err = runLocalExec(outputConfig, args[0], hosts, noPrefixFlag, fileFlag)
+		return runTask(outputConfig, task, payload)
 	} else if rsyncFlag {
 		err = runRsync(outputConfig, args)
 	} else if scpFlag {
@@ -490,7 +540,7 @@ func printJson(hosts []*Host, indent string) {
 		h := map[string]map[string]interface{}{}
 
 		hv := map[string]interface{}{}
-		for _, pair := range host.Values() {
+		for _, pair := range host.Params() {
 			for k, v := range pair {
 				hv[k] = v
 			}
@@ -519,80 +569,6 @@ func printJson(hosts []*Host, indent string) {
 	}
 }
 
-func runExec(config string, command string, hosts []*Host, noPrefixFlag bool, fileFlag bool) error {
-	if debugFlag {
-		hostNames := []string{}
-		for _, h := range hosts {
-			hostNames = append(hostNames, h.Name)
-		}
-		fmt.Printf("[essh debug] target hosts:%s\n", strings.Join(hostNames, ", "))
-	}
-
-	if fileFlag {
-		// if the fileFlag is on. get a command from a file.
-		b, err := getScriptContent(command)
-		if err != nil {
-			return err
-		}
-		command = string(b)
-	}
-
-	wg := &sync.WaitGroup{}
-	m := new(sync.Mutex)
-	for _, host := range hosts {
-		wg.Add(1)
-		go func(config string, command string, host *Host) {
-			err := runRemoteScript(config, command, host, m, noPrefixFlag)
-			if err != nil {
-				fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
-				panic(err)
-			}
-
-			wg.Done()
-		}(config, command, host)
-	}
-	wg.Wait()
-
-	return nil
-}
-
-func runLocalExec(config string, command string, hosts []*Host, noPrefixFlag bool, fileFlag bool) error {
-	if debugFlag {
-		hostNames := []string{}
-		for _, h := range hosts {
-			hostNames = append(hostNames, h.Name)
-		}
-		fmt.Printf("[essh debug] target hosts:%s\n", strings.Join(hostNames, ", "))
-	}
-
-	if fileFlag {
-		// if the fileFlag is on. get a command from a file.
-		b, err := getScriptContent(command)
-		if err != nil {
-			return err
-		}
-		command = string(b)
-	}
-
-	wg := &sync.WaitGroup{}
-	m := new(sync.Mutex)
-	for _, host := range hosts {
-		wg.Add(1)
-		go func(config string, command string, host *Host) {
-			err := runLocalScript(config, command, host, m, noPrefixFlag)
-			if err != nil {
-				fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
-				panic(err)
-			}
-
-			wg.Done()
-		}(config, command, host)
-	}
-	wg.Wait()
-
-	return nil
-}
-
 func runTask(config string, task *Task, payload string) error {
 	if debugFlag {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
@@ -613,16 +589,15 @@ func runTask(config string, task *Task, payload string) error {
 	}
 
 	// get target hosts.
-	on := task.On
-	if len(on) > 0 {
+	if task.IsRemoteTask() {
 		// run remotely.
-		hosts := HostsByNames(on)
+		hosts := HostsByNames(task.On)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 		for _, host := range hosts {
 			if task.Parallel {
 				wg.Add(1)
-				go func(config string, task *Task, payload string, host *Host) {
+				go func() {
 					err := runRemoteTaskScript(config, task, payload, host, m)
 					if err != nil {
 						fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
@@ -630,7 +605,7 @@ func runTask(config string, task *Task, payload string) error {
 					}
 
 					wg.Done()
-				}(config, task, payload, host)
+				}()
 			} else {
 				err := runRemoteTaskScript(config, task, payload, host, m)
 				if err != nil {
@@ -641,22 +616,76 @@ func runTask(config string, task *Task, payload string) error {
 		wg.Wait()
 	} else {
 		// run locally.
-		err := runLocalTaskScript(task, payload)
-		if err != nil {
-			return err
+		hosts := HostsByNames(task.Foreach)
+		wg := &sync.WaitGroup{}
+		m := new(sync.Mutex)
+
+		if len(hosts) == 0 {
+			err := runLocalTaskScript(task, payload, nil, m)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
+
+		for _, host := range hosts {
+			if task.Parallel {
+				wg.Add(1)
+				go func() {
+					err := runLocalTaskScript(task, payload, host, m)
+					if err != nil {
+						fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
+						panic(err)
+					}
+
+					wg.Done()
+				}()
+			} else {
+				err := runLocalTaskScript(task, payload, host, m)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		wg.Wait()
 	}
 
 	return nil
 }
 
-func runRemoteScript(config string, command string, host *Host, m *sync.Mutex, noPrefixFlag bool) error {
+func runRemoteTaskScript(config string, task *Task, payload string, host *Host, m *sync.Mutex) error {
 	// setup ssh command args
 	var sshCommandArgs []string
-	sshCommandArgs = []string{"-F", config, host.Name}
+	if task.Pty {
+		sshCommandArgs = []string{"-t", "-t", "-F", config, host.Name}
+	} else {
+		sshCommandArgs = []string{"-F", config, host.Name}
+	}
 
 	var script string
-	script = "export ESSH_HOSTNAME=" + host.Name + "\n" + command
+	script = "export ESSH_HOSTNAME=" + ShellEscape(host.Name) + "\n"
+	for _, param := range host.Params() {
+		for key, value := range param {
+			script += "export ESSH_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
+		}
+	}
+	script += "export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n"
+
+	var content string
+	if task.File != "" {
+		tContent, err := getScriptContent(task.File)
+		if err != nil {
+			return err
+		}
+		content = string(tContent)
+	} else {
+		content = task.Script
+	}
+	script += content
+
+	if task.Privileged {
+		script = "sudo sudo su - <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
+	}
 
 	// inspired by https://github.com/laravel/envoy
 	delimiter := "EOF-ESSH-SCRIPT"
@@ -670,11 +699,12 @@ func runRemoteScript(config string, command string, host *Host, m *sync.Mutex, n
 	cmd.Stdin = os.Stdin
 
 	prefix := ""
-	if !noPrefixFlag {
+	if task.Prefix != "" {
 		dict := map[string]interface{}{
 			"Host": host,
+			"Task": task,
 		}
-		tmpl, err := template.New("T").Parse("[{{.Host.Name}}] ")
+		tmpl, err := template.New("T").Parse(task.Prefix)
 		if err != nil {
 			return err
 		}
@@ -708,7 +738,7 @@ func runRemoteScript(config string, command string, host *Host, m *sync.Mutex, n
 	return cmd.Wait()
 }
 
-func runLocalScript(config string, command string, host *Host, m *sync.Mutex, noPrefixFlag bool) error {
+func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) error {
 	var shell, flag string
 	if runtime.GOOS == "windows" {
 		shell = "cmd"
@@ -718,9 +748,34 @@ func runLocalScript(config string, command string, host *Host, m *sync.Mutex, no
 		flag = "-c"
 	}
 
-	script := "export ESSH_HOSTNAME=" + host.Name + "\n" + command
-	cmd := exec.Command(shell, flag, script)
+	var script string
+	if host != nil {
+		script = "export ESSH_HOSTNAME=" + ShellEscape(host.Name) + "\n"
+		for _, param := range host.Params() {
+			for key, value := range param {
+				script += "export ESSH_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
+			}
+		}
+	}
+	script += "export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n"
 
+	var content string
+	if task.File != "" {
+		tContent, err := getScriptContent(task.File)
+		if err != nil {
+			return err
+		}
+		content = string(tContent)
+	} else {
+		content = task.Script
+	}
+	script += content
+
+	if task.Privileged {
+		script = "sudo sudo su - <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
+	}
+
+	cmd := exec.Command(shell, flag, script)
 	if debugFlag {
 		fmt.Printf("[essh debug] real local command: %v \n", cmd.Args)
 	}
@@ -728,71 +783,12 @@ func runLocalScript(config string, command string, host *Host, m *sync.Mutex, no
 	cmd.Stdin = os.Stdin
 
 	prefix := ""
-	if !noPrefixFlag {
-		dict := map[string]interface{}{
-			"Host": host,
-		}
-		tmpl, err := template.New("T").Parse("[Local - {{.Host.Name}}] ")
-		if err != nil {
-			return err
-		}
-		var b bytes.Buffer
-		err = tmpl.Execute(&b, dict)
-		if err != nil {
-			return err
-		}
-
-		prefix = b.String()
-	}
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return err
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-	// inspired by https://github.com/fujiwara/nssh/blob/master/nssh.go
-	go scanLines(stdout, color.StdoutWriter, prefix, m)
-	go scanLines(stderr, color.StderrWriter, prefix, m)
-	return cmd.Wait()
-}
-
-func runRemoteTaskScript(config string, task *Task, payload string, host *Host, m *sync.Mutex) error {
-	// setup ssh command args
-	var sshCommandArgs []string
-	if task.Tty {
-		sshCommandArgs = []string{"-t", "-t", "-F", config, host.Name}
-	} else {
-		sshCommandArgs = []string{"-F", config, host.Name}
-	}
-
-	var script string
-	if task.Privileged {
-		script = "sudo sudo su - <<\\EOF-ESSH-PRIVILEGED\n export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n" + task.Script + "\n" + "EOF-ESSH-PRIVILEGED"
-	} else {
-		script = "export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n" + task.Script
-	}
-
-	// inspired by https://github.com/laravel/envoy
-	delimiter := "EOF-ESSH-SCRIPT"
-	sshCommandArgs = append(sshCommandArgs, "bash", "-se", "<<\\"+delimiter+"\n"+script+"\n"+delimiter)
-
-	cmd := exec.Command("ssh", sshCommandArgs[:]...)
-	if debugFlag {
-		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
-	}
-
-	cmd.Stdin = os.Stdin
-
-	prefix := ""
-	if !noPrefixFlag {
+	if task.Prefix == DefaultPrefixLocal && host == nil {
+		// simple local task (does not specify the hosts)
+		// prevent to use invalid text template.
+		// replace prefix string to the string that is not included "{{.Host}}"
+		prefix = "[Local] "
+	} else if task.Prefix != "" {
 		dict := map[string]interface{}{
 			"Host": host,
 			"Task": task,
@@ -844,29 +840,6 @@ func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) 
 			}
 		}(m)
 	}
-}
-
-func runLocalTaskScript(task *Task, payload string) error {
-	var shell, flag string
-	if runtime.GOOS == "windows" {
-		shell = "cmd"
-		flag = "/C"
-	} else {
-		shell = "/bin/sh"
-		flag = "-c"
-	}
-
-	script := "export ESSH_PAYLOAD=" + payload + "\n" + task.Script
-	cmd := exec.Command(shell, flag, script)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if debugFlag {
-		fmt.Printf("[essh debug] real local command: %v \n", cmd.Args)
-	}
-
-	return cmd.Run()
 }
 
 func runSSH(config string, args []string) error {
@@ -1120,8 +1093,8 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 }
 
 func removeModules() error {
-	if _, err := os.Stat(ModulesDir()); err == nil {
-		err = os.RemoveAll(ModulesDir())
+	if _, err := os.Stat(modulesDir()); err == nil {
+		err = os.RemoveAll(modulesDir())
 		if err != nil {
 			return err
 		}
@@ -1192,11 +1165,15 @@ Options:
 
   --debug                 Output debug log.
 
-  --exec                  Execute a command on the remote hosts in parallel.
-  --local-exec            Execute a command on the local host in parallel.
-  --filter <tag|host>     (Using with --exec or --local-exec option) Use only the hosts filtered with a tag or a host.
-  --no-prefix             (Using with --exec or --local-exec option) Disable outputing hostname prefix.
-  --file                  (Using with --exec or --local-exec option) Load commands from a file.
+  --exec                        Execute commands with the hosts.
+  --on <tag|host>               (Using with --exec option) Run commands on remote hosts.
+  --foreach <tag|host>          (Using with --exec option) Run commands locally for each hosts.
+  --prefix [<prefix>]           (Using with --exec option) Disable outputing prefix.
+  --prefix-string [<prefix>]    (Using with --exec option) Custom string of the prefix.
+  --privileged                  (Using with --exec option) Run by the privileged user.
+  --parallel                    (Using with --exec option) Run in parallel.
+  --pty                         (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
+  --file                        (Using with --exec option) Load commands from a file.
 
   --rsync                 Run rsync with essh configuration.
   --scp                   Run scp with essh configuration.
@@ -1204,11 +1181,11 @@ Options:
 `)
 }
 
-func ModulesDir() string {
-	return filepath.Join(DataDir(), "modules")
+func modulesDir() string {
+	return filepath.Join(dataDir(), "modules")
 }
 
-func DataDir() string {
+func dataDir() string {
 	if CurrentDataDir == "" {
 		return UserDataDir
 	}
@@ -1310,9 +1287,14 @@ _essh_options() {
         '--filter:Use only the hosts filtered with a tag or a host'
         '--tasks:List tasks.'
         '--debug:Output debug log.'
-        '--exec:Execute a command on the remote hosts.'
-        '--local-exec:Execute a command on the local host.'
-        '--no-prefix:Disable outputing hostname prefix.'
+        '--exec:Execute commands with the hosts.'
+        '--on:Run commands on remote hosts.'
+        '--foreach:Run commands locally for each hosts.'
+        '--prefix:Disable outputing prefix.'
+        '--prefix-string:Custom string of the prefix.'
+        '--privileged:Run by the privileged user.'
+        '--parallel:Run in parallel.'
+        '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
         '--file:Load commands from a file.'
         '--rsync:Run rsync with essh configuration.'
         '--scp:Run scp with essh configuration.'
@@ -1336,8 +1318,14 @@ _essh_exec_options() {
     local -a __essh_options
     __essh_options=(
         '--debug:Output debug log.'
-        '--filter:Use only the hosts filtered with a tag or a host'
-        '--no-prefix:Disable outputing hostname prefix.'
+        '--on:Run commands on remote hosts.'
+        '--foreach:Run commands locally for each hosts.'
+        '--prefix:Disable outputing prefix.'
+        '--prefix-string:Custom string of the prefix.'
+        '--privileged:Run by the privileged user.'
+        '--parallel:Run in parallel.'
+        '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
+        '--file:Load commands from a file.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1365,13 +1353,13 @@ _essh () {
                 --file|--config-file)
                     _files
                     ;;
-                --exec|--local-exec)
+                --exec)
                     _essh_exec_options
                     ;;
                 --hosts)
                     _essh_hosts_options
                     ;;
-                --filter)
+                --filter|--on|--foreach)
                     _essh_hosts
                     _essh_tags
                     ;;

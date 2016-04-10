@@ -4,15 +4,29 @@ type Task struct {
 	Name        string
 	Description string
 	Prepare     func(task *TaskContext) error
-	Tty         bool
+	Pty         bool
 	Script      string
+	File        string
 	On          []string
+	Foreach     []string
 	Parallel    bool
 	Privileged  bool
 	Prefix      string
 }
 
 var Tasks []*Task = []*Task{}
+
+var (
+	DefaultPrefixRemote = "[{{.Host.Name}}] "
+	DefaultPrefixLocal = "[Local => {{.Host.Name}}] "
+)
+
+func NewTask() *Task {
+	return &Task{
+		On:   []string{},
+		Foreach:   []string{},
+	}
+}
 
 func GetTask(name string) *Task {
 	for _, task := range Tasks {
@@ -21,6 +35,14 @@ func GetTask(name string) *Task {
 		}
 	}
 	return nil
+}
+
+func (t *Task) IsRemoteTask() bool {
+	if len(t.On) >= 1 {
+		return true
+	} else {
+		return false
+	}
 }
 
 type TaskContext struct {
