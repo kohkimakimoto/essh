@@ -193,7 +193,7 @@ func Start() error {
 	}
 
 	if helpFlag {
-		printHelp()
+		printUsage()
 		return nil
 	}
 
@@ -1141,42 +1141,51 @@ func printUsage() {
   The MIT License (MIT)
 
 Options:
-  --version               Print version.
-  --help                  Print help.
-  --print                 Print generated ssh config.
-  --gen                   Only generate ssh config.
-  --update                Update modules.
-  --clean                 Clean the downloaded modules.
-  --config                Edit config file in the current directory.
-  --user-config           Edit per-user config file.
-  --system-config         Edit system wide config file.
-  --config-file <file>    Load configuration from the specific file.
-                          If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
+general options.
+  --version                     Print version.
+  --help                        Print help.
+  --print                       Print generated ssh config.
+  --gen                         Only generate ssh config.
+  --config                      Edit config file in the current directory.
+  --user-config                 Edit per-user config file.
+  --system-config               Edit system wide config file.
+  --config-file <file>          Load configuration from the specific file.
+                                If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
+  --debug                       Output debug log.
 
-  --hosts                 List hosts.
-  --tags                  List tags.
-  --quiet                 (Using with --hosts or --tags option) Show only names.
-  --format <format>       (Using with --hosts or --tags option) Output specified format (json|prettyjson)
-  --filter <tag|host>     (Using with --hosts option) Use only the hosts filtered with a tag or a host.
-  --tasks                 List tasks.
+manage hosts, tags and tasks.
+  --hosts                       List hosts.
+  --tags                        List tags.
+  --quiet                       (Using with --hosts or --tags option) Show only names.
+  --format <format>             (Using with --hosts or --tags option) Output specified format (json|prettyjson)
+  --filter <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
+  --tasks                       List tasks.
 
-  --zsh-completion        Output zsh completion code.
-  --aliases               Output aliases code.
+manage modules.
+  --update    Update modules.
+  --clean     Clean the downloaded modules.
 
-  --debug                 Output debug log.
-
+execute commands using hosts configuration.
   --exec                        Execute commands with the hosts.
   --on <tag|host>               (Using with --exec option) Run commands on remote hosts.
   --foreach <tag|host>          (Using with --exec option) Run commands locally for each hosts.
-  --prefix [<prefix>]           (Using with --exec option) Disable outputing prefix.
+  --prefix                      (Using with --exec option) Enable outputing prefix.
   --prefix-string [<prefix>]    (Using with --exec option) Custom string of the prefix.
   --privileged                  (Using with --exec option) Run by the privileged user.
   --parallel                    (Using with --exec option) Run in parallel.
   --pty                         (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
   --file                        (Using with --exec option) Load commands from a file.
 
-  --rsync                 Run rsync with essh configuration.
-  --scp                   Run scp with essh configuration.
+integrate other ssh related commands.
+  --rsync                       Run rsync with essh configuration.
+  --scp                         Run scp with essh configuration.
+
+utility for zsh.
+  --zsh-completion              Output zsh completion code.
+  --aliases                     Output aliases code.
+
+Github:
+  https://github.com/kohkimakimoto/essh
 
 `)
 }
@@ -1290,7 +1299,7 @@ _essh_options() {
         '--exec:Execute commands with the hosts.'
         '--on:Run commands on remote hosts.'
         '--foreach:Run commands locally for each hosts.'
-        '--prefix:Disable outputing prefix.'
+        '--prefix:Enable outputing prefix.'
         '--prefix-string:Custom string of the prefix.'
         '--privileged:Run by the privileged user.'
         '--parallel:Run in parallel.'
