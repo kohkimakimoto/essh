@@ -91,13 +91,21 @@ func esshTask(L *lua.LState) int {
 }
 
 func esshReset(L *lua.LState) int {
+	if debugFlag {
+		fmt.Println("[essh debug] reset tasks, hosts and modules.")
+	}
 	Tasks = []*Task{}
 	Hosts = []*Host{}
+	LoadedModules = map[string]*Module{}
 
 	return 0
 }
 
 func registerHost(L *lua.LState, name string, config *lua.LTable) {
+	if debugFlag {
+		fmt.Printf("[essh debug] register host: %s\n", name)
+	}
+
 	newConfig := L.NewTable()
 	config.ForEach(func(k lua.LValue, v lua.LValue) {
 		var firstChar rune

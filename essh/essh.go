@@ -281,6 +281,10 @@ func Start() error {
 			return err
 		}
 
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s \n", configFile)
+		}
+
 		if err := L.DoFile(configFile); err != nil {
 			return err
 		}
@@ -292,6 +296,11 @@ func Start() error {
 	} else {
 		// load system wide config
 		if _, err := os.Stat(SystemWideConfigFile); err == nil {
+
+			if debugFlag {
+				fmt.Printf("[essh debug] loading config file: %s \n", SystemWideConfigFile)
+			}
+
 			if err := L.DoFile(SystemWideConfigFile); err != nil {
 				return err
 			}
@@ -303,6 +312,11 @@ func Start() error {
 
 		// load per-user wide config
 		if _, err := os.Stat(UserConfigFile); err == nil {
+
+			if debugFlag {
+				fmt.Printf("[essh debug] loading config file: %s \n", UserConfigFile)
+			}
+
 			if err := L.DoFile(UserConfigFile); err != nil {
 				return err
 			}
@@ -315,6 +329,11 @@ func Start() error {
 		// load current dir config
 		if CurrentConfigFile != "" {
 			if _, err := os.Stat(CurrentConfigFile); err == nil {
+
+				if debugFlag {
+					fmt.Printf("[essh debug] loading config file: %s \n", CurrentConfigFile)
+				}
+
 				if err := L.DoFile(CurrentConfigFile); err != nil {
 					return err
 				}
