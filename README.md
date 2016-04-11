@@ -19,7 +19,9 @@ Table of contents
   * [Usage](#usage)
   * [Zsh Completion](#zsh-completion)
 * [Configuration](#configuration)
-  * [Hooks](#hooks)
+  * [Hosts](#hosts)
+    * [Hooks](#hooks)
+  * [Tasks](#tasks)
   * [Variables](#variables)
 * [Using with git](#using-with-git)
 * [Author](#author)
@@ -116,7 +118,9 @@ Host "web01.localhost" {
 
 ## Configuration
 
-### Hooks
+### Hosts
+
+#### Hooks
 
 You can add hook `before_connect`, `after_connect` and `after_disconnect` in a host configuration.
 
@@ -143,6 +147,9 @@ Host "web01.localhost" {
 ```
 
 `before_connect` and `after_disconnect` also can be written as Lua function instead of shell script.
+
+### Tasks
+
 
 ### Variables
 
