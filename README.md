@@ -10,7 +10,7 @@ Extended ssh command.
 * Provides utility for managing remote hosts.
 * Composes tasks for the remote hosts.
 
-**Now it is on unstable stage**
+**Now it is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
 Table of contents
 
