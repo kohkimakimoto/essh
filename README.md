@@ -2,21 +2,37 @@
 
 Extended ssh command.
 
-* This is a single binary CLI app.
+* Single binary CLI app.
 * Simply wraps `ssh` command. You can use it in the same way as `ssh`.
 * Supports to write SSH configuration in Lua programming language.
 * Supports zsh completion.
 * Provides some hook functions.
+* Provides utility for managing remote hosts.
+* Composes tasks for the remote hosts.
 
 **Now it is on unstable stage**
 
-## Installation
+Table of contents
+
+* [Getting Started](#getting-started)
+  * [Installation](#installation)
+  * [Usage](#usage)
+* [Zsh Completion](#zsh-completion)
+* [Hooks](#hooks)
+* [Variables](#variables)
+* [Using with git](#ising-with-git)
+* [Author](#author)
+* [License](#license)
+
+## Getting Started
+
+### Installation
 
 ESSH is provided as a single binary. You can download it and drop it in your $PATH.
 
 [Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
 
-## Usage
+### Usage
 
 Create and edit `~/.essh/config.lua`. This is a main configuration file for ESSH.
 The configuration is written in Lua programming language.
@@ -67,7 +83,7 @@ $ essh web01.localhost
 If you set a first character of keys as lower case like `description` in the config file, it is not SSH config.
 It is used for specific functionality. Read the next section **Zsh Completion**.
 
-### Zsh Completion
+## Zsh Completion
 
 If you want to use zsh completion, add the following code in your `~/.zshrc`
 
@@ -96,7 +112,7 @@ Host "web01.localhost" {
 }
 ```
 
-### Hooks
+## Hooks
 
 You can add hook `before_connect`, `after_connect` and `after_disconnect` in a host configuration.
 
@@ -124,11 +140,11 @@ Host "web01.localhost" {
 
 `before_connect` and `after_disconnect` also can be written as Lua function instead of shell script.
 
-### Variables
+## Variables
 
 ESSH provides `essh` object to the Lua context. And you can set and get below variable.
 
-#### ssh_config
+### ssh_config
 
 `ssh_config` is generated config file path. At default, a temporary file path when you run `essh`.
 
@@ -148,69 +164,13 @@ Host "web01.localhost" {
     hidden = true,
 }
 ```
-### Using with git
+
+## Using with git
 
 Write the following line in your `~/.zshrc`.
 
 ```
 export GIT_SSH=essh
-```
-
-## Useful functionality
-
-### Running rsync
-
-You can use essh config for rsync using `--rsync` option.
-
-```
-$ essh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
-```
-
-### Running scp
-
-You can use essh config for scp using `--scp` option.
-
-```
-$ essh --scp web01.localhost:/path/to/file ./local/file
-```
-
-## Other options
-
-Please check command line help that showed by running `essh` command without any options.
-
-```
-Usage: essh [<options>] [<ssh options and args...>]
-
-essh is an extended ssh command.
-version 0.5.0 (075d81f9600e3f3bb73ccbbd1a3b3e7a41678b95)
-
-Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
-The MIT License (MIT)
-
-Options:
-  --version               Print version.
-  --print                 Print generated ssh config.
-  --config                Edit per-user config file.
-  --system-config         Edit system wide config file.
-  --config-file <file>    Load configuration from the specific file.
-                          If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
-
-  --hosts                 List hosts. This option can use with additional options.
-  --filter <tag>          (Using with --hosts option) Show only the hosts configured with a tag.
-  --verbose               (Using with --hosts option) List hosts with description.
-
-  --tags                  List tags.
-
-  --zsh-completion        Output zsh completion code.
-  --debug                 Output debug log
-
-  --shell     Change behavior to execute a shell script on the remote host.
-              Take a look "Running shell script" section.
-  --rsync     Change behavior to execute rsync.
-              Take a look "Running rsync" section.
-  --scp       Change behavior to execute scp.
-              Take a look "Running scp" section.
-...
 ```
 
 ## Author
