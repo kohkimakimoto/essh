@@ -22,7 +22,8 @@ Table of contents
   * [Hosts](#hosts)
     * [Hooks](#hooks)
   * [Tasks](#tasks)
-  * [Variables](#variables)
+  * [Modules](#modules)
+  * [Libraries](#libraries)
 * [Using with git](#using-with-git)
 * [Author](#author)
 * [License](#license)
@@ -150,8 +151,9 @@ Host "web01.localhost" {
 
 ### Tasks
 
+### Modules
 
-### Variables
+### Libraries
 
 ESSH provides `essh` object to the Lua context. And you can set and get below variable.
 
