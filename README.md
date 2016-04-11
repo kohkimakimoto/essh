@@ -17,9 +17,10 @@ Table of contents
 * [Getting Started](#getting-started)
   * [Installation](#installation)
   * [Usage](#usage)
-* [Zsh Completion](#zsh-completion)
-* [Hooks](#hooks)
-* [Variables](#variables)
+  * [Zsh Completion](#zsh-completion)
+* [Configuration](#configuration)
+  * [Hooks](#hooks)
+  * [Variables](#variables)
 * [Using with git](#using-with-git)
 * [Author](#author)
 * [License](#license)
@@ -83,7 +84,7 @@ $ essh web01.localhost
 If you set a first character of keys as lower case like `description` in the config file, it is not SSH config.
 It is used for specific functionality. Read the next section **Zsh Completion**.
 
-## Zsh Completion
+### Zsh Completion
 
 If you want to use zsh completion, add the following code in your `~/.zshrc`
 
@@ -112,7 +113,10 @@ Host "web01.localhost" {
 }
 ```
 
-## Hooks
+
+## Configuration
+
+### Hooks
 
 You can add hook `before_connect`, `after_connect` and `after_disconnect` in a host configuration.
 
@@ -140,11 +144,11 @@ Host "web01.localhost" {
 
 `before_connect` and `after_disconnect` also can be written as Lua function instead of shell script.
 
-## Variables
+### Variables
 
 ESSH provides `essh` object to the Lua context. And you can set and get below variable.
 
-### ssh_config
+#### ssh_config
 
 `ssh_config` is generated config file path. At default, a temporary file path when you run `essh`.
 
