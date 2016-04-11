@@ -1246,15 +1246,17 @@ func init() {
 		panic(err)
 	}
 
-	if CurrentConfigFile == "" {
-		CurrentConfigFile = filepath.Join(wd, "essh.lua")
-		if _, err := os.Stat(CurrentConfigFile); os.IsNotExist(err) {
-			// try to get .essh.lua for backend compatibility
-			CurrentConfigFile = filepath.Join(wd, ".essh.lua")
-			if _, err := os.Stat(CurrentConfigFile); os.IsNotExist(err) {
-				CurrentConfigFile = filepath.Join(wd, "essh.lua")
-			}
+	candidateCurrentConfigFile := filepath.Join(wd, "essh.lua")
+	if _, err := os.Stat(candidateCurrentConfigFile); os.IsNotExist(err) {
+		// try to get .essh.lua for backend compatibility
+		candidateCurrentConfigFile = filepath.Join(wd, ".essh.lua")
+		if _, err := os.Stat(candidateCurrentConfigFile); os.IsNotExist(err) {
+			candidateCurrentConfigFile = filepath.Join(wd, "essh.lua")
 		}
+	}
+
+	if _, err := os.Stat(candidateCurrentConfigFile); err == nil {
+		CurrentConfigFile = candidateCurrentConfigFile
 	}
 
 	// set CurrentDataDir if it uses CurrentDirConfigFile
@@ -1336,6 +1338,7 @@ _essh_hosts_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
+        '--format:Output specified format (json|prettyjson)'
         '--filter:Use only the hosts filtered with a tag or a host'
      )
     _describe -t option "option" __essh_options
