@@ -20,3 +20,7 @@ func userHomeDir() string {
 func ShellEscape(s string) string {
 	return "'" + strings.Replace(s, "'", "'\"'\"'", -1) + "'"
 }
+
+func EnvKeyEscape(s string) string {
+	return strings.Replace(strings.Replace(s, "-", "_", -1), ".", "_", -1)
+}

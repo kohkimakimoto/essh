@@ -9,8 +9,9 @@ import (
 
 type Host struct {
 	Name        string
-	Config      *lua.LTable            `json:"-"`
-	Hooks       map[string]interface{} `json:"-"`
+	Config      *lua.LTable
+	Props       map[string]string
+	Hooks       map[string]interface{}
 	Description string
 	Hidden      bool
 	Tags        []string
@@ -25,7 +26,6 @@ func (h *Host) Params() []map[string]string {
 		if keystr, ok := toString(k); ok {
 			names = append(names, keystr)
 		}
-
 	})
 
 	sort.Strings(names)

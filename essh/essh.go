@@ -669,6 +669,15 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 			script += "export ESSH_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
 		}
 	}
+
+	for propKey, propValue := range host.Props {
+		script += "export ESSH_PROPS_" + strings.ToUpper(propKey) + "=" + ShellEscape(propValue) + "\n"
+	}
+
+	for _, tagName := range host.Tags {
+		script += "export ESSH_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
+	}
+
 	script += "export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n"
 
 	var content string
@@ -756,7 +765,16 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 				script += "export ESSH_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
 			}
 		}
+
+		for propKey, propValue := range host.Props {
+			script += "export ESSH_PROPS_" + strings.ToUpper(propKey) + "=" + ShellEscape(propValue) + "\n"
+		}
+
+		for _, tagName := range host.Tags {
+			script += "export ESSH_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
+		}
 	}
+
 	script += "export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n"
 
 	var content string

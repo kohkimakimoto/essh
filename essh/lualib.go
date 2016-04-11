@@ -114,8 +114,25 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	h := &Host{
 		Name:   name,
 		Config: newConfig,
+		Props: map[string]string{},
 		Hooks:  map[string]interface{}{},
 		Tags:   []string{},
+	}
+
+	props := config.RawGetString("props")
+	if propsTb, ok := toLTable(props); ok {
+		propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
+			propsKeyStr, ok := toString(propsKey)
+			if !ok {
+				L.RaiseError("props table's key must be a string: %v", propsKey)
+			}
+			propsValueStr, ok := toString(propsValue)
+			if !ok {
+				L.RaiseError("props table's value must be a string: %v", propsValue)
+			}
+
+			h.Props[propsKeyStr] = propsValueStr
+		})
 	}
 
 	hooks := config.RawGetString("hooks")
