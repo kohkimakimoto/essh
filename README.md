@@ -20,7 +20,7 @@ Table of contents
 * [Zsh Completion](#zsh-completion)
 * [Hooks](#hooks)
 * [Variables](#variables)
-* [Using with git](#ising-with-git)
+* [Using with git](#using-with-git)
 * [Author](#author)
 * [License](#license)
 
