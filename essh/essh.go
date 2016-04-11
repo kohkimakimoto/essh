@@ -616,7 +616,7 @@ func runTask(config string, task *Task, payload string) error {
 		for _, host := range hosts {
 			if task.Parallel {
 				wg.Add(1)
-				go func() {
+				go func(host *Host) {
 					err := runRemoteTaskScript(config, task, payload, host, m)
 					if err != nil {
 						fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
@@ -624,7 +624,7 @@ func runTask(config string, task *Task, payload string) error {
 					}
 
 					wg.Done()
-				}()
+				}(host)
 			} else {
 				err := runRemoteTaskScript(config, task, payload, host, m)
 				if err != nil {
@@ -650,7 +650,7 @@ func runTask(config string, task *Task, payload string) error {
 		for _, host := range hosts {
 			if task.Parallel {
 				wg.Add(1)
-				go func() {
+				go func(host *Host) {
 					err := runLocalTaskScript(task, payload, host, m)
 					if err != nil {
 						fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
@@ -658,7 +658,7 @@ func runTask(config string, task *Task, payload string) error {
 					}
 
 					wg.Done()
-				}()
+				}(host)
 			} else {
 				err := runLocalTaskScript(task, payload, host, m)
 				if err != nil {
