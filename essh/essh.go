@@ -284,12 +284,16 @@ func Start() error {
 		if debugFlag {
 			fmt.Printf("[essh debug] deleted config file: %s \n", tmpFile.Name())
 		}
-
 	}()
 	temporarySSHConfigFile := tmpFile.Name()
 
 	if debugFlag {
 		fmt.Printf("[essh debug] generated config file: %s \n", temporarySSHConfigFile)
+	}
+
+	lessh, ok := toLTable(L.GetGlobal("essh"))
+	if !ok {
+		return fmt.Errorf("essh must be a table")
 	}
 
 	// set temporary ssh config file path
@@ -355,9 +359,19 @@ func Start() error {
 		}
 	}
 
-
 	if err := validateConfig(); err != nil {
 		return err
+	}
+
+	taskConfigure := os.Getenv("ESSH_TASK_CONFIGURE")
+	if taskConfigure != "" {
+		task := GetTask(taskConfigure)
+		if task == nil {
+			return fmt.Errorf("Unknown task '%s'", taskConfigure)
+		}
+		if err := processTaskConfigure(task); err != nil {
+			return err
+		}
 	}
 
 	// show hosts for zsh completion
@@ -436,13 +450,13 @@ func Start() error {
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "HOSTS/TAGS", "TYPE"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TYPE"})
 		}
 		for _, t := range Tasks {
 			if t.IsRemoteTask() {
-				tb.Append([]string{t.Name, t.Description, strings.Join(t.On, ","), "remote"})
+				tb.Append([]string{t.Name, t.Description, "remote"})
 			} else {
-				tb.Append([]string{t.Name, t.Description, strings.Join(t.Foreach, ","), "local"})
+				tb.Append([]string{t.Name, t.Description, "local"})
 			}
 
 		}
@@ -599,9 +613,41 @@ func printJson(hosts []*Host, indent string) {
 	}
 }
 
+func processTaskConfigure(task *Task) error {
+	// configure function cleans global config and set custom config in the function.
+	if task.Configure == nil {
+		return nil
+	}
+
+	if debugFlag {
+		fmt.Printf("[essh debug] run configure function.\n")
+	}
+
+	// clean configuration.
+	Tasks = []*Task{}
+	Hosts = []*Host{}
+	Tasks = append(Tasks, task)
+
+	err := os.Setenv("ESSH_TASK_CONFIGURE", task.Name)
+	if err != nil {
+		return err
+	}
+
+	err = task.Configure()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func runTask(config string, task *Task, payload string) error {
 	if debugFlag {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
+	}
+
+	if err := processTaskConfigure(task); err != nil {
+		return err
 	}
 
 	if task.Prepare != nil {

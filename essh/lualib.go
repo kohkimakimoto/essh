@@ -14,10 +14,6 @@ import (
 	"unicode"
 )
 
-var (
-	lessh *lua.LTable
-)
-
 func InitLuaState(L *lua.LState) {
 	// custom type.
 	// registerContextClass(L)
@@ -26,6 +22,8 @@ func InitLuaState(L *lua.LState) {
 	// global functions
 	L.SetGlobal("Host", L.NewFunction(esshHost))
 	L.SetGlobal("Task", L.NewFunction(esshTask))
+	L.SetGlobal("host", L.NewFunction(esshHost))
+	L.SetGlobal("task", L.NewFunction(esshTask))
 
 	// modules
 	L.PreloadModule("essh.json", gluajson.Loader)
@@ -36,7 +34,7 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("essh.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 
 	// global variables
-	lessh = L.NewTable()
+	lessh := L.NewTable()
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
 
@@ -44,7 +42,7 @@ func InitLuaState(L *lua.LState) {
 		"host":    esshHost,
 		"task":    esshTask,
 		"require": esshRequire,
-		"reset":   esshReset,
+//		"reset":   esshReset,
 	})
 }
 
@@ -305,6 +303,26 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		}
 	} else if prefixStr, ok := toString(prefix); ok {
 		task.Prefix = prefixStr
+	}
+
+	configure := config.RawGetString("configure")
+	if configure != lua.LNil {
+		if configureFn, ok := configure.(*lua.LFunction); ok {
+			task.Configure = func() error {
+				err := L.CallByParam(lua.P{
+					Fn:      configureFn,
+					NRet:    0,
+					Protect: true,
+				})
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}
+		} else {
+			L.RaiseError("configure have to be function.")
+		}
 	}
 
 	prepare := config.RawGetString("prepare")
