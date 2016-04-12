@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 )
 
-var LoadedModules = map[string]*Module{}
-
 type Module struct {
 	// Name is url that is used as go-getter src.
 	// examples:
@@ -60,7 +58,7 @@ func (m *Module) Load(update bool) error {
 		fmt.Printf("[essh debug] module src '%s'\n", src)
 	}
 
-	fmt.Fprintf(color.StdoutWriter, "Getting module: '%s'\n", color.FgYB(m.Name))
+	fmt.Fprintf(color.StdoutWriter, "Installing module (%s): '%s'\n", color.FgBold(CurrentContext.DataDir), color.FgYB(m.Name))
 
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -85,7 +83,7 @@ func (m *Module) IndexFile() string {
 }
 
 func (m *Module) Dir() string {
-	return path.Join(modulesDir(), m.Key())
+	return path.Join(CurrentContext.ModulesDir(), m.Key())
 }
 
 func (m *Module) Key() string {

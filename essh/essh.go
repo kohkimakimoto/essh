@@ -23,11 +23,13 @@ import (
 
 // system configurations.
 var (
-	UserDataDir          string
-	CurrentDataDir       string
 	SystemWideConfigFile string
 	UserConfigFile       string
-	CurrentConfigFile    string
+	UserDataDir string
+	WorkingDirConfigFile string
+	WorkingDataDir string
+
+	CurrentContext *Context
 )
 
 // flags
@@ -61,7 +63,7 @@ var (
 	rsyncFlag              bool
 	scpFlag                bool
 
-	configFile string
+	workindDirVar          string
 	filtersVar    []string = []string{}
 	onVar         []string = []string{}
 	foreachVar         []string = []string{}
@@ -140,14 +142,14 @@ func Start() error {
 			bashCompletionFlag = true
 		} else if arg == "--aliases" {
 			aliasesFlag = true
-		} else if arg == "--config-file" {
+		} else if arg == "--working-dir" {
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--config-file reguires an argument.")
+				return fmt.Errorf("--working-dir reguires an argument.")
 			}
-			configFile = osArgs[1]
+			workindDirVar = osArgs[1]
 			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--config-file=") {
-			configFile = strings.Split(arg, "=")[1]
+		} else if strings.HasPrefix(arg, "--working-dir=") {
+			workindDirVar = strings.Split(arg, "=")[1]
 		} else if arg == "--exec" {
 			execFlag = true
 		} else if arg == "--on" {
@@ -156,12 +158,16 @@ func Start() error {
 			}
 			onVar = append(onVar, osArgs[1])
 			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--on=") {
+			onVar = append(onVar, strings.Split(arg, "=")[1])
 		} else if arg == "--foreach" {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--foreach reguires an argument.")
 			}
 			foreachVar = append(foreachVar, osArgs[1])
 			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--foreach=") {
+			foreachVar = append(foreachVar, strings.Split(arg, "=")[1])
 		} else if arg == "--privileged" {
 			privilegedFlag = true
 		} else if arg == "--parallel" {
@@ -174,6 +180,8 @@ func Start() error {
 			}
 			prefixStringVar = osArgs[1]
 			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--prefix-string=") {
+			prefixStringVar = strings.Split(arg, "=")[1]
 		} else if arg == "--file" {
 			fileFlag = true
 		} else if arg == "--pty" {
@@ -191,6 +199,21 @@ func Start() error {
 
 		osArgs = osArgs[1:]
 	}
+
+	if workindDirVar != "" {
+		err := os.Chdir(workindDirVar)
+		if err != nil {
+			return err
+		}
+	}
+
+	// decide the wokingDirConfigFile
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("couldn't get working dir %v\n", err)
+	}
+	WorkingDataDir = filepath.Join(wd, ".essh")
+	WorkingDirConfigFile = filepath.Join(wd, "essh.lua")
 
 	if helpFlag {
 		printUsage()
@@ -226,7 +249,7 @@ func Start() error {
 	}
 
 	if configFlag {
-		runCommand("$EDITOR " + CurrentConfigFile)
+		runCommand("$EDITOR " + WorkingDirConfigFile)
 		return nil
 	}
 
@@ -243,8 +266,6 @@ func Start() error {
 	// set up the lua state.
 	L := lua.NewState()
 	defer L.Close()
-
-	// init lua state
 	InitLuaState(L)
 
 	if debugFlag {
@@ -274,91 +295,69 @@ func Start() error {
 	// set temporary ssh config file path
 	lessh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
 
-	// load specific config file
-	if configFile != "" {
-		_, err := os.Stat(configFile)
-		if err != nil {
+	// user context
+	CurrentContext = &Context{
+		DataDir: UserDataDir,
+		LoadedModules: map[string]*Module{},
+	}
+
+	// load system wide config
+	if _, err := os.Stat(SystemWideConfigFile); err == nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s \n", SystemWideConfigFile)
+		}
+
+		if err := L.DoFile(SystemWideConfigFile); err != nil {
 			return err
 		}
 
 		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s \n", configFile)
+			fmt.Printf("[essh debug] loaded config file: %s \n", SystemWideConfigFile)
+		}
+	}
+
+	// load per-user wide config
+	if _, err := os.Stat(UserConfigFile); err == nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s \n", UserConfigFile)
 		}
 
-		if err := L.DoFile(configFile); err != nil {
+		if err := L.DoFile(UserConfigFile); err != nil {
 			return err
 		}
 
 		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s \n", configFile)
+			fmt.Printf("[essh debug] loaded config file: %s \n", UserConfigFile)
 		}
+	}
 
-	} else {
-		// load system wide config
-		if _, err := os.Stat(SystemWideConfigFile); err == nil {
+	// working dir context
+	CurrentContext = &Context{
+		DataDir: WorkingDataDir,
+		LoadedModules: map[string]*Module{},
+	}
+
+	// load current dir config
+	if WorkingDirConfigFile != "" {
+		if _, err := os.Stat(WorkingDirConfigFile); err == nil {
 
 			if debugFlag {
-				fmt.Printf("[essh debug] loading config file: %s \n", SystemWideConfigFile)
+				fmt.Printf("[essh debug] loading config file: %s \n", WorkingDirConfigFile)
 			}
 
-			if err := L.DoFile(SystemWideConfigFile); err != nil {
+			if err := L.DoFile(WorkingDirConfigFile); err != nil {
 				return err
 			}
 
 			if debugFlag {
-				fmt.Printf("[essh debug] loaded config file: %s \n", SystemWideConfigFile)
-			}
-		}
-
-		// load per-user wide config
-		if _, err := os.Stat(UserConfigFile); err == nil {
-
-			if debugFlag {
-				fmt.Printf("[essh debug] loading config file: %s \n", UserConfigFile)
-			}
-
-			if err := L.DoFile(UserConfigFile); err != nil {
-				return err
-			}
-
-			if debugFlag {
-				fmt.Printf("[essh debug] loaded config file: %s \n", UserConfigFile)
-			}
-		}
-
-		// load current dir config
-		if CurrentConfigFile != "" {
-			if _, err := os.Stat(CurrentConfigFile); err == nil {
-
-				if debugFlag {
-					fmt.Printf("[essh debug] loading config file: %s \n", CurrentConfigFile)
-				}
-
-				if err := L.DoFile(CurrentConfigFile); err != nil {
-					return err
-				}
-
-				if debugFlag {
-					fmt.Printf("[essh debug] loaded config file: %s \n", CurrentConfigFile)
-				}
+				fmt.Printf("[essh debug] loaded config file: %s \n", WorkingDirConfigFile)
 			}
 		}
 	}
+
 
 	if err := validateConfig(); err != nil {
 		return err
-	}
-
-	// generate ssh hosts config
-	content, err := GenHostsConfig()
-	if err != nil {
-		return err
-	}
-
-	// only print generated config
-	if printFlag {
-		fmt.Println(string(content))
-		return nil
 	}
 
 	// show hosts for zsh completion
@@ -459,6 +458,18 @@ func Start() error {
 
 	if debugFlag {
 		fmt.Printf("[essh debug] output ssh_config contents to the file: %s \n", outputConfig)
+	}
+
+	// generate ssh hosts config
+	content, err := GenHostsConfig()
+	if err != nil {
+		return err
+	}
+
+	// only print generated config
+	if printFlag {
+		fmt.Println(string(content))
+		return nil
 	}
 
 	// update temporary ssh config file
@@ -1130,8 +1141,23 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 }
 
 func removeModules() error {
-	if _, err := os.Stat(modulesDir()); err == nil {
-		err = os.RemoveAll(modulesDir())
+	c := &Context{
+		DataDir: UserDataDir,
+	}
+
+	if _, err := os.Stat(c.ModulesDir()); err == nil {
+		err = os.RemoveAll(c.ModulesDir())
+		if err != nil {
+			return err
+		}
+	}
+
+	c = &Context{
+		DataDir: WorkingDataDir,
+	}
+
+	if _, err := os.Stat(c.ModulesDir()); err == nil {
+		err = os.RemoveAll(c.ModulesDir())
 		if err != nil {
 			return err
 		}
@@ -1186,7 +1212,7 @@ general options.
   --config                      Edit config file in the current directory.
   --user-config                 Edit per-user config file.
   --system-config               Edit system wide config file.
-  --config-file <file>          Load configuration from the specific file.
+  --working-dir <dir>           Change working directory.
                                 If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
   --debug                       Output debug log.
 
@@ -1227,18 +1253,6 @@ Github:
 `)
 }
 
-func modulesDir() string {
-	return filepath.Join(dataDir(), "modules")
-}
-
-func dataDir() string {
-	if CurrentDataDir == "" {
-		return UserDataDir
-	}
-
-	return CurrentDataDir
-}
-
 func init() {
 	// set SystemWideConfigFile
 	SystemWideConfigFile = "/etc/essh/config.lua"
@@ -1255,33 +1269,7 @@ func init() {
 		}
 	}
 
-	if UserConfigFile == "" {
-		UserConfigFile = filepath.Join(UserDataDir, "config.lua")
-	}
-
-	wd, err := os.Getwd()
-	if err != nil {
-		fmt.Printf("couldn't get working dir %v\n", err)
-		panic(err)
-	}
-
-	candidateCurrentConfigFile := filepath.Join(wd, "essh.lua")
-	if _, err := os.Stat(candidateCurrentConfigFile); os.IsNotExist(err) {
-		// try to get .essh.lua for backend compatibility
-		candidateCurrentConfigFile = filepath.Join(wd, ".essh.lua")
-		if _, err := os.Stat(candidateCurrentConfigFile); os.IsNotExist(err) {
-			candidateCurrentConfigFile = filepath.Join(wd, "essh.lua")
-		}
-	}
-
-	if _, err := os.Stat(candidateCurrentConfigFile); err == nil {
-		CurrentConfigFile = candidateCurrentConfigFile
-	}
-
-	// set CurrentDataDir if it uses CurrentDirConfigFile
-	if CurrentConfigFile != "" {
-		CurrentDataDir = filepath.Join(wd, ".essh")
-	}
+	UserConfigFile = filepath.Join(UserDataDir, "config.lua")
 }
 
 var ZSH_COMPLETION = `# This is zsh completion code.
@@ -1327,7 +1315,7 @@ _essh_options() {
         '--config:Edit config file in the current directory.'
         '--user-config:Edit per-user config file.'
         '--system-config:Edit system wide config file.'
-        '--config-file:Load configuration from the specific file.'
+        '--working-dir:Change working directory.'
         '--hosts:List hosts.'
         '--tags:List tags.'
         '--quiet:Show only names.'

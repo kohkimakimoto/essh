@@ -20,6 +20,7 @@ var (
 
 func InitLuaState(L *lua.LState) {
 	// custom type.
+	// registerContextClass(L)
 	registerTaskContextClass(L)
 
 	// global functions
@@ -38,6 +39,7 @@ func InitLuaState(L *lua.LState) {
 	lessh = L.NewTable()
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
+
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		"host":    esshHost,
 		"task":    esshTask,
@@ -96,7 +98,7 @@ func esshReset(L *lua.LState) int {
 	}
 	Tasks = []*Task{}
 	Hosts = []*Host{}
-	LoadedModules = map[string]*Module{}
+	CurrentContext.LoadedModules = map[string]*Module{}
 
 	return 0
 }
@@ -345,7 +347,7 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 func esshRequire(L *lua.LState) int {
 	name := L.CheckString(1)
 
-	module := LoadedModules[name]
+	module := CurrentContext.LoadedModules[name]
 	if module == nil {
 		module = NewModule(name)
 		err := module.Load(updateFlag)
@@ -366,7 +368,7 @@ func esshRequire(L *lua.LState) int {
 		module.Value = ret
 
 		// register loaded module.
-		LoadedModules[name] = module
+		CurrentContext.LoadedModules[name] = module
 	}
 
 	L.Push(module.Value)
@@ -490,3 +492,35 @@ func checkTaskContext(L *lua.LState) *TaskContext {
 	L.ArgError(1, "TaskContext expected")
 	return nil
 }
+
+//const LContextClass = "Context*"
+//
+//func newLContext(L *lua.LState, ctx *Context) *lua.LUserData {
+//	ud := L.NewUserData()
+//	ud.Value = ctx
+//	L.SetMetatable(ud, L.GetTypeMetatable(LContextClass))
+//	return ud
+//}
+//
+//func registerContextClass(L *lua.LState) {
+//	mt := L.NewTypeMetatable(LContextClass)
+//	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), contextMethods))
+//}
+//
+//var contextMethods = map[string]lua.LGFunction{
+//	"datadir": contextDatadir,
+//}
+//
+//func contextDatadir(L *lua.LState) int {
+//
+//	return 1
+//}
+//
+//func checkContext(L *lua.LState) *TaskContext {
+//	ud := L.CheckUserData(1)
+//	if v, ok := ud.Value.(*Context); ok {
+//		return v
+//	}
+//	L.ArgError(1, "Context expected")
+//	return nil
+//}
