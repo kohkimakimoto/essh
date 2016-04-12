@@ -14,17 +14,16 @@ import (
 	"unicode"
 )
 
-var (
-	lessh *lua.LTable
-)
-
 func InitLuaState(L *lua.LState) {
 	// custom type.
+	// registerContextClass(L)
 	registerTaskContextClass(L)
 
 	// global functions
 	L.SetGlobal("Host", L.NewFunction(esshHost))
 	L.SetGlobal("Task", L.NewFunction(esshTask))
+	L.SetGlobal("host", L.NewFunction(esshHost))
+	L.SetGlobal("task", L.NewFunction(esshTask))
 
 	// modules
 	L.PreloadModule("essh.json", gluajson.Loader)
@@ -35,14 +34,15 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("essh.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 
 	// global variables
-	lessh = L.NewTable()
+	lessh := L.NewTable()
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
+
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		"host":    esshHost,
 		"task":    esshTask,
 		"require": esshRequire,
-		"reset":   esshReset,
+//		"reset":   esshReset,
 	})
 }
 
@@ -96,7 +96,7 @@ func esshReset(L *lua.LState) int {
 	}
 	Tasks = []*Task{}
 	Hosts = []*Host{}
-	LoadedModules = map[string]*Module{}
+	CurrentContext.LoadedModules = map[string]*Module{}
 
 	return 0
 }
@@ -305,6 +305,26 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		task.Prefix = prefixStr
 	}
 
+	configure := config.RawGetString("configure")
+	if configure != lua.LNil {
+		if configureFn, ok := configure.(*lua.LFunction); ok {
+			task.Configure = func() error {
+				err := L.CallByParam(lua.P{
+					Fn:      configureFn,
+					NRet:    0,
+					Protect: true,
+				})
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}
+		} else {
+			L.RaiseError("configure have to be function.")
+		}
+	}
+
 	prepare := config.RawGetString("prepare")
 	if prepare != lua.LNil {
 		if prepareFn, ok := prepare.(*lua.LFunction); ok {
@@ -345,7 +365,7 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 func esshRequire(L *lua.LState) int {
 	name := L.CheckString(1)
 
-	module := LoadedModules[name]
+	module := CurrentContext.LoadedModules[name]
 	if module == nil {
 		module = NewModule(name)
 		err := module.Load(updateFlag)
@@ -366,7 +386,7 @@ func esshRequire(L *lua.LState) int {
 		module.Value = ret
 
 		// register loaded module.
-		LoadedModules[name] = module
+		CurrentContext.LoadedModules[name] = module
 	}
 
 	L.Push(module.Value)
@@ -490,3 +510,35 @@ func checkTaskContext(L *lua.LState) *TaskContext {
 	L.ArgError(1, "TaskContext expected")
 	return nil
 }
+
+//const LContextClass = "Context*"
+//
+//func newLContext(L *lua.LState, ctx *Context) *lua.LUserData {
+//	ud := L.NewUserData()
+//	ud.Value = ctx
+//	L.SetMetatable(ud, L.GetTypeMetatable(LContextClass))
+//	return ud
+//}
+//
+//func registerContextClass(L *lua.LState) {
+//	mt := L.NewTypeMetatable(LContextClass)
+//	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), contextMethods))
+//}
+//
+//var contextMethods = map[string]lua.LGFunction{
+//	"datadir": contextDatadir,
+//}
+//
+//func contextDatadir(L *lua.LState) int {
+//
+//	return 1
+//}
+//
+//func checkContext(L *lua.LState) *TaskContext {
+//	ud := L.CheckUserData(1)
+//	if v, ok := ud.Value.(*Context); ok {
+//		return v
+//	}
+//	L.ArgError(1, "Context expected")
+//	return nil
+//}

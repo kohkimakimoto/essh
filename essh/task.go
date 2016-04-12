@@ -3,6 +3,7 @@ package essh
 type Task struct {
 	Name        string
 	Description string
+	Configure   func() error
 	Prepare     func(task *TaskContext) error
 	Pty         bool
 	Script      string
