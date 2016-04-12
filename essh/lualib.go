@@ -20,10 +20,11 @@ func InitLuaState(L *lua.LState) {
 	registerTaskContextClass(L)
 
 	// global functions
-	L.SetGlobal("Host", L.NewFunction(esshHost))
-	L.SetGlobal("Task", L.NewFunction(esshTask))
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
+	// backend compatibility
+	L.SetGlobal("Host", L.NewFunction(esshHost))
+	L.SetGlobal("Task", L.NewFunction(esshTask))
 
 	// modules
 	L.PreloadModule("essh.json", gluajson.Loader)
@@ -47,6 +48,12 @@ func InitLuaState(L *lua.LState) {
 }
 
 func esshHost(L *lua.LState) int {
+	first := L.CheckAny(1)
+	if tb, ok := first.(*lua.LTable); ok {
+		registerHostByTable(L, tb)
+		return 0
+	}
+
 	name := L.CheckString(1)
 
 	// procedural style
@@ -66,6 +73,33 @@ func esshHost(L *lua.LState) int {
 	}))
 
 	return 1
+}
+
+func registerHostByTable(L *lua.LState, tb *lua.LTable) {
+	maxn := tb.MaxN()
+	if maxn == 0 { // table
+		tb.ForEach(func(key, value lua.LValue) {
+			config, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			name, ok := key.(lua.LString)
+			if !ok {
+				return
+			}
+
+			registerHost(L, string(name), config)
+		})
+	} else { // array
+		for i := 1; i <= maxn; i++ {
+			value := tb.RawGetInt(i)
+			valueTb, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			registerHostByTable(L, valueTb)
+		}
+	}
 }
 
 func esshTask(L *lua.LState) int {
