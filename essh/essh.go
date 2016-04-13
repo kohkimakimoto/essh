@@ -360,6 +360,10 @@ func Start() error {
 		}
 	}
 
+	//if err := loadRemoteTasks(); err != nil {
+	//	return err
+	//}
+
 	if err := validateConfig(); err != nil {
 		return err
 	}
@@ -672,6 +676,12 @@ func runTask(config string, task *Task, payload string) error {
 
 			if debugFlag {
 				fmt.Printf("[essh debug] unlocked: %s\n", taskLockFile.Path())
+			}
+
+			err = taskLockFile.Remove()
+			if err != nil {
+				fmt.Fprintf(color.StderrWriter, "Did not remove lockfile! %v\n", err)
+				return
 			}
 		}()
 	}
@@ -1172,6 +1182,16 @@ func runCommand(command string) error {
 	cmd.Stdin = os.Stdin
 
 	return cmd.Run()
+}
+
+func loadRemoteTasks() error {
+	for _, remoteTask := range RemoteTasks {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading remote task: %s\n", remoteTask.URL)
+		}
+	}
+
+	return nil
 }
 
 func validateConfig() error {

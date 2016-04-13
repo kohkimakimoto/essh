@@ -22,7 +22,7 @@ func InitLuaState(L *lua.LState) {
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
-	L.SetGlobal("remote_task", L.NewFunction(esshRemoteTask))
+	// L.SetGlobal("remote_task", L.NewFunction(esshRemoteTask))
 	// backend compatibility
 	L.SetGlobal("Host", L.NewFunction(esshHost))
 	L.SetGlobal("Task", L.NewFunction(esshTask))
@@ -160,9 +160,36 @@ func registerTaskByTable(L *lua.LState, tb *lua.LTable) {
 }
 
 func esshRemoteTask(L *lua.LState) int {
+	first := L.CheckAny(1)
+	if config, ok := first.(*lua.LTable); ok {
+		lurl := config.RawGetString("url")
+		url, ok := toString(lurl)
+		if !ok {
+			L.RaiseError("url must be a string.")
+		}
+		registerRemoteTask(L, url, config)
+		return 0
+	}
+
+	url := L.CheckString(1)
+	registerRemoteTask(L, string(url), nil)
 
 	return 1
 }
+
+func registerRemoteTask(L *lua.LState, url string, config *lua.LTable) {
+	remoteTask := NewRemoteTask(url)
+
+	if config != nil {
+		namespace := config.RawGetString("namespace")
+		if namespaceStr, ok := toString(namespace); ok {
+			remoteTask.Namespace = namespaceStr
+		}
+	}
+
+	RemoteTasks = append(RemoteTasks, remoteTask)
+}
+
 
 func esshReset(L *lua.LState) int {
 	if debugFlag {
