@@ -21,13 +21,13 @@ var Tasks []*Task = []*Task{}
 
 var (
 	DefaultPrefixRemote = "[{{.Host.Name}}] "
-	DefaultPrefixLocal = "[Local => {{.Host.Name}}] "
+	DefaultPrefixLocal  = "[Local => {{.Host.Name}}] "
 )
 
 func NewTask() *Task {
 	return &Task{
-		On:   []string{},
-		Foreach:   []string{},
+		On:      []string{},
+		Foreach: []string{},
 	}
 }
 

@@ -1,11 +1,11 @@
 package essh
 
-import(
+import (
 	"path/filepath"
 )
 
 type Context struct {
-	DataDir string
+	DataDir       string
 	LoadedModules map[string]*Module
 }
 

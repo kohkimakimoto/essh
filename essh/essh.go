@@ -26,9 +26,10 @@ import (
 var (
 	SystemWideConfigFile string
 	UserConfigFile       string
-	UserDataDir string
+	UserDataDir          string
 	WorkingDirConfigFile string
-	WorkingDataDir string
+	WorkingDataDir       string
+	WorkingDir           string
 
 	CurrentContext *Context
 )
@@ -64,12 +65,12 @@ var (
 	rsyncFlag              bool
 	scpFlag                bool
 
-	workindDirVar          string
-	filtersVar    []string = []string{}
-	onVar         []string = []string{}
-	foreachVar         []string = []string{}
+	workindDirVar   string
+	filtersVar      []string = []string{}
+	onVar           []string = []string{}
+	foreachVar      []string = []string{}
 	prefixStringVar string
-	formatVar string
+	formatVar       string
 )
 
 func Start() error {
@@ -191,9 +192,9 @@ func Start() error {
 			rsyncFlag = true
 		} else if arg == "--scp" {
 			scpFlag = true
-		// rsync has long options
-		//} else if strings.HasPrefix(arg, "--") {
-		//	return fmt.Errorf("invalid option '%s'.", arg)
+			// rsync has long options
+			//} else if strings.HasPrefix(arg, "--") {
+			//	return fmt.Errorf("invalid option '%s'.", arg)
 		} else {
 			// restructure args to remove essh options.
 			args = append(args, arg)
@@ -214,6 +215,7 @@ func Start() error {
 	if err != nil {
 		return fmt.Errorf("couldn't get working dir %v\n", err)
 	}
+	WorkingDir = wd
 	WorkingDataDir = filepath.Join(wd, ".essh")
 	WorkingDirConfigFile = filepath.Join(wd, "essh.lua")
 
@@ -303,7 +305,7 @@ func Start() error {
 
 	// user context
 	CurrentContext = &Context{
-		DataDir: UserDataDir,
+		DataDir:       UserDataDir,
 		LoadedModules: map[string]*Module{},
 	}
 
@@ -347,7 +349,7 @@ func Start() error {
 
 			// change context to working dir context
 			CurrentContext = &Context{
-				DataDir: WorkingDataDir,
+				DataDir:       WorkingDataDir,
 				LoadedModules: map[string]*Module{},
 			}
 
@@ -806,7 +808,7 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 	script += content
 
 	if task.Privileged {
-		script = "sudo sudo su - <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
+		script = "sudo su - <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
 	}
 
 	// inspired by https://github.com/laravel/envoy
@@ -903,7 +905,8 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 	script += content
 
 	if task.Privileged {
-		script = "sudo sudo su - <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
+		script = "cd " + WorkingDir + "\n" + script
+		script = "sudo su - <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
 	}
 
 	cmd := exec.Command(shell, flag, script)

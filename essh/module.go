@@ -7,8 +7,8 @@ import (
 	"github.com/yuin/gopher-lua"
 	"os"
 	"path"
-	"strings"
 	"path/filepath"
+	"strings"
 )
 
 type Module struct {

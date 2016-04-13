@@ -41,11 +41,11 @@ func InitLuaState(L *lua.LState) {
 	lessh.RawSetString("ssh_config", lua.LNil)
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
-		"host":    esshHost,
-		"task":    esshTask,
-		"remote_task":    esshRemoteTask,
-		"require": esshRequire,
-//		"reset":   esshReset,
+		"host":        esshHost,
+		"task":        esshTask,
+		"remote_task": esshRemoteTask,
+		"require":     esshRequire,
+		//		"reset":   esshReset,
 	})
 }
 
@@ -190,7 +190,6 @@ func registerRemoteTask(L *lua.LState, url string, config *lua.LTable) {
 	RemoteTasks = append(RemoteTasks, remoteTask)
 }
 
-
 func esshReset(L *lua.LState) int {
 	if debugFlag {
 		fmt.Println("[essh debug] reset tasks, hosts and modules.")
@@ -223,7 +222,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	h := &Host{
 		Name:   name,
 		Config: newConfig,
-		Props: map[string]string{},
+		Props:  map[string]string{},
 		Hooks:  map[string]interface{}{},
 		Tags:   []string{},
 	}
