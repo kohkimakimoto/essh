@@ -191,8 +191,9 @@ func Start() error {
 			rsyncFlag = true
 		} else if arg == "--scp" {
 			scpFlag = true
-		} else if strings.HasPrefix(arg, "--") {
-			return fmt.Errorf("invalid option '%s'.", arg)
+		// rsync has long options
+		//} else if strings.HasPrefix(arg, "--") {
+		//	return fmt.Errorf("invalid option '%s'.", arg)
 		} else {
 			// restructure args to remove essh options.
 			args = append(args, arg)
