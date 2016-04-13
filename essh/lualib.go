@@ -103,6 +103,12 @@ func registerHostByTable(L *lua.LState, tb *lua.LTable) {
 }
 
 func esshTask(L *lua.LState) int {
+	first := L.CheckAny(1)
+	if tb, ok := first.(*lua.LTable); ok {
+		registerTaskByTable(L, tb)
+		return 0
+	}
+
 	name := L.CheckString(1)
 
 	// procedural style
@@ -123,6 +129,34 @@ func esshTask(L *lua.LState) int {
 
 	return 1
 }
+
+func registerTaskByTable(L *lua.LState, tb *lua.LTable) {
+	maxn := tb.MaxN()
+	if maxn == 0 { // table
+		tb.ForEach(func(key, value lua.LValue) {
+			config, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			name, ok := key.(lua.LString)
+			if !ok {
+				return
+			}
+
+			registerTask(L, string(name), config)
+		})
+	} else { // array
+		for i := 1; i <= maxn; i++ {
+			value := tb.RawGetInt(i)
+			valueTb, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			registerTaskByTable(L, valueTb)
+		}
+	}
+}
+
 
 func esshReset(L *lua.LState) int {
 	if debugFlag {

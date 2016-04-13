@@ -376,10 +376,8 @@ func Start() error {
 
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
-		for _, host := range Hosts {
-			if !host.Hidden {
-				fmt.Printf("%s\t%s\n", host.Name, host.Description)
-			}
+		for _, host := range ManagedHosts() {
+			fmt.Printf("%s\t%s\n", host.Name, host.Description)
 		}
 
 		return nil
@@ -404,9 +402,9 @@ func Start() error {
 	if hostsFlag {
 		var hosts []*Host
 		if len(filtersVar) > 0 {
-			hosts = HostsByNames(filtersVar)
+			hosts = ManagedHostsByNames(filtersVar)
 		} else {
-			hosts = Hosts
+			hosts = ManagedHosts()
 		}
 
 		if formatVar == "json" {
@@ -419,12 +417,10 @@ func Start() error {
 				tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS"})
 			}
 			for _, host := range hosts {
-				if !host.Hidden {
-					if quietFlag {
-						tb.Append([]string{host.Name})
-					} else {
-						tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ",")})
-					}
+				if quietFlag {
+					tb.Append([]string{host.Name})
+				} else {
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ",")})
 				}
 			}
 			tb.Render()
@@ -450,15 +446,10 @@ func Start() error {
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TYPE"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION"})
 		}
 		for _, t := range Tasks {
-			if t.IsRemoteTask() {
-				tb.Append([]string{t.Name, t.Description, "remote"})
-			} else {
-				tb.Append([]string{t.Name, t.Description, "local"})
-			}
-
+			tb.Append([]string{t.Name, t.Description})
 		}
 		tb.Render()
 
@@ -667,7 +658,7 @@ func runTask(config string, task *Task, payload string) error {
 	// get target hosts.
 	if task.IsRemoteTask() {
 		// run remotely.
-		hosts := HostsByNames(task.On)
+		hosts := ManagedHostsByNames(task.On)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 		for _, host := range hosts {
@@ -692,7 +683,7 @@ func runTask(config string, task *Task, payload string) error {
 		wg.Wait()
 	} else {
 		// run locally.
-		hosts := HostsByNames(task.Foreach)
+		hosts := ManagedHostsByNames(task.Foreach)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 
