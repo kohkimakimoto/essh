@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/kohkimakimoto/essh/color"
 	"github.com/kohkimakimoto/essh/helper"
+	"github.com/kohkimakimoto/essh/lock"
 	"github.com/yuin/gopher-lua"
 	"io"
 	"io/ioutil"
@@ -335,18 +336,18 @@ func Start() error {
 		}
 	}
 
-	// working dir context
-	CurrentContext = &Context{
-		DataDir: WorkingDataDir,
-		LoadedModules: map[string]*Module{},
-	}
-
 	// load current dir config
 	if WorkingDirConfigFile != "" {
 		if _, err := os.Stat(WorkingDirConfigFile); err == nil {
 
 			if debugFlag {
 				fmt.Printf("[essh debug] loading config file: %s \n", WorkingDirConfigFile)
+			}
+
+			// change context to working dir context
+			CurrentContext = &Context{
+				DataDir: WorkingDataDir,
+				LoadedModules: map[string]*Module{},
 			}
 
 			if err := L.DoFile(WorkingDirConfigFile); err != nil {
@@ -504,6 +505,7 @@ func Start() error {
 		task := NewTask()
 		task.Name = "exec"
 		task.Pty = ptyFlag
+		task.Lock = false
 		task.Parallel = parallelFlag
 		task.Privileged = privilegedFlag
 		if fileFlag {
@@ -639,6 +641,39 @@ func runTask(config string, task *Task, payload string) error {
 
 	if err := processTaskConfigure(task); err != nil {
 		return err
+	}
+
+	if task.Context != nil && task.Lock {
+		// lock
+		context := task.Context
+
+		// create lock directory, if it doesn't exist.
+		if _, err := os.Stat(context.LockDir()); os.IsNotExist(err) {
+			err = os.MkdirAll(context.LockDir(), os.FileMode(0755))
+			if err != nil {
+				return err
+			}
+		}
+
+		taskLockFile, err := lock.Lock(filepath.Join(context.LockDir(), "task-"+task.Name+".lock"), true, 1)
+		if err != nil {
+			return fmt.Errorf("'%v'. could not get exclusive lock. please wait!", err)
+		}
+		if debugFlag {
+			fmt.Printf("[essh debug] created lockfile: %s\n", taskLockFile.Path())
+		}
+
+		defer func() {
+			err := taskLockFile.UnLock()
+			if err != nil {
+				fmt.Fprintf(color.StderrWriter, "Did not unlock lockfile! %v\n", err)
+				return
+			}
+
+			if debugFlag {
+				fmt.Printf("[essh debug] unlocked: %s\n", taskLockFile.Path())
+			}
+		}()
 	}
 
 	if task.Prepare != nil {

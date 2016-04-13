@@ -12,7 +12,9 @@ type Task struct {
 	Foreach     []string
 	Parallel    bool
 	Privileged  bool
+	Lock        bool
 	Prefix      string
+	Context     *Context
 }
 
 var Tasks []*Task = []*Task{}

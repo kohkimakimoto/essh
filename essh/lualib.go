@@ -22,6 +22,7 @@ func InitLuaState(L *lua.LState) {
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
+	L.SetGlobal("remote_task", L.NewFunction(esshRemoteTask))
 	// backend compatibility
 	L.SetGlobal("Host", L.NewFunction(esshHost))
 	L.SetGlobal("Task", L.NewFunction(esshTask))
@@ -42,6 +43,7 @@ func InitLuaState(L *lua.LState) {
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		"host":    esshHost,
 		"task":    esshTask,
+		"remote_task":    esshRemoteTask,
 		"require": esshRequire,
 //		"reset":   esshReset,
 	})
@@ -157,6 +159,10 @@ func registerTaskByTable(L *lua.LState, tb *lua.LTable) {
 	}
 }
 
+func esshRemoteTask(L *lua.LState) int {
+
+	return 1
+}
 
 func esshReset(L *lua.LState) int {
 	if debugFlag {
@@ -299,6 +305,7 @@ func registerRemoteHook(L *lua.LState, host *Host, hookPoint string, hook lua.LV
 func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	task := NewTask()
 	task.Name = name
+	task.Context = CurrentContext
 
 	description := config.RawGetString("description")
 	if descStr, ok := toString(description); ok {
@@ -318,6 +325,11 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	privileged := config.RawGetString("privileged")
 	if privilegedBool, ok := toBool(privileged); ok {
 		task.Privileged = privilegedBool
+	}
+
+	lock := config.RawGetString("lock")
+	if lockBool, ok := toBool(lock); ok {
+		task.Lock = lockBool
 	}
 
 	script := config.RawGetString("script")
