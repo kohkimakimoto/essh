@@ -358,7 +358,7 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		task.Lock = lockBool
 	}
 
-	script, err := toScript(config.RawGetString("script"))
+	script, err := toScript(L, config.RawGetString("script"))
 	if err != nil {
 		L.RaiseError("%v", err)
 	}
@@ -469,21 +469,40 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	Tasks = append(Tasks, task)
 }
 
-func toScript(value lua.LValue) ([]string, error) {
+func toScript(L *lua.LState, value lua.LValue) ([]string, error) {
 	ret := []string{}
 
 	if tb, ok := toLTable(value); ok {
 		maxn := tb.MaxN()
 		if maxn == 0 { // table
-			return nil, fmt.Errorf("got a invalid value.")
+			return nil, fmt.Errorf("'scrpt' got a invalid value.")
 		} else { // array
 			for i := 1; i <= maxn; i++ {
 				value := tb.RawGetInt(i)
-				commands, err := toScript(value)
-				if err != nil {
-					return nil, err
+				if fn, ok := toLFunction(value); ok {
+					err := L.CallByParam(lua.P{
+						Fn:      fn,
+						NRet:    1,
+						Protect: true,
+					})
+					if err != nil {
+						panic(err)
+					}
+					funcRet := L.Get(-1)
+					L.Pop(1)
+
+					commands, err := toScript(L, funcRet)
+					if err != nil {
+						return nil, err
+					}
+					ret = append(ret, commands...)
+				} else {
+					commands, err := toScript(L, value)
+					if err != nil {
+						return nil, err
+					}
+					ret = append(ret, commands...)
 				}
-				ret = append(ret, commands...)
 			}
 		}
 		return ret, nil
@@ -491,7 +510,7 @@ func toScript(value lua.LValue) ([]string, error) {
 		return []string{str}, nil
 	}
 
-	return nil, fmt.Errorf("got a invalid value.")
+	return nil, fmt.Errorf("'scrpt' got a invalid value.")
 }
 
 func esshRequire(L *lua.LState) int {
