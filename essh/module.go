@@ -58,7 +58,7 @@ func (m *Module) Load(update bool) error {
 		fmt.Printf("[essh debug] module src '%s'\n", src)
 	}
 
-	fmt.Fprintf(color.StdoutWriter, "Installing module (%s): '%s'\n", color.FgBold(CurrentContext.DataDir), color.FgYB(m.Name))
+	fmt.Fprintf(color.StdoutWriter, "Installing module: '%s' (%s)\n", color.FgYB(m.Name), color.FgBold(CurrentContext.DataDir))
 
 	pwd, err := os.Getwd()
 	if err != nil {
