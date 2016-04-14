@@ -385,7 +385,7 @@ func Start() error {
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
 		for _, host := range ManagedHosts() {
-			fmt.Printf("%s\t%s\n", host.Name, host.Description)
+			fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.Description))
 		}
 
 		return nil
@@ -394,14 +394,14 @@ func Start() error {
 	// show tasks for zsh completion
 	if zshCompletionTasksFlag {
 		for _, task := range Tasks {
-			fmt.Printf("%s\t%s\n", task.Name, task.Description)
+			fmt.Printf("%s\t%s\n", ColonEscape(task.Name), ColonEscape(task.Description))
 		}
 		return nil
 	}
 
 	if zshCompletionTagsFlag {
 		for _, tag := range Tags() {
-			fmt.Printf("%s\n", tag)
+			fmt.Printf("%s\n", ColonEscape(tag))
 		}
 		return nil
 	}

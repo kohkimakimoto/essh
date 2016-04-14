@@ -24,3 +24,7 @@ func ShellEscape(s string) string {
 func EnvKeyEscape(s string) string {
 	return strings.Replace(strings.Replace(s, "-", "_", -1), ".", "_", -1)
 }
+
+func ColonEscape(s string) string {
+	return strings.Replace(s, ":", "\\:", -1)
+}
