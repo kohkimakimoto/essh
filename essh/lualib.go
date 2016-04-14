@@ -358,17 +358,18 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		task.Lock = lockBool
 	}
 
-	script := config.RawGetString("script")
-	if scriptStr, ok := toString(script); ok {
-		task.Script = scriptStr
+	script, err := toScript(config.RawGetString("script"))
+	if err != nil {
+		L.RaiseError("%v", err)
 	}
+	task.Script = script
 
 	file := config.RawGetString("file")
 	if fileStr, ok := toString(file); ok {
 		task.File = fileStr
 	}
 
-	if task.File != "" && task.Script != "" {
+	if task.File != "" && len(task.Script) > 0 {
 		L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
 	}
 
@@ -466,6 +467,31 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	}
 
 	Tasks = append(Tasks, task)
+}
+
+func toScript(value lua.LValue) ([]string, error) {
+	ret := []string{}
+
+	if tb, ok := toLTable(value); ok {
+		maxn := tb.MaxN()
+		if maxn == 0 { // table
+			return nil, fmt.Errorf("got a invalid value.")
+		} else { // array
+			for i := 1; i <= maxn; i++ {
+				value := tb.RawGetInt(i)
+				commands, err := toScript(value)
+				if err != nil {
+					return nil, err
+				}
+				ret = append(ret, commands...)
+			}
+		}
+		return ret, nil
+	} else if str, ok := toString(value); ok {
+		return []string{str}, nil
+	}
+
+	return nil, fmt.Errorf("got a invalid value.")
 }
 
 func esshRequire(L *lua.LState) int {
