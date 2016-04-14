@@ -363,10 +363,6 @@ func Start() error {
 		}
 	}
 
-	//if err := loadRemoteTasks(); err != nil {
-	//	return err
-	//}
-
 	if err := validateConfig(); err != nil {
 		return err
 	}
@@ -469,12 +465,8 @@ func Start() error {
 		return fmt.Errorf("invalid value %v in the 'ssh_config'", lessh.RawGetString("ssh_config"))
 	}
 
-	if debugFlag {
-		fmt.Printf("[essh debug] output ssh_config contents to the file: %s \n", outputConfig)
-	}
-
 	// generate ssh hosts config
-	content, err := GenHostsConfig()
+	content, err := UpdateSSHConfig(outputConfig)
 	if err != nil {
 		return err
 	}
@@ -577,6 +569,26 @@ func Start() error {
 	return err
 }
 
+func UpdateSSHConfig(outputConfig string) ([]byte, error) {
+	if debugFlag {
+		fmt.Printf("[essh debug] output ssh_config contents to the file: %s \n", outputConfig)
+	}
+
+	// generate ssh hosts config
+	content, err := GenHostsConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// update temporary ssh config file
+	err = ioutil.WriteFile(outputConfig, content, 0644)
+	if err != nil {
+		return nil,  err
+	}
+
+	return content, nil
+}
+
 func printJson(hosts []*Host, indent string) {
 	convHosts := []map[string]map[string]interface{}{}
 
@@ -646,8 +658,17 @@ func runTask(config string, task *Task, payload string) error {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
 	}
 
+
 	if err := processTaskConfigure(task); err != nil {
 		return err
+	}
+
+	if task.Configure != nil {
+		// re generate config.
+		_, err := UpdateSSHConfig(config)
+		if err != nil {
+			return err
+		}
 	}
 
 	if task.Context != nil && task.Lock {
