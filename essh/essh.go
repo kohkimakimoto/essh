@@ -510,7 +510,7 @@ func Start() error {
 
 		// create temporary task
 		task := NewTask()
-		task.Name = "exec"
+		task.Name = "--exec"
 		task.Pty = ptyFlag
 		task.Lock = false
 		task.Parallel = parallelFlag
@@ -518,7 +518,7 @@ func Start() error {
 		if fileFlag {
 			task.File = command
 		} else {
-			task.Script = command
+			task.Script = []string{command}
 		}
 		task.On = onVar
 		task.Foreach = foreachVar
@@ -803,7 +803,9 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 		}
 		content = string(tContent)
 	} else {
-		content = task.Script
+		for _, command := range task.Script {
+			content += command + "\n"
+		}
 	}
 	script += content
 
@@ -900,7 +902,9 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 		}
 		content = string(tContent)
 	} else {
-		content = task.Script
+		for _, command := range task.Script {
+			content += command + "\n"
+		}
 	}
 	script += content
 

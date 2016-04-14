@@ -6,7 +6,8 @@ type Task struct {
 	Configure   func() error
 	Prepare     func(task *TaskContext) error
 	Pty         bool
-	Script      string
+	Script      []string
+	After       map[string][]string // WIP
 	File        string
 	On          []string
 	Foreach     []string
@@ -28,6 +29,8 @@ func NewTask() *Task {
 	return &Task{
 		On:      []string{},
 		Foreach: []string{},
+		Script:  []string{},
+		After:   map[string][]string{},
 	}
 }
 
