@@ -33,4 +33,6 @@ upper() {
 }
 ]=]
 
+bash.xterm = "TERM=xterm"
+
 return bash
