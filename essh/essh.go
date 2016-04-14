@@ -843,7 +843,8 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
 	}
 
-	cmd.Stdin = os.Stdin
+	cmd.Stdin = nil
+	// cmd.Stdin = os.Stdin
 
 	prefix := ""
 	if task.Prefix != "" {
@@ -939,7 +940,8 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 		fmt.Printf("[essh debug] real local command: %v \n", cmd.Args)
 	}
 
-	cmd.Stdin = os.Stdin
+	cmd.Stdin = nil
+	//cmd.Stdin = os.Stdin
 
 	prefix := ""
 	if task.Prefix == DefaultPrefixLocal && host == nil {
