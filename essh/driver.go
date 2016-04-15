@@ -48,9 +48,9 @@ func (driver *Driver) GenerateRunnableContent(task *Task) (string, error) {
 	}
 
 	dict := map[string]interface{}{
-		"driver":           driver,
-		"task":             task,
-		"scripts":          scripts,
+		"Driver":           driver,
+		"Task":             task,
+		"Scripts":          scripts,
 	}
 
 	tmpl, err := template.New("T").Funcs(funcMap).Parse(templateText)
@@ -74,7 +74,7 @@ func init() {
 	driver := NewDriver()
 	driver.Name = BuiltinDefaultDriverName
 	driver.Engine = func(driver *Driver) (string, error) {
-		return `{{range $i, $script := .scripts}}{{$script.code}}
+		return `{{range $i, $script := .Scripts}}{{$script.code}}
 {{end}}`, nil
 	}
 	Drivers[driver.Name] = driver
@@ -85,7 +85,7 @@ func init() {
 	driver.Engine = func(driver *Driver) (string, error) {
 		return `
 __essh_var_status=0
-{{range $i, $script := .scripts}}
+{{range $i, $script := .Scripts}}
 if [ $__essh_var_status -eq 0 ]; then
   {{$script.code}}
   __essh_var_status=$?
