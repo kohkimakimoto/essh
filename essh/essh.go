@@ -397,7 +397,9 @@ func Start() error {
 	// show tasks for zsh completion
 	if zshCompletionTasksFlag {
 		for _, task := range Tasks {
-			fmt.Printf("%s\t%s\n", ColonEscape(task.Name), ColonEscape(task.Description))
+			if !task.Disabled {
+				fmt.Printf("%s\t%s\n", ColonEscape(task.Name), ColonEscape(task.Description))
+			}
 		}
 		return nil
 	}
