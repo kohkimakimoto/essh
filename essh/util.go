@@ -1,13 +1,13 @@
 package essh
 
 import (
-	"os"
+	"crypto/tls"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"runtime"
 	"strings"
-	"io/ioutil"
-	"fmt"
-	"crypto/tls"
 )
 
 func userHomeDir() string {

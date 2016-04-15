@@ -42,10 +42,10 @@ func InitLuaState(L *lua.LState) {
 	lessh.RawSetString("ssh_config", lua.LNil)
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
-		"host":        esshHost,
-		"task":        esshTask,
-		"driver":      esshDriver,
-		"require":     esshRequire,
+		"host":    esshHost,
+		"task":    esshTask,
+		"driver":  esshDriver,
+		"require": esshRequire,
 	})
 }
 
@@ -242,7 +242,7 @@ func registerDriver(L *lua.LState, name string, config *lua.LTable) {
 
 				if retStr, ok := toString(ret); ok {
 					return retStr, nil
-				}else {
+				} else {
 					return "", fmt.Errorf("driver engine has to return a string.")
 				}
 			}

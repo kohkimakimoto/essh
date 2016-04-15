@@ -1,9 +1,9 @@
 package essh
 
 import (
+	"bytes"
 	"github.com/yuin/gopher-lua"
 	"text/template"
-	"bytes"
 )
 
 type Driver struct {
@@ -17,7 +17,7 @@ var Drivers map[string]*Driver = map[string]*Driver{}
 
 var (
 	BuiltinDefaultDriverName = "default"
-	BuiltinBashDriverName = "bash"
+	BuiltinBashDriverName    = "bash"
 )
 
 func NewDriver() *Driver {
@@ -48,9 +48,9 @@ func (driver *Driver) GenerateRunnableContent(task *Task) (string, error) {
 	}
 
 	dict := map[string]interface{}{
-		"Driver":           driver,
-		"Task":             task,
-		"Scripts":          scripts,
+		"Driver":  driver,
+		"Task":    task,
+		"Scripts": scripts,
 	}
 
 	tmpl, err := template.New("T").Funcs(funcMap).Parse(templateText)

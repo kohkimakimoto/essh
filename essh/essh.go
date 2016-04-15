@@ -592,7 +592,7 @@ func UpdateSSHConfig(outputConfig string) ([]byte, error) {
 	// update temporary ssh config file
 	err = ioutil.WriteFile(outputConfig, content, 0644)
 	if err != nil {
-		return nil,  err
+		return nil, err
 	}
 
 	return content, nil
@@ -666,7 +666,6 @@ func runTask(config string, task *Task, payload string) error {
 	if debugFlag {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
 	}
-
 
 	if err := processTaskConfigure(task); err != nil {
 		return err
