@@ -3,7 +3,6 @@ package essh
 import (
 	"bufio"
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/kohkimakimoto/essh/color"
@@ -12,7 +11,6 @@ import (
 	"github.com/yuin/gopher-lua"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -70,6 +68,7 @@ var (
 	onVar           []string = []string{}
 	foreachVar      []string = []string{}
 	prefixStringVar string
+	driverVar       string
 	formatVar       string
 )
 
@@ -184,6 +183,14 @@ func Start() error {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--prefix-string=") {
 			prefixStringVar = strings.Split(arg, "=")[1]
+		} else if arg == "--driver" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--driver reguires an argument.")
+			}
+			driverVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--driver=") {
+			driverVar = strings.Split(arg, "=")[1]
 		} else if arg == "--file" {
 			fileFlag = true
 		} else if arg == "--pty" {
@@ -510,7 +517,9 @@ func Start() error {
 		if fileFlag {
 			task.File = command
 		} else {
-			task.Script = []string{command}
+			task.Script = []map[string]string{
+				map[string]string{"code": command},
+			}
 		}
 		task.On = onVar
 		task.Foreach = foreachVar
@@ -814,17 +823,21 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 		script += "export ESSH_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
 	}
 
-	var content string
-	if task.File != "" {
-		tContent, err := getScriptContent(task.File)
-		if err != nil {
-			return err
+	// generate commands by using driver
+	driver := Drivers[BuiltinDefaultDriverName]
+	if task.Driver != "" {
+		driver = Drivers[task.Driver]
+		if driver == nil {
+			return fmt.Errorf("invalid driver name '%s'", task.Driver)
 		}
-		content = string(tContent)
-	} else {
-		for _, command := range task.Script {
-			content += command + "\n"
-		}
+	}
+	if debugFlag {
+		fmt.Printf("[essh debug] driver: %s \n", driver.Name)
+	}
+
+	content, err := driver.GenerateRunnableContent(task)
+	if err != nil {
+		return err
 	}
 	script += content
 
@@ -911,17 +924,21 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 		}
 	}
 
-	var content string
-	if task.File != "" {
-		tContent, err := getScriptContent(task.File)
-		if err != nil {
-			return err
+	// generate commands by using driver
+	driver := Drivers[BuiltinDefaultDriverName]
+	if task.Driver != "" {
+		driver = Drivers[task.Driver]
+		if driver == nil {
+			return fmt.Errorf("invalid driver name '%s'", task.Driver)
 		}
-		content = string(tContent)
-	} else {
-		for _, command := range task.Script {
-			content += command + "\n"
-		}
+	}
+	if debugFlag {
+		fmt.Printf("[essh debug] driver: %s \n", driver.Name)
+	}
+
+	content, err := driver.GenerateRunnableContent(task)
+	if err != nil {
+		return err
 	}
 	script += content
 
@@ -1099,47 +1116,6 @@ func runHook(hook interface{}) error {
 		return fmt.Errorf("invalid type hook: %v", hook)
 	}
 	return nil
-}
-
-func getScriptContent(shellPath string) ([]byte, error) {
-	var scriptContent []byte
-	if strings.HasPrefix(shellPath, "http://") || strings.HasPrefix(shellPath, "https://") {
-		// get script from remote using http.
-		if debugFlag {
-			fmt.Printf("[essh debug] get script using http from '%s'\n", shellPath)
-		}
-
-		var httpClient *http.Client
-		if strings.HasPrefix(shellPath, "https://") {
-			tr := &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}
-			httpClient = &http.Client{Transport: tr}
-		} else {
-			httpClient = &http.Client{}
-		}
-
-		resp, err := httpClient.Get(shellPath)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-
-		scriptContent = b
-	} else {
-		// get script from the file system.
-		b, err := ioutil.ReadFile(shellPath)
-		if err != nil {
-			return nil, err
-		}
-		scriptContent = b
-	}
-
-	return scriptContent, nil
 }
 
 func runSCP(config string, args []string) error {
@@ -1355,6 +1331,7 @@ execute commands using hosts configuration.
   --parallel                    (Using with --exec option) Run in parallel.
   --pty                         (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
   --file                        (Using with --exec option) Load commands from a file.
+  --driver                      (Using with --exec option) Specify a driver.
 
 integrate other ssh related commands.
   --rsync                       Run rsync with essh configuration.
@@ -1449,6 +1426,7 @@ _essh_options() {
         '--parallel:Run in parallel.'
         '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
         '--file:Load commands from a file.'
+        '--driver:Specify a driver.'
         '--rsync:Run rsync with essh configuration.'
         '--scp:Run scp with essh configuration.'
         '--zsh-completion:Output zsh completion code.'
@@ -1480,6 +1458,7 @@ _essh_exec_options() {
         '--parallel:Run in parallel.'
         '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
         '--file:Load commands from a file.'
+        '--driver:Specify a driver.'
      )
     _describe -t option "option" __essh_options
 }

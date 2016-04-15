@@ -5,9 +5,9 @@ type Task struct {
 	Description string
 	Configure   func() error
 	Prepare     func(task *TaskContext) error
+	Driver      string
 	Pty         bool
-	Script      []string
-	After       map[string][]string // WIP
+	Script      []map[string]string
 	File        string
 	On          []string
 	Foreach     []string
@@ -29,8 +29,7 @@ func NewTask() *Task {
 	return &Task{
 		On:      []string{},
 		Foreach: []string{},
-		Script:  []string{},
-		After:   map[string][]string{},
+		Script:  []map[string]string{},
 	}
 }
 

@@ -22,6 +22,7 @@ func InitLuaState(L *lua.LState) {
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
+	L.SetGlobal("driver", L.NewFunction(esshDriver))
 	// L.SetGlobal("remote_task", L.NewFunction(esshRemoteTask))
 	// backend compatibility
 	L.SetGlobal("Host", L.NewFunction(esshHost))
@@ -43,9 +44,8 @@ func InitLuaState(L *lua.LState) {
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		"host":        esshHost,
 		"task":        esshTask,
-		"remote_task": esshRemoteTask,
+		"driver":      esshDriver,
 		"require":     esshRequire,
-		//		"reset":   esshReset,
 	})
 }
 
@@ -159,46 +159,101 @@ func registerTaskByTable(L *lua.LState, tb *lua.LTable) {
 	}
 }
 
-func esshRemoteTask(L *lua.LState) int {
+func esshDriver(L *lua.LState) int {
 	first := L.CheckAny(1)
-	if config, ok := first.(*lua.LTable); ok {
-		lurl := config.RawGetString("url")
-		url, ok := toString(lurl)
-		if !ok {
-			L.RaiseError("url must be a string.")
-		}
-		registerRemoteTask(L, url, config)
+	if tb, ok := first.(*lua.LTable); ok {
+		registerDriverByTable(L, tb)
 		return 0
 	}
 
-	url := L.CheckString(1)
-	registerRemoteTask(L, string(url), nil)
+	name := L.CheckString(1)
+
+	// procedural style
+	if L.GetTop() == 2 {
+		tb := L.CheckTable(2)
+		registerDriver(L, name, tb)
+
+		return 0
+	}
+
+	// DSL style
+	L.Push(L.NewFunction(func(L *lua.LState) int {
+		tb := L.CheckTable(1)
+		registerDriver(L, name, tb)
+
+		return 0
+	}))
 
 	return 1
 }
 
-func registerRemoteTask(L *lua.LState, url string, config *lua.LTable) {
-	remoteTask := NewRemoteTask(url)
+func registerDriverByTable(L *lua.LState, tb *lua.LTable) {
+	maxn := tb.MaxN()
+	if maxn == 0 { // table
+		tb.ForEach(func(key, value lua.LValue) {
+			config, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			name, ok := key.(lua.LString)
+			if !ok {
+				return
+			}
 
-	if config != nil {
-		namespace := config.RawGetString("namespace")
-		if namespaceStr, ok := toString(namespace); ok {
-			remoteTask.Namespace = namespaceStr
+			registerDriver(L, string(name), config)
+		})
+	} else { // array
+		for i := 1; i <= maxn; i++ {
+			value := tb.RawGetInt(i)
+			valueTb, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			registerDriverByTable(L, valueTb)
+		}
+	}
+}
+
+func registerDriver(L *lua.LState, name string, config *lua.LTable) {
+	driver := NewDriver()
+	driver.Name = name
+
+	if debugFlag {
+		fmt.Printf("[essh debug] register driver: %s\n", name)
+	}
+
+	engine := config.RawGetString("engine")
+	if engine == lua.LNil {
+		L.RaiseError("driver 'engine' is must.")
+	} else {
+		if engineFn, ok := engine.(*lua.LFunction); ok {
+			driver.Engine = func(driver *Driver) (string, error) {
+				err := L.CallByParam(lua.P{
+					Fn:      engineFn,
+					NRet:    1,
+					Protect: true,
+				}, driver.Config)
+				if err != nil {
+					return "", err
+				}
+
+				ret := L.Get(-1) // returned value
+				L.Pop(1)
+
+				if retStr, ok := toString(ret); ok {
+					return retStr, nil
+				}else {
+					return "", fmt.Errorf("driver engine has to return a string.")
+				}
+			}
+		} else {
+			L.RaiseError("driver 'engine' have to be function.")
 		}
 	}
 
-	RemoteTasks = append(RemoteTasks, remoteTask)
-}
+	driver.Config = config
 
-func esshReset(L *lua.LState) int {
-	if debugFlag {
-		fmt.Println("[essh debug] reset tasks, hosts and modules.")
-	}
-	Tasks = []*Task{}
-	Hosts = []*Host{}
-	CurrentContext.LoadedModules = map[string]*Module{}
-
-	return 0
+	Drivers[driver.Name] = driver
 }
 
 func registerHost(L *lua.LState, name string, config *lua.LTable) {
@@ -343,6 +398,11 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		task.Pty = ptyBool
 	}
 
+	driver := config.RawGetString("driver")
+	if driverStr, ok := toString(driver); ok {
+		task.Driver = driverStr
+	}
+
 	parallel := config.RawGetString("parallel")
 	if parallelBool, ok := toBool(parallel); ok {
 		task.Parallel = parallelBool
@@ -469,13 +529,30 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	Tasks = append(Tasks, task)
 }
 
-func toScript(L *lua.LState, value lua.LValue) ([]string, error) {
-	ret := []string{}
+func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
+	ret := []map[string]string{}
 
 	if tb, ok := toLTable(value); ok {
 		maxn := tb.MaxN()
 		if maxn == 0 { // table
-			return nil, fmt.Errorf("'scrpt' got a invalid value.")
+			if tb.RawGetString("code") == lua.LNil {
+				return nil, fmt.Errorf("if a 'script' entry is table, it has to have 'code' property.")
+			}
+
+			m := map[string]string{}
+			tb.ForEach(func(k, v lua.LValue) {
+				vs, ok := toString(v)
+				if !ok {
+					panic("if a 'script' entry is table, it's value has to be string.")
+				}
+				ks, ok := toString(k)
+				if !ok {
+					panic("if a 'script' entry is table, it's property has to be string.")
+				}
+				m[ks] = vs
+			})
+
+			ret = append(ret, m)
 		} else { // array
 			for i := 1; i <= maxn; i++ {
 				value := tb.RawGetInt(i)
@@ -491,23 +568,25 @@ func toScript(L *lua.LState, value lua.LValue) ([]string, error) {
 					funcRet := L.Get(-1)
 					L.Pop(1)
 
-					commands, err := toScript(L, funcRet)
+					script, err := toScript(L, funcRet)
 					if err != nil {
 						return nil, err
 					}
-					ret = append(ret, commands...)
+					ret = append(ret, script...)
 				} else {
-					commands, err := toScript(L, value)
+					script, err := toScript(L, value)
 					if err != nil {
 						return nil, err
 					}
-					ret = append(ret, commands...)
+					ret = append(ret, script...)
 				}
 			}
 		}
 		return ret, nil
 	} else if str, ok := toString(value); ok {
-		return []string{str}, nil
+		return []map[string]string{
+			map[string]string{"code": str},
+		}, nil
 	}
 
 	return nil, fmt.Errorf("'scrpt' got a invalid value.")
@@ -545,7 +624,7 @@ func esshRequire(L *lua.LState) int {
 	return 1
 }
 
-// This code refers to https://github.com/yuin/gluamapper/blob/master/gluamapper.go
+// This code inspired by https://github.com/yuin/gluamapper/blob/master/gluamapper.go
 func toGoValue(lv lua.LValue) interface{} {
 	switch v := lv.(type) {
 	case *lua.LNilType:
