@@ -814,8 +814,6 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 		script += "export ESSH_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
 	}
 
-	script += "export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n"
-
 	var content string
 	if task.File != "" {
 		tContent, err := getScriptContent(task.File)
@@ -843,9 +841,6 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
 	}
 
-	cmd.Stdin = nil
-	// cmd.Stdin = os.Stdin
-
 	prefix := ""
 	if task.Prefix != "" {
 		dict := map[string]interface{}{
@@ -864,6 +859,8 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 
 		prefix = b.String()
 	}
+
+	cmd.Stdin = bytes.NewBufferString(payload)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -914,8 +911,6 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 		}
 	}
 
-	script += "export ESSH_PAYLOAD=" + ShellEscape(payload) + "\n"
-
 	var content string
 	if task.File != "" {
 		tContent, err := getScriptContent(task.File)
@@ -940,9 +935,6 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 		fmt.Printf("[essh debug] real local command: %v \n", cmd.Args)
 	}
 
-	cmd.Stdin = nil
-	//cmd.Stdin = os.Stdin
-
 	prefix := ""
 	if task.Prefix == DefaultPrefixLocal && host == nil {
 		// simple local task (does not specify the hosts)
@@ -966,6 +958,8 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 
 		prefix = b.String()
 	}
+
+	cmd.Stdin = bytes.NewBufferString(payload)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
