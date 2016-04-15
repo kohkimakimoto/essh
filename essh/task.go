@@ -14,6 +14,7 @@ type Task struct {
 	Parallel    bool
 	Privileged  bool
 	Lock        bool
+	Disabled    bool
 	Prefix      string
 	Context     *Context
 }
@@ -35,7 +36,7 @@ func NewTask() *Task {
 
 func GetTask(name string) *Task {
 	for _, task := range Tasks {
-		if task.Name == name {
+		if task.Name == name && !task.Disabled {
 			return task
 		}
 	}

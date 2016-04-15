@@ -460,7 +460,9 @@ func Start() error {
 			tb.SetHeader([]string{"NAME", "DESCRIPTION"})
 		}
 		for _, t := range Tasks {
-			tb.Append([]string{t.Name, t.Description})
+			if !t.Disabled {
+				tb.Append([]string{t.Name, t.Description})
+			}
 		}
 		tb.Render()
 
@@ -514,6 +516,7 @@ func Start() error {
 		task.Lock = false
 		task.Parallel = parallelFlag
 		task.Privileged = privilegedFlag
+		task.Driver = driverVar
 		if fileFlag {
 			task.File = command
 		} else {

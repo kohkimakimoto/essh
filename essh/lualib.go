@@ -413,6 +413,11 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		task.Privileged = privilegedBool
 	}
 
+	disabled := config.RawGetString("disabled")
+	if disabledBool, ok := toBool(disabled); ok {
+		task.Disabled = disabledBool
+	}
+
 	lock := config.RawGetString("lock")
 	if lockBool, ok := toBool(lock); ok {
 		task.Lock = lockBool
