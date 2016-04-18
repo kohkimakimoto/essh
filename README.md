@@ -113,7 +113,7 @@ host "web01.localhost" {
     HostName = "192.168.0.11",
     Port = "22",
     User = "kohkimakimoto",
-    # add description
+    -- add description
     description = "web01 development server",
 }
 
@@ -122,7 +122,7 @@ host "web02.localhost" {
     HostName = "192.168.0.12",
     Port = "22",
     User = "kohkimakimoto",
-    # add description
+    -- add description
     description = "web02 development server",
 }
 ```
