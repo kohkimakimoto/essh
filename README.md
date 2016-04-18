@@ -8,7 +8,7 @@ Essh is an extended ssh client command. The features are the following:
 * **Configuration as code**: You can write SSH client configuration in Lua.
 * **Hooks**: Essh supports hooks that execute commands when it connects a remote server.
 * **Servers List Management**: Essh provides utility commands for managing hosts, that list and classify servers by using tags.
-* **Zsh completion**: Essh provides built-in zsh completion code.
+* **Zsh Completion**: Essh provides built-in zsh completion code.
 * **Per-Project Configuration**: Essh supports per-project configuration. This allows you to change SSH hosts config by changing current working directory.
 * **Tasks**: Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
 * **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
