@@ -21,11 +21,11 @@ Table of contents
   * [Zsh Completion](#zsh-completion)
 * [Configuration](#configuration)
   * [Hosts](#hosts)
-    * [Hooks](#hooks)
   * [Tasks](#tasks)
   * [Modules](#modules)
   * [Libraries](#libraries)
-* [Using with git](#using-with-git)
+  * [Drivers](#drivers)
+* [Integrating other SSH related commands](#integrating-other-ssh-related-commands)
 * [Author](#author)
 * [License](#license)
 
@@ -154,70 +154,21 @@ You notice that the first characters of the `description` and `hidden` are lower
 
 ### Hosts
 
-#### Hooks
-
-You can add hook `before_connect`, `after_connect` and `after_disconnect` in a host configuration.
-
-```lua
-Host "web01.localhost" {
-    HostName = "192.168.0.11",
-    Port = "22",
-    User = "kohkimakimoto",
-    ForwardAgent = "yes",
-    description = "my web01 server",
-    hooks = {
-        -- Runs the script on the local before connecting. This is an example to change screen color to red.
-        before_connect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Red Sands\"'",
-
-        -- Runs the script on the remote after connecting.
-        after_connect = [=[
-        echo "Connected to $(hostname)"
-        ]=],
-
-        -- Runs the script on the local after disconnecting. This is an example to change screen color to black.
-        after_disconnect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Pro\"'",
-    }
-}
-```
-
-`before_connect` and `after_disconnect` also can be written as Lua function instead of shell script.
-
 ### Tasks
 
 ### Modules
 
 ### Libraries
 
-ESSH provides `essh` object to the Lua context. And you can set and get below variable.
+### Drivers
 
-#### ssh_config
+## Integrating other SSH related commands
 
-`ssh_config` is generated config file path. At default, a temporary file path when you run `essh`.
 
-You can set static file path. For instance, you set `essh.ssh_config = os.getenv("HOME") .. "/.ssh/config"`, ESSH overrides `~/.ssh/config` that is standard ssh config file per user.
-
-Example:
-
-```lua
-essh.ssh_config = os.getenv("HOME") .. "/.ssh/config"
-
-Host "web01.localhost" {
-    ForwardAgent = "yes",
-    HostName = "192.168.0.11",
-    Port = "22",
-    User = "kohkimakimoto",
-    description = "my web01 server",
-    hidden = true,
-}
-```
-
-## Using with git
-
-Write the following line in your `~/.zshrc`.
-
-```
-export GIT_SSH=essh
-```
+* `git`: Write the following line in your `~/.zshrc`.
+    ```
+    export GIT_SSH=essh
+    ```
 
 ## Author
 
