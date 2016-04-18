@@ -165,6 +165,10 @@ You notice that the first characters of the `description` and `hidden` are lower
 
 ## Command line options
 
+* `--version`: Print version.
+* `--help`: Print help.
+* `--print`: Print generated ssh config.
+
 ## Integrating other SSH related commands
 
 * `git`: To use Essh inside of the git command. Write the following line in your `~/.zshrc`.
