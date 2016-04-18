@@ -183,6 +183,12 @@ You notice that the first characters of the `description` and `hidden` are lower
   $ essh --scp
   ```
 
+  If you run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+
+  ```
+  $ escp <hostname>:/path/to/file /local/file
+  ```
+
 * `rsync`
 
   ```
