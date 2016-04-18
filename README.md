@@ -1,4 +1,6 @@
-# ESSH
+# Essh
+
+**Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
 Essh is an extended ssh client command. The features are the following:
 
@@ -10,8 +12,6 @@ Essh is an extended ssh client command. The features are the following:
 * **Per-Project Configuration**: Essh supports per-project configuration. This allows you to change SSH hosts config by changing current working directory.
 * **Tasks**: Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
 * **Modules**: Essh provides modular system that allows you to use and create reusable Lua code easily.
-
-**Now it is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
 Table of contents
 
@@ -50,14 +50,14 @@ Create and edit `~/.essh/config.lua`. This is a main configuration file for Essh
 The configuration is written in [Lua](https://www.lua.org/) programming language.
 
 ```lua
-Host "web01.localhost" {
+host "web01.localhost" {
     ForwardAgent = "yes",
     HostName = "192.168.0.11",
     Port = "22",
     User = "kohkimakimoto",
 }
 
-Host "web02.localhost" {
+host "web02.localhost" {
     ForwardAgent = "yes",
     HostName = "192.168.0.12",
     Port = "22",
@@ -99,33 +99,56 @@ Essh also automatically removes the temporary file when the process finishes. So
 
 ### Zsh Completion
 
-If you want to use zsh completion, add the following code in your `~/.zshrc`
+Essh supports zsh completion. If you want to use it, add the following code in your `~/.zshrc`
 
 ```
 eval "$(essh --zsh-completion)"
+```
+
+And then, edit your `~/.essh/config.lua`. Try to add the `description` property as the following.
+
+```lua
+host "web01.localhost" {
+    ForwardAgent = "yes",
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+    # add description
+    description = "web01 development server",
+}
+
+host "web02.localhost" {
+    ForwardAgent = "yes",
+    HostName = "192.168.0.12",
+    Port = "22",
+    User = "kohkimakimoto",
+    # add description
+    description = "web02 development server",
+}
 ```
 
 You will get completion about hosts.
 
 ```
 $ essh [TAB]
-web01.localhost          -- my web01 server
-web02.localhost          -- my web02 server
+web01.localhost  -- web01 development server
+web02.localhost  -- web02 development server
 ```
 
 You can hide a host using `hidden` property. If you set it true, zsh completion doesn't show the host.
 
 ```lua
-Host "web01.localhost" {
+host "web01.localhost" {
     ForwardAgent = "yes",
     HostName = "192.168.0.11",
     Port = "22",
     User = "kohkimakimoto",
-    description = "my web01 server",
+    description = "web01 development server",
     hidden = true,
 }
 ```
 
+You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
 
 ## Configuration
 
