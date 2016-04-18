@@ -171,6 +171,8 @@ You notice that the first characters of the `description` and `hidden` are lower
 
 ## Integrating other SSH related commands
 
+Essh can be used with `scp`, `rsync` and `git`.
+
 * `git`: To use Essh inside of the git command. Write the following line in your `~/.zshrc`.
 
     ```
