@@ -164,12 +164,23 @@ You notice that the first characters of the `description` and `hidden` are lower
 
 ## Integrating other SSH related commands
 
-
 * `git`: To use Essh inside of the git command. Write the following line in your `~/.zshrc`.
 
     ```
     export GIT_SSH=essh
     ```
+
+* `scp`
+
+  ```
+  $ essh --scp
+  ```
+
+* `rsync`
+
+  ```
+  $ essh --rsync 
+  ```
 
 ## Author
 
