@@ -90,7 +90,7 @@ ssh -F /tmp/essh.ssh_config.260398422 web01.localhost
 
 Therefore you can connect with a ssh server using Lua config.
 
-Essh also automatically removes the temporary file when the process finishes. So you should not be conscious of the real ssh configuration in the normal operations.
+Essh also automatically removes the temporary file when the process finishes. So you don't have to be conscious of the real ssh configuration in the normal operations.
 
 ### Zsh Completion
 
