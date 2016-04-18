@@ -1,9 +1,9 @@
 # ESSH
 
-Essh is an extended ssh command. The features are the following:
+Essh is an extended ssh client command. The features are the following:
 
 * **Simple**: A single binary CLI tool. Essh simply wraps `ssh` command. You can use it in the same way as `ssh`.
-* **Configuration as code**: You can write SSH configuration in Lua.
+* **Configuration as code**: You can write SSH client configuration in Lua.
 * **Hooks**: Essh supports hooks that execute commands when it connects a remote server.
 * **Server List Management**: Essh provides utility commands for managing hosts, that list and classify servers by using tags.
 * **Zsh completion**: Essh provides built-in zsh completion code.
