@@ -85,11 +85,12 @@ $ essh web01.localhost
 Essh internally runs the `ssh` command like the following.
 
 ```
-ssh -F /tmp/essh.ssh_config.260398422 <hostname>
+ssh -F /tmp/essh.ssh_config.260398422 web01.localhost
 ```
 
-Essh also automatically removes the temporary file when the process finishes.
-So you should not be conscious of the real ssh configuration in the normal operations.
+Therefore you can connect with a ssh server using Lua config.
+
+Essh also automatically removes the temporary file when the process finishes. So you should not be conscious of the real ssh configuration in the normal operations.
 
 ### Zsh Completion
 
