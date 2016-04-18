@@ -46,7 +46,7 @@ $ essh --version
 
 ### Using Lua config
 
-Create and edit `~/.essh/config.lua`. This is a main configuration file for ESSH.
+Create and edit `~/.essh/config.lua`. This is a main configuration file for Essh.
 The configuration is written in [Lua](https://www.lua.org/) programming language.
 
 ```lua
@@ -67,7 +67,7 @@ Host "web02.localhost" {
 }
 ```
 
-This configuration automatically generates the below ssh config to the temporary file like the `/tmp/essh.ssh_config.260398422` when you run `essh`.
+This configuration automatically generates the below ssh config to the temporary file like the `/tmp/essh.ssh_config.260398422` whenever you run `essh`.
 
 ```
 Host web01.localhost
