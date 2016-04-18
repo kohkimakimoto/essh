@@ -179,22 +179,28 @@ Essh can be used with `scp`, `rsync` and `git`.
     export GIT_SSH=essh
     ```
 
-* `scp`
+* `scp`: Essh support to use with scp.
 
   ```
-  $ essh --scp
+  $ essh --scp <scp command args...>
   ```
 
-  If you run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+  For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
 
   ```
-  $ escp <hostname>:/path/to/file /local/file
+  $ escp <scp command args...>
   ```
 
-* `rsync`
+* `rsync`: Essh support to use with rsync.
 
   ```
-  $ essh --rsync
+  $ essh --rsync <rsync command args...>
+  ```
+
+  For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+
+  ```
+  $ ersync <rsync command args...>
   ```
 
 ## Author
