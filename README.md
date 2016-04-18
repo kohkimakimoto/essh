@@ -25,6 +25,7 @@ Table of contents
   * [Modules](#modules)
   * [Libraries](#libraries)
   * [Drivers](#drivers)
+* [Command line options](#command-line-options)
 * [Integrating other SSH related commands](#integrating-other-ssh-related-commands)
 * [Author](#author)
 * [License](#license)
@@ -162,6 +163,8 @@ You notice that the first characters of the `description` and `hidden` are lower
 
 ### Drivers
 
+## Command line options
+
 ## Integrating other SSH related commands
 
 * `git`: To use Essh inside of the git command. Write the following line in your `~/.zshrc`.
@@ -179,7 +182,7 @@ You notice that the first characters of the `description` and `hidden` are lower
 * `rsync`
 
   ```
-  $ essh --rsync 
+  $ essh --rsync
   ```
 
 ## Author
