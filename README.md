@@ -1,14 +1,15 @@
 # ESSH
 
-Extended ssh command.
+Essh is an extended ssh command. The features are the following:
 
-* Single binary CLI app.
-* Simply wraps `ssh` command. You can use it in the same way as `ssh`.
-* Supports to write SSH configuration in Lua programming language.
-* Supports zsh completion.
-* Provides some hook functions.
-* Provides utility for managing remote hosts.
-* Composes tasks for the remote hosts.
+* **Simple**: A single binary CLI tool. Essh simply wraps `ssh` command. You can use it in the same way as `ssh`.
+* **Configuration as code**: You can write SSH configuration in Lua.
+* **Hooks**: Essh supports hooks that execute commands when it connects a remote server.
+* **Server List Management**: Essh provides utility commands for managing hosts, that list and classify servers by using tags.
+* **Zsh completion**: Essh provides built-in zsh completion code.
+* **Per-Project Configuration**: Essh supports per-project configuration. This allows you to change SSH hosts by changing current directory.
+* **Tasks**: Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
+* **Modules**: Essh provides modular system that allows you to use and create reusable Lua code easily.
 
 **Now it is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
@@ -32,14 +33,14 @@ Table of contents
 
 ### Installation
 
-ESSH is provided as a single binary. You can download it and drop it in your $PATH.
+Essh is provided as a single binary. You can download it and drop it in your $PATH.
 
 [Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
 
 ### Usage
 
 Create and edit `~/.essh/config.lua`. This is a main configuration file for ESSH.
-The configuration is written in Lua programming language.
+The configuration is written in [Lua](https://www.lua.org/) programming language.
 
 ```lua
 Host "web01.localhost" {
@@ -59,7 +60,7 @@ Host "web02.localhost" {
 }
 ```
 
-This configuration generates the below ssh config to the temporary file like the `/tmp/essh.ssh_config.260398422` when you run `essh`.
+This configuration automatically generates the below ssh config to the temporary file like the `/tmp/essh.ssh_config.260398422` when you run `essh`.
 
 ```
 Host web01.localhost
@@ -75,17 +76,20 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
-ESSH uses the generated config file by default.
-It internally runs the command like the `ssh -F /tmp/essh.ssh_config.260398422 <hostname>`.
-And automatically removes the temporary file when `essh` process finishes.
-So you can connect a server using below simple command.
+Essh uses this generated config file by default. If you run the below command
 
 ```
 $ essh web01.localhost
 ```
 
-If you set a first character of keys as lower case like `description` in the config file, it is not SSH config.
-It is used for specific functionality. Read the next section **Zsh Completion**.
+Essh internally runs the `ssh` command like the following.
+
+```
+ssh -F /tmp/essh.ssh_config.260398422 <hostname>
+```
+
+Essh also automatically removes the temporary file when the process finishes.
+So you should not be conscious of the real ssh configuration in the normal operations.
 
 ### Zsh Completion
 
