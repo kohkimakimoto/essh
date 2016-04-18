@@ -17,7 +17,7 @@ Table of contents
 
 * [Getting Started](#getting-started)
   * [Installation](#installation)
-  * [Usage](#usage)
+  * [Using Lua config](#using-lua-config)
   * [Zsh Completion](#zsh-completion)
 * [Configuration](#configuration)
   * [Hosts](#hosts)
@@ -37,7 +37,14 @@ Essh is provided as a single binary. You can download it and drop it in your $PA
 
 [Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
 
-### Usage
+After installing Essh, run the `essh --version` in your terminal to check working.
+
+```
+$ essh --version
+0.26.0 (9e0768e54c2131525e0e7cfb8d666265275861bc)
+```
+
+### Using Lua config
 
 Create and edit `~/.essh/config.lua`. This is a main configuration file for ESSH.
 The configuration is written in [Lua](https://www.lua.org/) programming language.
