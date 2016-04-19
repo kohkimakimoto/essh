@@ -154,6 +154,25 @@ You notice that the first characters of the `description` and `hidden` are lower
 ## Configuration
 
 ### Hosts
+*
+* `hooks`: hooks is a table that defines `before_connect`, `after_connect` and `after_disconnect`.
+
+    ```lua
+    hooks = {
+        -- Runs the script on the local before connecting. This is an example to change screen color to red.
+        before_connect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Red Sands\"'",
+
+        -- Runs the script on the remote after connecting.
+        after_connect = [=[
+        echo "Connected to $(hostname)"
+        ]=],
+
+        -- Runs the script on the local after disconnecting. This is an example to change screen color to black.
+        after_disconnect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Pro\"'",
+    }
+    ```
+
+    `before_connect` and `after_disconnect` also can be written as Lua function instead of shell script.
 
 ### Tasks
 
