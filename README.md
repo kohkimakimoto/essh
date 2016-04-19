@@ -189,6 +189,10 @@ task "uptime" {
 
 Essh loads configuration files from three different places.
 
+* At first, loads `/etc/essh/config.lua` that is the system-wide configuration.
+* At second, loads `~/.essh/config.lua` that is the per-user configuration.
+* At last, loads `essh.lua` in the current directory for the per-project configuration.
+
 ### Hosts
 
 WIP...
