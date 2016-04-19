@@ -257,7 +257,7 @@ do_dist() {
 
 do_packaging() {
     cd $script_dir
-    echo "--> Start ${txtyellow}${txtbold}packaigng${txtreset}."
+    echo "--> Start ${txtyellow}${txtbold}packaging${txtreset}."
     cd rpm
 
     vagrant status | grep running > /dev/null &&:
