@@ -17,7 +17,7 @@ Table of contents
 
 * [Getting Started](#getting-started)
   * [Installation](#installation)
-  * [Using Lua config](#using-lua-config)
+  * [Connecting via SSH](#connecting-via-ssh)
   * [Zsh Completion](#zsh-completion)
 * [Configuration](#configuration)
   * [Hosts](#hosts)
@@ -45,10 +45,9 @@ $ essh --version
 0.26.0 (9e0768e54c2131525e0e7cfb8d666265275861bc)
 ```
 
-### Using Lua config
+### Connecting via SSH
 
-Create and edit `~/.essh/config.lua`. This is a main configuration file for Essh.
-The configuration is written in [Lua](https://www.lua.org/) programming language.
+To get started, create and edit `~/.essh/config.lua`. This is a main configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language.
 
 ```lua
 host "web01.localhost" {
@@ -100,7 +99,7 @@ Essh also automatically removes the temporary file when the process finishes. So
 
 ### Zsh Completion
 
-Essh supports zsh completion. If you want to use it, add the following code in your `~/.zshrc`
+Essh supports zsh completion that lists SSH hosts. If you want to use it, add the following code in your `~/.zshrc`
 
 ```
 eval "$(essh --zsh-completion)"
