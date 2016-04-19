@@ -1,30 +1,32 @@
-# ESSH
+# Essh
 
-Extended ssh command.
+**Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
-* Single binary CLI app.
-* Simply wraps `ssh` command. You can use it in the same way as `ssh`.
-* Supports to write SSH configuration in Lua programming language.
-* Supports zsh completion.
-* Provides some hook functions.
-* Provides utility for managing remote hosts.
-* Composes tasks for the remote hosts.
+Essh is an extended ssh client command. The features are the following:
 
-**Now it is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
+* **Simple**: A single binary CLI tool. Essh simply wraps `ssh` command. You can use it in the same way as `ssh`.
+* **Configuration as code**: You can write SSH client configuration in Lua.
+* **Hooks**: Essh supports hooks that execute commands when it connects a remote server.
+* **Servers List Management**: Essh provides utility commands for managing hosts, that list and classify servers by using tags.
+* **Zsh Completion**: Essh provides built-in zsh completion code.
+* **Per-Project Configuration**: Essh supports per-project configuration. This allows you to change SSH hosts config by changing current working directory.
+* **Tasks**: Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
+* **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
 
 Table of contents
 
 * [Getting Started](#getting-started)
   * [Installation](#installation)
-  * [Usage](#usage)
+  * [Using Lua config](#using-lua-config)
   * [Zsh Completion](#zsh-completion)
 * [Configuration](#configuration)
   * [Hosts](#hosts)
-    * [Hooks](#hooks)
   * [Tasks](#tasks)
   * [Modules](#modules)
   * [Libraries](#libraries)
-* [Using with git](#using-with-git)
+  * [Drivers](#drivers)
+* [Command line options](#command-line-options)
+* [Integrating other SSH related commands](#integrating-other-ssh-related-commands)
 * [Author](#author)
 * [License](#license)
 
@@ -32,34 +34,39 @@ Table of contents
 
 ### Installation
 
-ESSH is provided as a single binary. You can download it and drop it in your $PATH.
+Essh is provided as a single binary. You can download it and drop it in your $PATH.
 
 [Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
 
-### Usage
+After installing Essh, run the `essh --version` in your terminal to check working.
 
-Create and edit `~/.essh/config.lua`. This is a main configuration file for ESSH.
-The configuration is written in Lua programming language.
+```
+$ essh --version
+0.26.0 (9e0768e54c2131525e0e7cfb8d666265275861bc)
+```
+
+### Using Lua config
+
+Create and edit `~/.essh/config.lua`. This is a main configuration file for Essh.
+The configuration is written in [Lua](https://www.lua.org/) programming language.
 
 ```lua
-Host "web01.localhost" {
+host "web01.localhost" {
     ForwardAgent = "yes",
     HostName = "192.168.0.11",
     Port = "22",
     User = "kohkimakimoto",
-    description = "my web01 server",
 }
 
-Host "web02.localhost" {
+host "web02.localhost" {
     ForwardAgent = "yes",
     HostName = "192.168.0.12",
     Port = "22",
     User = "kohkimakimoto",
-    description = "my web02 server",
 }
 ```
 
-This configuration generates the below ssh config to the temporary file like the `/tmp/essh.ssh_config.260398422` when you run `essh`.
+This configuration automatically generates the below ssh config to the temporary file like the `/tmp/essh.ssh_config.260398422` whenever you run `essh`.
 
 ```
 Host web01.localhost
@@ -75,63 +82,116 @@ Host web02.localhost
     User kohkimakimoto
 ```
 
-ESSH uses the generated config file by default.
-It internally runs the command like the `ssh -F /tmp/essh.ssh_config.260398422 <hostname>`.
-And automatically removes the temporary file when `essh` process finishes.
-So you can connect a server using below simple command.
+Essh uses this generated config file by default. If you run the below command
 
 ```
 $ essh web01.localhost
 ```
 
-If you set a first character of keys as lower case like `description` in the config file, it is not SSH config.
-It is used for specific functionality. Read the next section **Zsh Completion**.
+Essh internally runs the `ssh` command like the following.
+
+```
+ssh -F /tmp/essh.ssh_config.260398422 web01.localhost
+```
+
+Therefore you can connect with a ssh server using Lua config.
+
+Essh also automatically removes the temporary file when the process finishes. So you don't have to be conscious of the real ssh configuration in the normal operations.
 
 ### Zsh Completion
 
-If you want to use zsh completion, add the following code in your `~/.zshrc`
+Essh supports zsh completion. If you want to use it, add the following code in your `~/.zshrc`
 
 ```
 eval "$(essh --zsh-completion)"
+```
+
+And then, edit your `~/.essh/config.lua`. Try to add the `description` property as the following.
+
+```lua
+host "web01.localhost" {
+    ForwardAgent = "yes",
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+    -- add description
+    description = "web01 development server",
+}
+
+host "web02.localhost" {
+    ForwardAgent = "yes",
+    HostName = "192.168.0.12",
+    Port = "22",
+    User = "kohkimakimoto",
+    -- add description
+    description = "web02 development server",
+}
 ```
 
 You will get completion about hosts.
 
 ```
 $ essh [TAB]
-web01.localhost          -- my web01 server
-web02.localhost          -- my web02 server
+web01.localhost  -- web01 development server
+web02.localhost  -- web02 development server
 ```
 
 You can hide a host using `hidden` property. If you set it true, zsh completion doesn't show the host.
 
 ```lua
-Host "web01.localhost" {
+host "web01.localhost" {
     ForwardAgent = "yes",
     HostName = "192.168.0.11",
     Port = "22",
     User = "kohkimakimoto",
-    description = "my web01 server",
+    description = "web01 development server",
     hidden = true,
 }
 ```
 
+You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
 
 ## Configuration
 
 ### Hosts
 
-#### Hooks
+WIP...
 
-You can add hook `before_connect`, `after_connect` and `after_disconnect` in a host configuration.
+#### Example
 
 ```lua
-Host "web01.localhost" {
+host "web01.localhost" {
+    ForwardAgent = "yes",
     HostName = "192.168.0.11",
     Port = "22",
     User = "kohkimakimoto",
-    ForwardAgent = "yes",
-    description = "my web01 server",
+    description = "web01 development server",
+    hidden = false,
+    tags = {
+
+    },
+    hooks = {
+
+    },
+}
+```
+
+#### Special purpose properties
+
+* `tags`: Tags classify hosts.
+
+    ```lua
+    tags = {
+        "web",
+        "production",
+    }
+    ```
+
+* `description`: Description.
+* `hidden`: If you set it true, zsh completion doesn't show the host.
+* `hooks`: Hooks is a table that defines `before_connect`, `after_connect` and `after_disconnect`.
+
+    ```lua
     hooks = {
         -- Runs the script on the local before connecting. This is an example to change screen color to red.
         before_connect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Red Sands\"'",
@@ -144,47 +204,65 @@ Host "web01.localhost" {
         -- Runs the script on the local after disconnecting. This is an example to change screen color to black.
         after_disconnect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Pro\"'",
     }
-}
-```
+    ```
 
-`before_connect` and `after_disconnect` also can be written as Lua function instead of shell script.
+    `before_connect` and `after_disconnect` also can be written as Lua function instead of shell script.
 
 ### Tasks
 
+WIP...
+
 ### Modules
+
+WIP...
 
 ### Libraries
 
-ESSH provides `essh` object to the Lua context. And you can set and get below variable.
+WIP...
 
-#### ssh_config
+### Drivers
 
-`ssh_config` is generated config file path. At default, a temporary file path when you run `essh`.
+WIP...
 
-You can set static file path. For instance, you set `essh.ssh_config = os.getenv("HOME") .. "/.ssh/config"`, ESSH overrides `~/.ssh/config` that is standard ssh config file per user.
+## Command line options
 
-Example:
+* `--version`: Print version.
+* `--help`: Print help.
+* `--print`: Print generated ssh config.
 
-```lua
-essh.ssh_config = os.getenv("HOME") .. "/.ssh/config"
+## Integrating other SSH related commands
 
-Host "web01.localhost" {
-    ForwardAgent = "yes",
-    HostName = "192.168.0.11",
-    Port = "22",
-    User = "kohkimakimoto",
-    description = "my web01 server",
-    hidden = true,
-}
-```
+Essh can be used with `scp`, `rsync` and `git`.
 
-## Using with git
+* `git`: To use Essh inside of the git command. Write the following line in your `~/.zshrc`.
 
-Write the following line in your `~/.zshrc`.
+    ```
+    export GIT_SSH=essh
+    ```
 
-```
-export GIT_SSH=essh
-```
+* `scp`: Essh support to use with scp.
+
+  ```
+  $ essh --scp <scp command args...>
+  ```
+
+  For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+
+  ```
+  $ escp <scp command args...>
+  ```
+
+* `rsync`: Essh support to use with rsync.
+
+  ```
+  $ essh --rsync <rsync command args...>
+  ```
+
+  For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+
+  ```
+  $ ersync <rsync command args...>
+  ```
 
 ## Author
 
