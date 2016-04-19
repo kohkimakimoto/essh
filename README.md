@@ -154,7 +154,31 @@ You notice that the first characters of the `description` and `hidden` are lower
 ## Configuration
 
 ### Hosts
-*
+
+#### Example
+
+```lua
+host "web01.localhost" {
+    ForwardAgent = "yes",
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+    description = "web01 development server",
+    hidden = false,
+    tags = {
+
+    },
+    hooks = {
+
+    },
+}
+```
+
+#### Special purpose properties
+
+* `tags`:
+* `description`:
+* `hidden`:
 * `hooks`: hooks is a table that defines `before_connect`, `after_connect` and `after_disconnect`.
 
     ```lua
