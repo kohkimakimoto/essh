@@ -155,6 +155,8 @@ You notice that the first characters of the `description` and `hidden` are lower
 
 ### Hosts
 
+WIP...
+
 #### Example
 
 ```lua
@@ -208,11 +210,19 @@ host "web01.localhost" {
 
 ### Tasks
 
+WIP...
+
 ### Modules
+
+WIP...
 
 ### Libraries
 
+WIP...
+
 ### Drivers
+
+WIP...
 
 ## Command line options
 
