@@ -176,10 +176,18 @@ host "web01.localhost" {
 
 #### Special purpose properties
 
-* `tags`:
-* `description`:
-* `hidden`:
-* `hooks`: hooks is a table that defines `before_connect`, `after_connect` and `after_disconnect`.
+* `tags`: Tags classify hosts.
+
+    ```lua
+    tags = {
+        "web",
+        "production",
+    }
+    ```
+
+* `description`: Description.
+* `hidden`: If you set it true, zsh completion doesn't show the host.
+* `hooks`: Hooks is a table that defines `before_connect`, `after_connect` and `after_disconnect`.
 
     ```lua
     hooks = {
