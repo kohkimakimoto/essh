@@ -2,5 +2,5 @@ package essh
 
 var (
 	CommitHash string = "unknown"
-	Version    string = "0.26.0"
+	Version    string = "0.27.0"
 )
