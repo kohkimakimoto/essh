@@ -5,7 +5,7 @@
 Essh is an extended ssh client command. The features are the following:
 
 * **Simple**: A single binary CLI tool. Essh simply wraps `ssh` command. You can use it in the same way as `ssh`.
-* **Configuration as code**: You can write SSH client configuration in Lua. So your SSH config can become more dynamic.
+* **Configuration As Code**: You can write SSH client configuration in Lua. So your SSH config can become more dynamic.
 * **Hooks**: Essh supports hooks that execute commands when it connects a remote server.
 * **Servers List Management**: Essh provides utility commands for managing hosts, that list and classify servers by using tags.
 * **Zsh Completion**: Essh provides built-in zsh completion code.
@@ -17,7 +17,7 @@ Table of contents
 
 * [Getting Started](#getting-started)
   * [Installation](#installation)
-  * [Connecting via SSH](#connecting-via-ssh)
+  * [Connecting with remote host via SSH](#connecting-with-remote-host-via-ssh)
   * [Zsh Completion](#zsh-completion)
 * [Configuration](#configuration)
   * [Syntax](#syntax)
@@ -47,7 +47,7 @@ $ essh --version
 0.26.0 (9e0768e54c2131525e0e7cfb8d666265275861bc)
 ```
 
-### Connecting via SSH
+### Connecting with remote host via SSH
 
 To get started, create and edit `~/.essh/config.lua`. This is a main configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language.
 
