@@ -5,7 +5,7 @@
 Essh is an extended ssh client command. The features are the following:
 
 * **Simple**: A single binary CLI tool. Essh simply wraps `ssh` command. You can use it in the same way as `ssh`.
-* **Configuration as code**: You can write SSH client configuration in Lua.
+* **Configuration as code**: You can write SSH client configuration in Lua. So your SSH config can become more dynamic.
 * **Hooks**: Essh supports hooks that execute commands when it connects a remote server.
 * **Servers List Management**: Essh provides utility commands for managing hosts, that list and classify servers by using tags.
 * **Zsh Completion**: Essh provides built-in zsh completion code.
@@ -20,6 +20,8 @@ Table of contents
   * [Connecting via SSH](#connecting-via-ssh)
   * [Zsh Completion](#zsh-completion)
 * [Configuration](#configuration)
+  * [Syntax](#syntax)
+  * [Configuration files](#configuration-files)
   * [Hosts](#hosts)
   * [Tasks](#tasks)
   * [Modules](#modules)
@@ -151,6 +153,45 @@ host "web01.localhost" {
 You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
 
 ## Configuration
+
+### Syntax
+
+Essh configuration is written in [Lua](https://www.lua.org/). In the configuration files, you can also use DSL syntax that is more human-readable. Here is an example:
+
+```lua
+host "web01.localhost" {
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+    description = "web01 development server",
+    tags = {
+        "web",
+    },
+}
+
+host "web02.localhost" {
+    HostName = "192.168.0.12",
+    Port = "22",
+    User = "kohkimakimoto",
+    description = "web02 development server",
+    tags = {
+        "web",
+    },
+}
+
+task "uptime" {
+    on = "web",
+    script = "uptime",
+}
+```
+
+### Configuration files
+
+Essh loads configuration files from three different places.
+
+* At first, loads `/etc/essh/config.lua` that is the system-wide configuration.
+* At second, loads `~/.essh/config.lua` that is the per-user configuration.
+* At last, loads `essh.lua` in the current directory for the per-project configuration.
 
 ### Hosts
 
