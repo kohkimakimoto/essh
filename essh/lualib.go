@@ -46,7 +46,15 @@ func InitLuaState(L *lua.LState) {
 		"task":    esshTask,
 		"driver":  esshDriver,
 		"require": esshRequire,
+		"error":   esshError,
 	})
+}
+
+func esshError(L *lua.LState) int {
+	msg := L.CheckString(1)
+	L.RaiseError(msg)
+
+	return 0
 }
 
 func esshHost(L *lua.LState) int {
