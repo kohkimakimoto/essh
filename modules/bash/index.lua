@@ -35,12 +35,11 @@ upper() {
 
 bash.xterm = "TERM=xterm"
 
-bash.driver = function()
+bash.driver = function(config)
     return [=[
 __essh_var_status=0
 {{range $i, $script := .Scripts}}
 if [ $__essh_var_status -eq 0 ]; then
-echo '--> Script step {{$i}}: {{if $script.name}}{{$script.name}}{{end}}'
 {{$script.code}}
 __essh_var_status=$?
 fi

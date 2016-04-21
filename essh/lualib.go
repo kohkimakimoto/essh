@@ -556,7 +556,15 @@ func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 			tb.ForEach(func(k, v lua.LValue) {
 				vs, ok := toString(v)
 				if !ok {
-					panic("if a 'script' entry is table, it's value has to be string.")
+					vb, ok := toBool(v)
+					if !ok {
+						panic("if a 'script' entry is table, it's value has to be string or bool.")
+					}
+					if vb {
+						vs = "true"
+					} else {
+						vs = "false"
+					}
 				}
 				ks, ok := toString(k)
 				if !ok {
