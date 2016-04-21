@@ -48,8 +48,9 @@ $ essh --version
 ```
 
 ### Using As ssh
+Try to connect a remote server by using Essh like `ssh` command.
 
-To get started, create and edit `~/.essh/config.lua`. This is a main configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language.
+Create and edit `~/.essh/config.lua`. This is a main configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language.
 
 ```lua
 host "web01.localhost" {
