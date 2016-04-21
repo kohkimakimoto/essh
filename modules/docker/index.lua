@@ -2,7 +2,8 @@ local docker = {}
 
 docker.driver = function()
     t = [=[
-echo "Using docker driver engine."
+echo 'Starting {{.Task.Name}}'
+echo 'Using docker driver engine.'
     ]=]
 
     return t

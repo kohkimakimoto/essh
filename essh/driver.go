@@ -17,7 +17,6 @@ var Drivers map[string]*Driver = map[string]*Driver{}
 
 var (
 	BuiltinDefaultDriverName = "default"
-	BuiltinBashDriverName    = "bash"
 )
 
 func NewDriver() *Driver {
@@ -76,23 +75,6 @@ func init() {
 	driver.Engine = func(driver *Driver) (string, error) {
 		return `{{range $i, $script := .Scripts}}{{$script.code}}
 {{end}}`, nil
-	}
-	Drivers[driver.Name] = driver
-
-	// bash
-	driver = NewDriver()
-	driver.Name = BuiltinBashDriverName
-	driver.Engine = func(driver *Driver) (string, error) {
-		return `
-__essh_var_status=0
-{{range $i, $script := .Scripts}}
-if [ $__essh_var_status -eq 0 ]; then
-  {{$script.code}}
-  __essh_var_status=$?
-fi
-{{end}}
-exit $__essh_var_status
-		`, nil
 	}
 	Drivers[driver.Name] = driver
 }
