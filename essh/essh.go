@@ -320,6 +320,10 @@ func Start() error {
 		Type: ContextTypeUserData,
 	}
 
+	if err := CurrentContext.MkDirs(); err != nil {
+		return err
+	}
+
 	// load system wide config
 	if _, err := os.Stat(SystemWideConfigFile); err == nil {
 		if debugFlag {
@@ -363,6 +367,10 @@ func Start() error {
 				DataDir:       WorkingDataDir,
 				LoadedModules: map[string]*Module{},
 				Type: ContextTypeWorkingData,
+			}
+
+			if err := CurrentContext.MkDirs(); err != nil {
+				return err
 			}
 
 			if err := L.DoFile(WorkingDirConfigFile); err != nil {

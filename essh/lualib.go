@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"unicode"
+	"github.com/kohkimakimoto/essh/gluamapper"
 )
 
 func InitLuaState(L *lua.LState) {
@@ -260,6 +261,13 @@ func registerDriver(L *lua.LState, name string, config *lua.LTable) {
 	}
 
 	driver.Config = config
+
+	mapper := gluamapper.NewMapper(gluamapper.Option{
+		NameFunc: func(s string) string {
+			return s
+		},
+	})
+	mapper.Map(driver.Config, &driver.Props)
 
 	Drivers[driver.Name] = driver
 }
@@ -768,34 +776,3 @@ func checkTaskContext(L *lua.LState) *TaskContext {
 	return nil
 }
 
-//const LContextClass = "Context*"
-//
-//func newLContext(L *lua.LState, ctx *Context) *lua.LUserData {
-//	ud := L.NewUserData()
-//	ud.Value = ctx
-//	L.SetMetatable(ud, L.GetTypeMetatable(LContextClass))
-//	return ud
-//}
-//
-//func registerContextClass(L *lua.LState) {
-//	mt := L.NewTypeMetatable(LContextClass)
-//	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), contextMethods))
-//}
-//
-//var contextMethods = map[string]lua.LGFunction{
-//	"datadir": contextDatadir,
-//}
-//
-//func contextDatadir(L *lua.LState) int {
-//
-//	return 1
-//}
-//
-//func checkContext(L *lua.LState) *TaskContext {
-//	ud := L.CheckUserData(1)
-//	if v, ok := ud.Value.(*Context); ok {
-//		return v
-//	}
-//	L.ArgError(1, "Context expected")
-//	return nil
-//}

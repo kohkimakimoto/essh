@@ -9,7 +9,7 @@ import (
 type Driver struct {
 	Name   string
 	Config *lua.LTable
-
+	Props map[string]interface{}
 	Engine func(*Driver) (string, error)
 }
 
@@ -20,7 +20,9 @@ var (
 )
 
 func NewDriver() *Driver {
-	return &Driver{}
+	return &Driver{
+		Props: map[string]interface{}{},
+	}
 }
 
 func (driver *Driver) GenerateRunnableContent(task *Task) (string, error) {
