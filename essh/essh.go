@@ -47,6 +47,7 @@ var (
 	tasksFlag              bool
 	genFlag                bool
 	updateFlag             bool
+	noGlobalFlag           bool
 	cleanFlag              bool
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
@@ -131,6 +132,8 @@ func Start() error {
 			updateFlag = true
 		} else if arg == "--clean" {
 			cleanFlag = true
+		} else if arg == "--no-global" {
+			noGlobalFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletionFlag = true
 		} else if arg == "--zsh-completion-hosts" {
@@ -227,7 +230,7 @@ func Start() error {
 	WorkingDirConfigFile = filepath.Join(wd, "essh.lua")
 
 	if helpFlag {
-		printUsage()
+		printHelp()
 		return nil
 	}
 
@@ -314,6 +317,7 @@ func Start() error {
 	CurrentContext = &Context{
 		DataDir:       UserDataDir,
 		LoadedModules: map[string]*Module{},
+		Type: ContextTypeUserData,
 	}
 
 	// load system wide config
@@ -358,6 +362,7 @@ func Start() error {
 			CurrentContext = &Context{
 				DataDir:       WorkingDataDir,
 				LoadedModules: map[string]*Module{},
+				Type: ContextTypeWorkingData,
 			}
 
 			if err := L.DoFile(WorkingDirConfigFile); err != nil {
@@ -1238,19 +1243,23 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 }
 
 func removeModules() error {
-	c := &Context{
-		DataDir: UserDataDir,
-	}
+	if !noGlobalFlag {
+		c := &Context{
+			DataDir: UserDataDir,
+			Type: ContextTypeUserData,
+		}
 
-	if _, err := os.Stat(c.ModulesDir()); err == nil {
-		err = os.RemoveAll(c.ModulesDir())
-		if err != nil {
-			return err
+		if _, err := os.Stat(c.ModulesDir()); err == nil {
+			err = os.RemoveAll(c.ModulesDir())
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	c = &Context{
+	c := &Context{
 		DataDir: WorkingDataDir,
+		Type: ContextTypeWorkingData,
 	}
 
 	if _, err := os.Stat(c.ModulesDir()); err == nil {
@@ -1264,31 +1273,16 @@ func removeModules() error {
 }
 
 func printHelp() {
-	printUsage()
-	fmt.Print(`Running rsyc:
-  You can use essh config for rsync using --rsync option.
-  Syntax:
+	fmt.Print(`Usage: essh [<options>] [<ssh options and args...>]
 
-    essh --rsync <rsync options and args...>
+  essh is an extended ssh command.
+  version ` + Version + ` (` + CommitHash + `)
 
-  Examples:
-
-    essh --rsync -avz /local/dir/ web01.localhost:/path/to/remote/dir
-
-Running scp:
-  You can use essh config for scp using --scp option.
-  Syntax:
-
-    essh --scp <scp options and args...>
-
-  Examples:
-
-    essh --scp web01.localhost:/path/to/file ./local/file
-
-See also:
-  ssh, rsync, scp
+  Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+  The MIT License (MIT)
 
 `)
+	printOptionsInfo()
 }
 
 func printUsage() {
@@ -1300,7 +1294,13 @@ func printUsage() {
   Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
   The MIT License (MIT)
 
-Options:
+See also:
+  essh --help
+`)
+}
+
+func printOptionsInfo() {
+	fmt.Print(`Options:
 general options.
   --version                     Print version.
   --help                        Print help.
@@ -1324,6 +1324,7 @@ manage hosts, tags and tasks.
 manage modules.
   --update                      Update modules.
   --clean                       Clean the downloaded modules.
+  --no-global                   (Using with --update or --clean option) Update or clean only the modules about per-project config.
 
 execute commands using hosts configuration.
   --exec                        Execute commands with the hosts.
@@ -1410,6 +1411,7 @@ _essh_options() {
         '--gen:Only generate ssh config.'
         '--update:Update modules.'
         '--clean:Clean the downloaded modules.'
+        '--no-global:Update or clean only the modules about per-project config.'
         '--config:Edit config file in the current directory.'
         '--user-config:Edit per-user config file.'
         '--system-config:Edit system wide config file.'

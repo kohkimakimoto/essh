@@ -17,7 +17,7 @@ Table of contents
 
 * [Getting Started](#getting-started)
   * [Installation](#installation)
-  * [Connecting with remote host via SSH](#connecting-with-remote-host-via-ssh)
+  * [Using As ssh](#using-as-ssh)
   * [Zsh Completion](#zsh-completion)
 * [Configuration](#configuration)
   * [Syntax](#syntax)
@@ -47,7 +47,7 @@ $ essh --version
 0.26.0 (9e0768e54c2131525e0e7cfb8d666265275861bc)
 ```
 
-### Connecting with remote host via SSH
+### Using As ssh
 
 To get started, create and edit `~/.essh/config.lua`. This is a main configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language.
 

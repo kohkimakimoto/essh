@@ -35,4 +35,15 @@ upper() {
 
 bash.xterm = "TERM=xterm"
 
+bash.driverengine = [=[
+__essh_var_status=0
+{{range $i, $script := .Scripts}}
+if [ $__essh_var_status -eq 0 ]; then
+  {{$script.code}}
+  __essh_var_status=$?
+fi
+{{end}}
+exit $__essh_var_status
+]=]
+
 return bash

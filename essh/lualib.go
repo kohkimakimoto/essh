@@ -611,7 +611,13 @@ func esshRequire(L *lua.LState) int {
 	module := CurrentContext.LoadedModules[name]
 	if module == nil {
 		module = NewModule(name)
-		err := module.Load(updateFlag)
+
+		update := updateFlag
+		if CurrentContext.Type == ContextTypeUserData && noGlobalFlag {
+			update = false
+		}
+		
+		err := module.Load(update)
 		if err != nil {
 			L.RaiseError("%v", err)
 		}
