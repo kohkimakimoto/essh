@@ -70,6 +70,7 @@ var (
 	foreachVar      []string = []string{}
 	prefixStringVar string
 	driverVar       string
+	// beta implementation
 	formatVar       string
 )
 
@@ -876,7 +877,7 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 
 	// inspired by https://github.com/laravel/envoy
 	delimiter := "EOF-ESSH-SCRIPT"
-	sshCommandArgs = append(sshCommandArgs, "bash", "-se", "<<\\"+delimiter+"\n"+script+"\n"+delimiter)
+	sshCommandArgs = append(sshCommandArgs, "bash", "-s", "<<\\"+delimiter+"\n"+script+"\n"+delimiter)
 
 	cmd := exec.Command("ssh", sshCommandArgs[:]...)
 	if debugFlag {
@@ -1341,10 +1342,9 @@ general options.
 manage hosts, tags and tasks.
   --hosts                       List hosts.
   --tags                        List tags.
-  --quiet                       (Using with --hosts or --tags option) Show only names.
-  --format <format>             (Using with --hosts or --tags option) Output specified format (json|prettyjson)
-  --filter <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
   --tasks                       List tasks.
+  --quiet                       (Using with --hosts or --tags option) Show only names.
+  --filter <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
 
 manage modules.
   --update                      Update modules.
@@ -1444,7 +1444,6 @@ _essh_options() {
         '--hosts:List hosts.'
         '--tags:List tags.'
         '--quiet:Show only names.'
-        '--format:Output specified format (json|prettyjson)'
         '--filter:Use only the hosts filtered with a tag or a host'
         '--tasks:List tasks.'
         '--debug:Output debug log.'
@@ -1471,7 +1470,6 @@ _essh_hosts_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
-        '--format:Output specified format (json|prettyjson)'
         '--filter:Use only the hosts filtered with a tag or a host'
      )
     _describe -t option "option" __essh_options
