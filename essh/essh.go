@@ -1320,6 +1320,7 @@ func printUsage() {
 
 See also:
   essh --help
+
 `)
 }
 

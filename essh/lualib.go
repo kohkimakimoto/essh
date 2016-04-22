@@ -255,8 +255,12 @@ func registerDriver(L *lua.LState, name string, config *lua.LTable) {
 					return "", fmt.Errorf("driver engine has to return a string.")
 				}
 			}
+		} else if engineStr, ok := toString(engine); ok {
+			driver.Engine = func(driver *Driver) (string, error) {
+				return engineStr, nil
+			}
 		} else {
-			L.RaiseError("driver 'engine' have to be function.")
+			L.RaiseError("driver 'engine' have to be a function or string.")
 		}
 	}
 
