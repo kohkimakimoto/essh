@@ -81,6 +81,7 @@ func Start() error {
 
 	osArgs := os.Args[1:]
 	args := []string{}
+	osArgsIndex := 0
 
 	for {
 		if len(osArgs) == 0 {
@@ -199,17 +200,24 @@ func Start() error {
 		} else if arg == "--pty" {
 			ptyFlag = true
 		} else if arg == "--rsync" {
+			if osArgsIndex != 0 {
+				return fmt.Errorf("--rsync must be the first option.")
+			}
 			rsyncFlag = true
 		} else if arg == "--scp" {
+			if osArgsIndex != 0 {
+				return fmt.Errorf("--scp must be the first option.")
+			}
 			scpFlag = true
-			// rsync has long options
-			//} else if strings.HasPrefix(arg, "--") {
-			//	return fmt.Errorf("invalid option '%s'.", arg)
+		} else if !rsyncFlag && !scpFlag && strings.HasPrefix(arg, "--") {
+			// rsync can have long options
+			return fmt.Errorf("invalid option '%s'.", arg)
 		} else {
 			// restructure args to remove essh options.
 			args = append(args, arg)
 		}
 
+		osArgsIndex++
 		osArgs = osArgs[1:]
 	}
 
@@ -391,7 +399,7 @@ func Start() error {
 	if taskConfigure != "" {
 		task := GetTask(taskConfigure)
 		if task == nil {
-			return fmt.Errorf("Unknown task '%s'", taskConfigure)
+			return fmt.Errorf("load configuration by using ESSH_TASK_CONFIGURE. but used unknown task '%s'", taskConfigure)
 		}
 		if err := processTaskConfigure(task); err != nil {
 			return err
@@ -476,7 +484,11 @@ func Start() error {
 		}
 		for _, t := range Tasks {
 			if !t.Disabled {
-				tb.Append([]string{t.Name, t.Description})
+				if quietFlag {
+					tb.Append([]string{t.Name})
+				} else {
+					tb.Append([]string{t.Name, t.Description})
+				}
 			}
 		}
 		tb.Render()
@@ -1202,16 +1214,6 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
-func loadRemoteTasks() error {
-	for _, remoteTask := range RemoteTasks {
-		if debugFlag {
-			fmt.Printf("[essh debug] loading remote task: %s\n", remoteTask.URL)
-		}
-	}
-
-	return nil
-}
-
 func validateConfig() error {
 	// check duplication of the host, task and tag names
 	names := map[string]bool{}
@@ -1509,7 +1511,7 @@ _essh () {
         args)
             last_arg="${words[${#words[@]}-1]}"
             case $last_arg in
-                --tags|--tasks|--print|--help|--version|--gen|--config|--system-config)
+                --print|--help|--version|--gen|--config|--system-config)
                     ;;
                 --file|--config-file)
                     _files
@@ -1517,7 +1519,7 @@ _essh () {
                 --exec)
                     _essh_exec_options
                     ;;
-                --hosts)
+                --hosts|--tags|--tasks)
                     _essh_hosts_options
                     ;;
                 --filter|--on|--foreach)
