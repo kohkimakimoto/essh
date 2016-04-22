@@ -298,7 +298,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		Name:   name,
 		Config: newConfig,
 		Props:  map[string]string{},
-		Hooks:  map[string]interface{}{},
+		Hooks:  map[string][]interface{}{},
 		Tags:   []string{},
 	}
 
@@ -374,29 +374,58 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
 	if hook != lua.LNil {
 		if hookFn, ok := toLFunction(hook); ok {
-			host.Hooks[hookPoint] = func() error {
+			hooks := host.Hooks[hookPoint]
+			hooks = append(hooks, func() error {
 				err := L.CallByParam(lua.P{
 					Fn:      hookFn,
 					NRet:    0,
 					Protect: true,
 				})
 				return err
-			}
+			})
+			host.Hooks[hookPoint] = hooks
 		} else if hookString, ok := toString(hook); ok {
-			host.Hooks[hookPoint] = hookString
+			hooks := host.Hooks[hookPoint]
+			hooks = append(hooks, hookString)
+			host.Hooks[hookPoint] = hooks
+		} else if tb, ok := toLTable(hook); ok {
+			maxn := tb.MaxN()
+			if maxn == 0 { // table
+				return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
+			}
+
+			for i := 1; i <= maxn; i++ {
+				if err := registerHook(L , host, hookPoint, tb.RawGetInt(i)); err != nil {
+					return err
+				}
+			}
 		} else {
-			return fmt.Errorf("invalid hook type %v", hook)
+			return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
 		}
 	}
+
 	return nil
 }
 
 func registerRemoteHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
 	if hook != lua.LNil {
 		if hookString, ok := toString(hook); ok {
-			host.Hooks[hookPoint] = hookString
+			hooks := host.Hooks[hookPoint]
+			hooks = append(hooks, hookString)
+			host.Hooks[hookPoint] = hooks
+		} else if tb, ok := toLTable(hook); ok {
+			maxn := tb.MaxN()
+			if maxn == 0 { // table
+				return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
+			}
+
+			for i := 1; i <= maxn; i++ {
+				if err := registerHook(L , host, hookPoint, tb.RawGetInt(i)); err != nil {
+					return err
+				}
+			}
 		} else {
-			return fmt.Errorf("invalid hook type %v", hook)
+			return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
 		}
 	}
 

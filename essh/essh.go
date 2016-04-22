@@ -272,17 +272,17 @@ func Start() error {
 	}
 
 	if configFlag {
-		runCommand("$EDITOR " + WorkingDirConfigFile)
+		runCommand(getEditor() + " " + WorkingDirConfigFile)
 		return nil
 	}
 
 	if userConfigFlag {
-		runCommand("$EDITOR " + UserConfigFile)
+		runCommand(getEditor() + " " + UserConfigFile)
 		return nil
 	}
 
 	if systemConfigFlag {
-		runCommand("$EDITOR " + SystemWideConfigFile)
+		runCommand(getEditor() + " " + SystemWideConfigFile)
 		return nil
 	}
 
@@ -1046,7 +1046,7 @@ func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) 
 
 func runSSH(config string, args []string) error {
 	// hooks
-	var hooks map[string]interface{}
+	var hooks map[string][]interface{}
 
 	// Limitation!
 	// hooks fires only when the hostname is just specified.
@@ -1108,7 +1108,10 @@ func runSSH(config string, args []string) error {
 		sshCommandArgs = []string{"-t", "-F", config}
 		sshCommandArgs = append(sshCommandArgs, args[:]...)
 
-		script := afterConnect.(string)
+		script := ""
+		for _, ac := range afterConnect {
+			script += ac.(string) + "\n"
+		}
 		script += "\nexec $SHELL\n"
 
 		sshCommandArgs = append(sshCommandArgs, script)
@@ -1131,19 +1134,21 @@ func runSSH(config string, args []string) error {
 	return cmd.Run()
 }
 
-func runHook(hook interface{}) error {
-	if hookFunc, ok := hook.(func() error); ok {
-		err := hookFunc()
-		if err != nil {
-			return err
+func runHook(hooks []interface{}) error {
+	for _, hook := range hooks {
+		if hookFunc, ok := hook.(func() error); ok {
+			err := hookFunc()
+			if err != nil {
+				return err
+			}
+		} else if hookString, ok := hook.(string); ok {
+			err := runCommand(hookString)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("invalid type hook: %v", hook)
 		}
-	} else if hookString, ok := hook.(string); ok {
-		err := runCommand(hookString)
-		if err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("invalid type hook: %v", hook)
 	}
 	return nil
 }
@@ -1375,6 +1380,16 @@ Github:
   https://github.com/kohkimakimoto/essh
 
 `)
+}
+
+
+func getEditor() string {
+	editor := os.Getenv("ESSH_EDITOR")
+	if editor != "" {
+		return editor
+	}
+
+	return os.Getenv("EDITOR")
 }
 
 func init() {

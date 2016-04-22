@@ -11,7 +11,7 @@ type Host struct {
 	Name        string
 	Config      *lua.LTable
 	Props       map[string]string
-	Hooks       map[string]interface{}
+	Hooks       map[string][]interface{}
 	Description string
 	Hidden      bool
 	Tags        []string

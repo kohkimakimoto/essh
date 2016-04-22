@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+function sshrc() {
+    local SSHHOME=${SSHHOME:=~}
+    if [ -f $SSHHOME/.sshrc ]; then
+        local files=.sshrc
+        if [ -d $SSHHOME/.sshrc.d ]; then
+            files="$files .sshrc.d"
+        fi
+        SIZE=$(tar cz -h -C $SSHHOME $files | wc -c)
+        if [ $SIZE -gt 65536 ]; then
+            echo >&2 $'.sshrc.d and .sshrc files must be less than 64kb\ncurrent size: '$SIZE' bytes'
+            exit 1
+        fi
+        ssh -t "$@" "
+            command -v xxd >/dev/null 2>&1 || { echo >&2 \"sshrc requires xxd to be installed on the server, but it's not. Aborting.\"; exit 1; }
+            if [ -e /etc/motd ]; then cat /etc/motd; fi
+            if [ -e /etc/update-motd.d ]; then run-parts /etc/update-motd.d/ 2>/dev/null; fi
+            export SSHHOME=\$(mktemp -d -t .$(whoami).sshrc.XXXX)
+            export SSHRCCLEANUP=\$SSHHOME
+            trap \"rm -rf \$SSHRCCLEANUP; exit\" 0
+            echo $'"$(cat "$0" | xxd -p)"' | xxd -p -r > \$SSHHOME/sshrc
+            chmod +x \$SSHHOME/sshrc
+
+            echo $'"$( cat << 'EOF' | xxd -p
+if [ -r /etc/profile ]; then source /etc/profile; fi
+if [ -r ~/.bash_profile ]; then source ~/.bash_profile
+elif [ -r ~/.bash_login ]; then source ~/.bash_login
+elif [ -r ~/.profile ]; then source ~/.profile
+fi
+export PATH=$PATH:$SSHHOME
+source $SSHHOME/.sshrc;
+EOF
+)"' | xxd -p -r > \$SSHHOME/sshrc.bashrc
+
+            echo $'"$( cat << 'EOF' | xxd -p
+#!/usr/bin/env bash
+exec bash --rcfile <(echo '
+[ -r /etc/profile ] && source /etc/profile
+if [ -r ~/.bash_profile ]; then source ~/.bash_profile
+elif [ -r ~/.bash_login ]; then source ~/.bash_login
+elif [ -r ~/.profile ]; then source ~/.profile
+fi
+source '$SSHHOME'/.sshrc;
+export PATH=$PATH:'$SSHHOME'
+') "$@"
+EOF
+)"' | xxd -p -r > \$SSHHOME/bashsshrc
+            chmod +x \$SSHHOME/bashsshrc
+
+            echo $'"$(tar cz -h -C $SSHHOME $files | xxd -p)"' | xxd -p -r | tar mxz -C \$SSHHOME
+            export SSHHOME=\$SSHHOME
+            bash --rcfile \$SSHHOME/sshrc.bashrc
+            "
+    else
+        echo "No such file: $SSHHOME/.sshrc" >&2
+        exit 1
+    fi
+}
+
+command -v xxd >/dev/null 2>&1 || { echo >&2 "sshrc requires xxd to be installed locally, but it's not. Aborting."; exit 1; }
+
+echo "aaaaaaaa"
+# sshrc "$@"
