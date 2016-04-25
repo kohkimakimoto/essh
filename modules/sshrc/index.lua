@@ -24,7 +24,7 @@ local sshrc = function(override_config)
             error("sshrc requires xxd to be installed locally, but it's not. Aborting.")
         end
 
-        essh.debug("sshhome: ".. config.sshhome)
+        essh.debug("sshrc sshhome: ".. config.sshhome)
 
         local command_v = [=[
             function _essh_sshrc() {
