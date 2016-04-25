@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"unicode"
-	"github.com/kohkimakimoto/essh/color"
 	"github.com/kohkimakimoto/essh/gluamapper"
 )
 
@@ -368,29 +367,7 @@ func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) 
 	if hook != lua.LNil {
 		if hookFn, ok := toLFunction(hook); ok {
 			hooks := host.Hooks[hookPoint]
-			hooks = append(hooks, func() (string, error) {
-				err := L.CallByParam(lua.P{
-					Fn:      hookFn,
-					NRet:    1,
-					Protect: false,
-				})
-
-				ret := L.Get(-1) // returned value
-				L.Pop(1)
-
-				if err != nil {
-					return "", err
-				}
-
-				if ret == lua.LNil {
-					return "", nil
-				} else if retStr, ok := toString(ret); ok  {
-					return retStr, nil
-				} else {
-					return "", fmt.Errorf("hook function' return value must be string.")
-				}
-
-			})
+			hooks = append(hooks, hookFn)
 			host.Hooks[hookPoint] = hooks
 		} else if hookString, ok := toString(hook); ok {
 			hooks := host.Hooks[hookPoint]

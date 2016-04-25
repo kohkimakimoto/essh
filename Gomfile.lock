@@ -1,4 +1,4 @@
-gom 'github.com/yuin/gopher-lua', :commit => 'b5ca24ae61f4266ee8572f6f5c8e3637e6e5c4a1'
+gom 'github.com/yuin/gopher-lua', :commit => 'cfea889ae9364dcec3ba7b6ab38a07d2c792faed'
 gom 'github.com/kohkimakimoto/gluayaml', :commit => '6d511cec9a0b98ff46b402d4cd49567a0a81ee50'
 gom 'github.com/kohkimakimoto/gluatemplate', :commit => '0fcac4b4dd6ecf6e7aa253f3a40755055a434237'
 gom 'github.com/kohkimakimoto/gluajson', :commit => '2c6acf0e9c93500aef548e7add4e4412fd5b9c52'

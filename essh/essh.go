@@ -603,7 +603,7 @@ func Start() error {
 			return nil
 		}
 		// run ssh command
-		err = runSSH(outputConfig, args)
+		err = runSSH(L, outputConfig, args)
 	}
 
 	return err
@@ -1044,7 +1044,7 @@ func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) 
 	}
 }
 
-func runSSH(config string, args []string) error {
+func runSSH(L *lua.LState, config string, args []string) error {
 	// hooks
 	var hooks map[string][]interface{}
 
@@ -1062,7 +1062,7 @@ func runSSH(config string, args []string) error {
 		if debugFlag {
 			fmt.Printf("[essh debug] run before_connect hook\n")
 		}
-		hookScript, err := getHookScript(before)
+		hookScript, err := getHookScript(L, before)
 		if err != nil {
 			return err
 		}
@@ -1081,7 +1081,7 @@ func runSSH(config string, args []string) error {
 			if debugFlag {
 				fmt.Printf("[essh debug] run after_disconnect hook\n")
 			}
-			hookScript, err := getHookScript(after)
+			hookScript, err := getHookScript(L, after)
 			if err != nil {
 				panic(err)
 			}
@@ -1099,7 +1099,7 @@ func runSSH(config string, args []string) error {
 
 	// run after_connect hook
 	if afterConnect := hooks["after_connect"]; afterConnect != nil {
-		hookScript, err := getHookScript(afterConnect)
+		hookScript, err := getHookScript(L, afterConnect)
 		if err != nil {
 			return err
 		}
@@ -1140,23 +1140,48 @@ func runSSH(config string, args []string) error {
 	return cmd.Run()
 }
 
-func getHookScript(hooks []interface{}) (string, error) {
+func getHookScript(L *lua.LState, hooks []interface{}) (string, error) {
 	hookScript := ""
 	for _, hook := range hooks {
-		if hookFunc, ok := hook.(func() (string, error)); ok {
-			hookStr, err := hookFunc()
-			if err != nil {
-				return "", err
-			}
-			hookScript += hookStr + "\n"
-		} else if hookStr, ok := hook.(string); ok {
-			hookScript += hookStr + "\n"
-		} else {
-			return "", fmt.Errorf("invalid type hook: %v", hook)
+		code, err := convertHook(L, hook)
+		if err != nil {
+			return "", err
 		}
+		hookScript += code + "\n"
 	}
 
 	return hookScript, nil
+}
+
+func convertHook(L *lua.LState, hook interface{}) (string, error) {
+	if hookFn, ok := hook.(*lua.LFunction); ok {
+		err := L.CallByParam(lua.P{
+			Fn:      hookFn,
+			NRet:    1,
+			Protect: false,
+		})
+
+		ret := L.Get(-1) // returned value
+		L.Pop(1)
+
+		if err != nil {
+			return "", err
+		}
+
+		if ret == lua.LNil {
+			return "", nil
+		} else if retStr, ok := toString(ret); ok  {
+			return retStr, nil
+		} else if retFn, ok := toLFunction(ret); ok  {
+			return convertHook(L, retFn)
+		} else {
+			return "", fmt.Errorf("hook function return value must be string or function.")
+		}
+	} else if hookStr, ok := hook.(string); ok {
+		return hookStr, nil
+	} else {
+		return "", fmt.Errorf("invalid type hook: %v", hook)
+	}
 }
 
 func runSCP(config string, args []string) error {
