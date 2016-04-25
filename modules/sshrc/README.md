@@ -1,6 +1,6 @@
 # Essh sshrc Module
 
-Using (sshrc)[https://github.com/Russell91/sshrc] in Essh.
+Using [sshrc](https://github.com/Russell91/sshrc) in Essh.
 
 ## Usage
 
@@ -20,7 +20,7 @@ host "your-server" {
 
 ## About sshrc
 
-(Russell91/sshrc)[https://github.com/Russell91/sshrc]
+[Russell91/sshrc](https://github.com/Russell91/sshrc)
 
 ```
 Copyright (c) 2014 Russell Stewart
