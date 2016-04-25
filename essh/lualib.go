@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"unicode"
+	"github.com/kohkimakimoto/essh/color"
 	"github.com/kohkimakimoto/essh/gluamapper"
 )
 
@@ -47,13 +48,16 @@ func InitLuaState(L *lua.LState) {
 		"task":    esshTask,
 		"driver":  esshDriver,
 		"require": esshRequire,
-		"error":   esshError,
+		"debug":   esshDebug,
 	})
 }
 
-func esshError(L *lua.LState) int {
+
+func esshDebug(L *lua.LState) int {
 	msg := L.CheckString(1)
-	L.RaiseError(msg)
+	if debugFlag {
+		fmt.Printf("[essh debug] %s\n", msg)
+	}
 
 	return 0
 }
@@ -320,23 +324,12 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 
 	hooks := config.RawGetString("hooks")
 	if hookTb, ok := toLTable(hooks); ok {
-		// before depricated. use before_connect
-		err := registerHook(L, h, "before", hookTb.RawGetString("before"))
-		if err != nil {
-			panic(err)
-		}
-		err = registerHook(L, h, "before_connect", hookTb.RawGetString("before_connect"))
+		err := registerHook(L, h, "before_connect", hookTb.RawGetString("before_connect"))
 		if err != nil {
 			panic(err)
 		}
 
-		err = registerRemoteHook(L, h, "after_connect", hookTb.RawGetString("after_connect"))
-		if err != nil {
-			panic(err)
-		}
-
-		// after depricated. use after_disconnect
-		err = registerHook(L, h, "after", hookTb.RawGetString("after"))
+		err = registerHook(L, h, "after_connect", hookTb.RawGetString("after_connect"))
 		if err != nil {
 			panic(err)
 		}
@@ -375,41 +368,31 @@ func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) 
 	if hook != lua.LNil {
 		if hookFn, ok := toLFunction(hook); ok {
 			hooks := host.Hooks[hookPoint]
-			hooks = append(hooks, func() error {
+			hooks = append(hooks, func() (string, error) {
 				err := L.CallByParam(lua.P{
 					Fn:      hookFn,
-					NRet:    0,
-					Protect: true,
+					NRet:    1,
+					Protect: false,
 				})
-				return err
+
+				ret := L.Get(-1) // returned value
+				L.Pop(1)
+
+				if err != nil {
+					return "", err
+				}
+
+				if ret == lua.LNil {
+					return "", nil
+				} else if retStr, ok := toString(ret); ok  {
+					return retStr, nil
+				} else {
+					return "", fmt.Errorf("hook function' return value must be string.")
+				}
+
 			})
 			host.Hooks[hookPoint] = hooks
 		} else if hookString, ok := toString(hook); ok {
-			hooks := host.Hooks[hookPoint]
-			hooks = append(hooks, hookString)
-			host.Hooks[hookPoint] = hooks
-		} else if tb, ok := toLTable(hook); ok {
-			maxn := tb.MaxN()
-			if maxn == 0 { // table
-				return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
-			}
-
-			for i := 1; i <= maxn; i++ {
-				if err := registerHook(L , host, hookPoint, tb.RawGetInt(i)); err != nil {
-					return err
-				}
-			}
-		} else {
-			return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
-		}
-	}
-
-	return nil
-}
-
-func registerRemoteHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
-	if hook != lua.LNil {
-		if hookString, ok := toString(hook); ok {
 			hooks := host.Hooks[hookPoint]
 			hooks = append(hooks, hookString)
 			host.Hooks[hookPoint] = hooks
@@ -533,7 +516,7 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 				err := L.CallByParam(lua.P{
 					Fn:      configureFn,
 					NRet:    0,
-					Protect: true,
+					Protect: false,
 				})
 				if err != nil {
 					return err
@@ -554,7 +537,7 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 				err := L.CallByParam(lua.P{
 					Fn:      prepareFn,
 					NRet:    1,
-					Protect: true,
+					Protect: false,
 				}, lctx)
 				if err != nil {
 					return err
@@ -622,7 +605,7 @@ func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 					err := L.CallByParam(lua.P{
 						Fn:      fn,
 						NRet:    1,
-						Protect: true,
+						Protect: false,
 					})
 					if err != nil {
 						panic(err)
@@ -673,7 +656,7 @@ func esshRequire(L *lua.LState) int {
 
 		indexFile := module.IndexFile()
 		if _, err := os.Stat(indexFile); err != nil {
-			L.RaiseError("Could not load essh module: %v", err)
+			L.RaiseError("invalid module: %v", err)
 		}
 		if err := L.DoFile(indexFile); err != nil {
 			L.RaiseError("%v", err)
@@ -685,10 +668,11 @@ func esshRequire(L *lua.LState) int {
 
 		// register loaded module.
 		CurrentContext.LoadedModules[name] = module
+
+		return 1
 	}
 
 	L.Push(module.Value)
-
 	return 1
 }
 

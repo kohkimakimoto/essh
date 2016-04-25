@@ -1062,17 +1062,14 @@ func runSSH(config string, args []string) error {
 		if debugFlag {
 			fmt.Printf("[essh debug] run before_connect hook\n")
 		}
-		err := runHook(before)
+		hookScript, err := getHookScript(before)
 		if err != nil {
 			return err
 		}
-	} else if before := hooks["before"]; before != nil {
-		// for backward compatibility
 		if debugFlag {
-			fmt.Printf("[essh debug] run before hook\n")
+			fmt.Printf("[essh debug] before_connect hook script: %s\n", hookScript)
 		}
-		err := runHook(before)
-		if err != nil {
+		if err := runCommand(hookScript); err != nil {
 			return err
 		}
 	}
@@ -1084,17 +1081,14 @@ func runSSH(config string, args []string) error {
 			if debugFlag {
 				fmt.Printf("[essh debug] run after_disconnect hook\n")
 			}
-			err := runHook(after)
+			hookScript, err := getHookScript(after)
 			if err != nil {
 				panic(err)
 			}
-		} else if after := hooks["after"]; after != nil {
-			// for backward compatibility
 			if debugFlag {
-				fmt.Printf("[essh debug] run after hook\n")
+				fmt.Printf("[essh debug] after_disconnect hook script: %s\n", hookScript)
 			}
-			err := runHook(after)
-			if err != nil {
+			if err := runCommand(hookScript); err != nil {
 				panic(err)
 			}
 		}
@@ -1105,17 +1099,29 @@ func runSSH(config string, args []string) error {
 
 	// run after_connect hook
 	if afterConnect := hooks["after_connect"]; afterConnect != nil {
-		sshCommandArgs = []string{"-t", "-F", config}
-		sshCommandArgs = append(sshCommandArgs, args[:]...)
-
-		script := ""
-		for _, ac := range afterConnect {
-			script += ac.(string) + "\n"
+		hookScript, err := getHookScript(afterConnect)
+		if err != nil {
+			return err
 		}
+
+		script := hookScript
 		script += "\nexec $SHELL\n"
 
-		sshCommandArgs = append(sshCommandArgs, script)
+		hasTOption := false
+		for _, arg := range args {
+			if arg == "-t" {
+				hasTOption = true
+			}
+		}
 
+		if hasTOption {
+			sshCommandArgs = []string{"-F", config}
+		} else {
+			sshCommandArgs = []string{"-t", "-F", config}
+		}
+
+		sshCommandArgs = append(sshCommandArgs, args[:]...)
+		sshCommandArgs = append(sshCommandArgs, script)
 	} else {
 		sshCommandArgs = []string{"-F", config}
 		sshCommandArgs = append(sshCommandArgs, args[:]...)
@@ -1134,23 +1140,23 @@ func runSSH(config string, args []string) error {
 	return cmd.Run()
 }
 
-func runHook(hooks []interface{}) error {
+func getHookScript(hooks []interface{}) (string, error) {
+	hookScript := ""
 	for _, hook := range hooks {
-		if hookFunc, ok := hook.(func() error); ok {
-			err := hookFunc()
+		if hookFunc, ok := hook.(func() (string, error)); ok {
+			hookStr, err := hookFunc()
 			if err != nil {
-				return err
+				return "", err
 			}
-		} else if hookString, ok := hook.(string); ok {
-			err := runCommand(hookString)
-			if err != nil {
-				return err
-			}
+			hookScript += hookStr + "\n"
+		} else if hookStr, ok := hook.(string); ok {
+			hookScript += hookStr + "\n"
 		} else {
-			return fmt.Errorf("invalid type hook: %v", hook)
+			return "", fmt.Errorf("invalid type hook: %v", hook)
 		}
 	}
-	return nil
+
+	return hookScript, nil
 }
 
 func runSCP(config string, args []string) error {
