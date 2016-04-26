@@ -51,11 +51,21 @@ Essh is provided as a single binary. You can download it and drop it in your $PA
 
 [Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
 
-After installing Essh, run the `essh --version` in your terminal to check working.
+After installing Essh, run the `essh` without any options in your terminal to check working.
 
 ```
-$ essh --version
-0.29.0 (01b0ee302d8ac207c05b03affbc118e415ac4b81)
+$ essh
+Usage: essh [<options>] [<ssh options and args...>]
+
+  essh is an extended ssh command.
+  version 0.29.0 (01b0ee302d8ac207c05b03affbc118e415ac4b81)
+
+  Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+  The MIT License (MIT)
+
+See also:
+  essh --help
+
 ```
 
 ### Using As SSH
