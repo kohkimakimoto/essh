@@ -13,11 +13,11 @@ Essh is an extended ssh client command. The features are the following:
 * **Task Runner**: Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
 * **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
 
-Demo: completing a hostname and changing terminal color by using hook.
+Demo1: Completing a hostname and changing terminal color by using hook.
 
 ![optimized](essh-demo01.gif)
 
-Demo: listing and filtering hosts. running a command on the selected hosts.
+Demo2: Listing and filtering hosts. Running a command on the selected hosts.
 
 ![optimized](essh-demo02.gif)
 
@@ -27,6 +27,9 @@ Table of contents
   * [Installation](#installation)
   * [Using As SSH](#using-as-ssh)
   * [Zsh Completion](#zsh-completion)
+  * [Tagging Hosts](#tagging-hosts)
+  * [Running Command](#running-command)
+  * [Using Task](#using-task)
 * [Configuration](#configuration)
   * [Syntax](#syntax)
   * [Configuration files](#configuration-files)
@@ -52,13 +55,16 @@ After installing Essh, run the `essh --version` in your terminal to check workin
 
 ```
 $ essh --version
-0.26.0 (9e0768e54c2131525e0e7cfb8d666265275861bc)
+0.29.0 (01b0ee302d8ac207c05b03affbc118e415ac4b81)
 ```
 
 ### Using As SSH
+
 Try to connect a remote server by using Essh like `ssh` command.
 
-Create and edit `~/.essh/config.lua`. This is a main configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language.
+Create `essh.lua` in your current directory. This is a configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language. Now edit this file as the following.
+
+> Replace the `HostName` and some parameters for your environment.
 
 ```lua
 host "web01.localhost" {
@@ -116,7 +122,7 @@ Essh supports zsh completion that lists SSH hosts. If you want to use it, add th
 eval "$(essh --zsh-completion)"
 ```
 
-And then, edit your `~/.essh/config.lua`. Try to add the `description` property as the following.
+And then, edit your `essh.lua`. Try to add the `description` property as the following.
 
 ```lua
 host "web01.localhost" {
@@ -160,6 +166,84 @@ host "web01.localhost" {
 ```
 
 You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
+
+### Tagging Hosts
+
+Tags allow you to classify hosts. For instance, edit `essh.lua` to add some hosts and set tags.
+
+```lua
+host "web01.localhost" {
+    -- ... your config
+    description = "web01 development server",
+    tags = {
+        "web",
+    }
+}
+
+host "web02.localhost" {
+    -- ... your config
+    description = "web02 development server",
+    tags = {
+        "web",
+    }
+}
+
+host "db01.localhost" {
+    -- ... your config
+    description = "db01 server",
+    tags = {
+        "db",
+        "backend",
+    }
+}
+
+host "cache01.localhost" {
+    -- ... your config
+    description = "cache01 server",
+    tags = {
+        "cache",
+        "backend",
+    }
+}
+```
+
+Run `essh` with `--hosts` option.
+
+```
+$ essh --hosts
+NAME                 DESCRIPTION                 TAGS         
+web01.localhost      web01 development server    web          
+web02.localhost      web02 development server    web          
+db01.localhost       db01 server                 db,backend   
+cache01.localhost    cache01 server              cache,backend
+```
+
+You can see the all hosts. Next, try to run it `--filter` option.
+
+```
+$ essh --hosts --filter=web
+NAME               DESCRIPTION                 TAGS
+web01.localhost    web01 development server    web
+web02.localhost    web02 development server    web
+```
+
+You will get filtered hosts by `web` tag. `--filter` can be specified multiple times. Each filters are used in OR condition.
+
+```
+$ essh --hosts --filter=web --filter=db
+NAME               DESCRIPTION                 TAGS      
+web01.localhost    web01 development server    web       
+web02.localhost    web02 development server    web       
+db01.localhost     db01 server                 db,backend
+```
+
+### Running Command
+
+WIP...
+
+### Using Task
+
+WIP...
 
 ## Configuration
 
