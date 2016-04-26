@@ -47,7 +47,7 @@ $ essh --version
 0.26.0 (9e0768e54c2131525e0e7cfb8d666265275861bc)
 ```
 
-### Using As ssh
+### Using As SSH
 Try to connect a remote server by using Essh like `ssh` command.
 
 Create and edit `~/.essh/config.lua`. This is a main configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language.
