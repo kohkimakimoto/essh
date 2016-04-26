@@ -21,3 +21,16 @@ task "example" {
     }
 }
 ```
+
+Building docker image before running if it doesn't exist.
+
+```lua
+driver "docker" {
+    engine = docker.driver,
+    image = "my-custom-image",
+    build = {
+        -- using current directory Dockerfile.
+        url = ".",
+    }
+}
+```

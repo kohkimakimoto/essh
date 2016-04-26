@@ -1,12 +1,4 @@
 local template = require "essh.template"
--- local fs = require "essh.fs"
-
-
-
--- -- essh.fatal("sshrc requires xxd to be installed locally, but it's not. Aborting.")
---
--- -- sshrc.template_file = fs.dir() .. "/sshrc.sh"
--- -- sshrc.sshrc = template.dofile(sshrc.template_file)
 
 local sshrc = function(override_config)
     config = {

@@ -18,6 +18,12 @@ host "your-server" {
 }
 ```
 
+Using custom `SSHHOME`. default is `~`
+
+```lua
+sshrc { sshhome = "path/to/sshhome" }
+```
+
 ## About sshrc
 
 [Russell91/sshrc](https://github.com/Russell91/sshrc)
