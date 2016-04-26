@@ -74,6 +74,11 @@ func (driver *Driver) GenerateRunnableContent(task *Task) (string, error) {
 
 func init() {
 	// set built-in drivers
+	ResetDrivers()
+}
+
+func ResetDrivers() {
+	Drivers = map[string]*Driver{}
 
 	// default (just concatenate with new line code)
 	driver := NewDriver()

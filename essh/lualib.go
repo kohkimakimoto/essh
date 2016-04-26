@@ -343,6 +343,11 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		h.Description = descStr
 	}
 
+	extend := config.RawGetString("extend")
+	if extendStr, ok := toString(extend); ok {
+		h.Extend = extendStr
+	}
+
 	hidden := config.RawGetString("hidden")
 	if hiddenBool, ok := toBool(hidden); ok {
 		h.Hidden = hiddenBool
@@ -485,6 +490,7 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		task.Prefix = prefixStr
 	}
 
+	// configure is deprecated. this is a old version of override_config
 	configure := config.RawGetString("configure")
 	if configure != lua.LNil {
 		if configureFn, ok := configure.(*lua.LFunction); ok {
@@ -501,7 +507,7 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 				return nil
 			}
 		} else {
-			L.RaiseError("configure have to be function.")
+			L.RaiseError("configure have to be a function.")
 		}
 	}
 
@@ -535,7 +541,7 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 				return nil
 			}
 		} else {
-			L.RaiseError("prepare have to be function.")
+			L.RaiseError("prepare have to be a function.")
 		}
 	}
 

@@ -14,7 +14,9 @@ type Host struct {
 	Hooks       map[string][]interface{}
 	Description string
 	Hidden      bool
-	Tags        []string
+	// Extend is not implemented.
+	Extend string
+	Tags   []string
 }
 
 func (h *Host) Params() []map[string]string {
@@ -129,4 +131,8 @@ func ManagedHosts() []*Host {
 		}
 	}
 	return hosts
+}
+
+func ResetHosts() {
+	Hosts = []*Host{}
 }

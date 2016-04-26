@@ -28,8 +28,6 @@ var (
 	WorkingDirConfigFile string
 	WorkingDataDir       string
 	WorkingDir           string
-
-	CurrentContext *Context
 )
 
 // flags
@@ -323,11 +321,8 @@ func Start() error {
 	lessh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
 
 	// user context
-	CurrentContext = &Context{
-		DataDir:       UserDataDir,
-		LoadedModules: map[string]*Module{},
-		Type:          ContextTypeUserData,
-	}
+	CurrentContext = NewContext(UserDataDir, ContextTypeUserData)
+	ContextMap[CurrentContext.Key] = CurrentContext
 
 	if err := CurrentContext.MkDirs(); err != nil {
 		return err
@@ -372,11 +367,8 @@ func Start() error {
 			}
 
 			// change context to working dir context
-			CurrentContext = &Context{
-				DataDir:       WorkingDataDir,
-				LoadedModules: map[string]*Module{},
-				Type:          ContextTypeWorkingData,
-			}
+			CurrentContext = NewContext(WorkingDataDir, ContextTypeWorkingData)
+			ContextMap[CurrentContext.Key] = CurrentContext
 
 			if err := CurrentContext.MkDirs(); err != nil {
 				return err
@@ -392,19 +384,42 @@ func Start() error {
 		}
 	}
 
-	if err := validateConfig(); err != nil {
+	// basic configuration loading is completed.
+
+	// override config using task configuration?
+	taskConfigureContextKey := os.Getenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY")
+	if taskConfigureContextKey != "" {
+		// check context
+		if ctx, ok := ContextMap[taskConfigureContextKey]; ok {
+			if debugFlag {
+				fmt.Printf("[essh debug] got a context for configuring '%s' (%s) \n", ctx.Key, ctx.DataDir)
+			}
+
+			taskConfigureTask := os.Getenv("ESSH_TASK_CONFIGURE_TASK")
+			if taskConfigureTask != "" {
+				task := GetTask(taskConfigureTask)
+				if task == nil {
+					return fmt.Errorf("load configuration by using ESSH_TASK_CONFIGURE_TASK. but used unknown task '%s'", taskConfigureTask)
+				}
+				if err := processTaskConfigure(task); err != nil {
+					return err
+				}
+			}
+		} else {
+			if debugFlag {
+				fmt.Printf("[essh debug] a context for configuring is '%s'. but is not included in now context map.\n", taskConfigureContextKey)
+			}
+		}
+	}
+
+	// update hosts that use extend property.
+	if err := processHostsExtend(); err != nil {
 		return err
 	}
 
-	taskConfigure := os.Getenv("ESSH_TASK_CONFIGURE")
-	if taskConfigure != "" {
-		task := GetTask(taskConfigure)
-		if task == nil {
-			return fmt.Errorf("load configuration by using ESSH_TASK_CONFIGURE. but used unknown task '%s'", taskConfigure)
-		}
-		if err := processTaskConfigure(task); err != nil {
-			return err
-		}
+	// validate config
+	if err := validateConfig(); err != nil {
+		return err
 	}
 
 	// show hosts for zsh completion
@@ -666,7 +681,7 @@ func printJson(hosts []*Host, indent string) {
 }
 
 func processTaskConfigure(task *Task) error {
-	// configure function cleans global config and set custom config in the function.
+	// configure function cleans global config and uses custom config that is defined in a task.
 	if task.Configure == nil {
 		return nil
 	}
@@ -675,12 +690,16 @@ func processTaskConfigure(task *Task) error {
 		fmt.Printf("[essh debug] run configure function.\n")
 	}
 
-	// clean configuration.
-	Tasks = []*Task{}
-	Hosts = []*Host{}
-	Tasks = append(Tasks, task)
+	// clean hosts and drivers.
+	ResetHosts()
+	ResetDrivers()
 
-	err := os.Setenv("ESSH_TASK_CONFIGURE", task.Name)
+	err := os.Setenv("ESSH_TASK_CONFIGURE_TASK", task.Name)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY", task.Context.Key)
 	if err != nil {
 		return err
 	}
@@ -1251,6 +1270,32 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
+func processHostsExtend() error {
+
+	// TODO
+
+	//for _, host := range Hosts {
+	//	if host.Extend != "" {
+	//		superHost := GetHost(host.Extend)
+	//		if superHost == nil {
+	//			return fmt.Errorf("%s is not defined.", host.Extend)
+	//		}
+	//
+	//		childConfig := host.Config
+	//		childProps := host.Props
+	//		childHooks := host.Hooks
+	//		childDescription := host.Description
+	//		childHidden := host.Hidden
+	//
+	//
+	//		host.Config = superHost.Config
+	//		host.Description = superHost.Description
+	//	}
+	//}
+
+	return nil
+}
+
 func validateConfig() error {
 	// check duplication of the host, task and tag names
 	names := map[string]bool{}
@@ -1291,11 +1336,7 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 
 func removeModules() error {
 	if !noGlobalFlag {
-		c := &Context{
-			DataDir: UserDataDir,
-			Type:    ContextTypeUserData,
-		}
-
+		c := NewContext(UserDataDir, ContextTypeUserData)
 		if _, err := os.Stat(c.ModulesDir()); err == nil {
 			err = os.RemoveAll(c.ModulesDir())
 			if err != nil {
@@ -1311,11 +1352,7 @@ func removeModules() error {
 		}
 	}
 
-	c := &Context{
-		DataDir: WorkingDataDir,
-		Type:    ContextTypeWorkingData,
-	}
-
+	c := NewContext(WorkingDataDir, ContextTypeWorkingData)
 	if _, err := os.Stat(c.ModulesDir()); err == nil {
 		err = os.RemoveAll(c.ModulesDir())
 		if err != nil {

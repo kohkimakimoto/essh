@@ -1,20 +1,37 @@
 package essh
 
 import (
-	"path/filepath"
+	"crypto/sha256"
+	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type Context struct {
+	Key           string
 	DataDir       string
 	LoadedModules map[string]*Module
-	Type int
+	Type          int
 }
 
 const (
-	ContextTypeUserData = 0
+	ContextTypeUserData    = 0
 	ContextTypeWorkingData = 1
 )
+
+var CurrentContext *Context
+var ContextMap map[string]*Context = map[string]*Context{}
+
+func NewContext(dataDir string, contextType int) *Context {
+	ctx := &Context{
+		Key:           fmt.Sprintf("%x", sha256.Sum256([]byte(dataDir))),
+		DataDir:       dataDir,
+		LoadedModules: map[string]*Module{},
+		Type:          contextType,
+	}
+
+	return ctx
+}
 
 func (ctx *Context) ModulesDir() string {
 	return filepath.Join(ctx.DataDir, "modules")
