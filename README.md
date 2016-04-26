@@ -218,7 +218,7 @@ db01.localhost       db01 server                 db,backend
 cache01.localhost    cache01 server              cache,backend
 ```
 
-You can see the all hosts. Next, try to run it `--filter` option.
+You can see the all hosts. Next, try to run it with `--filter` option.
 
 ```
 $ essh --hosts --filter=web
