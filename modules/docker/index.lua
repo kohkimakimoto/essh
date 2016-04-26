@@ -70,11 +70,12 @@ fi
 # create temporary working directory
 __essh_var_docker_tmp_dir=$(mktemp -d -t .$(whoami).essh_docker.XXXX)
 trap "rm -rf $__essh_var_docker_tmp_dir; exit" 0
+chmod 777 $__essh_var_docker_tmp_dir
 
 # create runfile
 __essh_var_docker_runfile=$__essh_var_docker_tmp_dir/run.sh
 touch $__essh_var_docker_runfile
-chmod 755 $__essh_var_docker_runfile
+chmod 777 $__essh_var_docker_runfile
 
 # input content to the runfile.
 cat << 'EOF-ESSH-DOCKER_SCRIPT' > $__essh_var_docker_runfile
