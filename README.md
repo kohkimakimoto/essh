@@ -27,8 +27,8 @@ Table of contents
   * [Lua Libraries](#lua-libraries)
   * [Modules](#modules)
   * [Drivers](#drivers)
-* [Command line options](#command-line-options)
-* [Integrating other SSH related commands](#integrating-other-ssh-related-commands)
+* [Command Line Options](#command-line-options)
+* [Integrating Other SSH Related Commands](#integrating-other-ssh-related-commands)
 * [Author](#author)
 * [License](#license)
 
@@ -263,13 +263,15 @@ WIP...
 
 WIP...
 
-## Command line options
+## Command Line Options
 
 * `--version`: Print version.
 * `--help`: Print help.
 * `--print`: Print generated ssh config.
 
-## Integrating other SSH related commands
+WIP...
+
+## Integrating Other SSH Related Commands
 
 Essh can be used with `scp`, `rsync` and `git`.
 
