@@ -1,7 +1,6 @@
 local docker = {}
 
-docker.driver = function()
-    t = [=[
+docker.driver = [=[
 {{if .Task.IsRemoteTask}}
 echo "[error] docker driver engine supports only running a local task."
 exit 1
@@ -68,9 +67,12 @@ if [ -z $(docker images -q $__essh_var_docker_image) ]; then
     fi
 fi
 
+# create temporary working directory
+__essh_var_docker_tmp_dir=$(mktemp -d -t .$(whoami).essh_docker.XXXX)
+trap "rm -rf $__essh_var_docker_tmp_dir; exit" 0
+
 # create runfile
-__essh_var_docker_runfilename=run.$$.sh
-__essh_var_docker_runfile={{.Task.Context.TmpDir}}/$__essh_var_docker_runfilename
+__essh_var_docker_runfile=$__essh_var_docker_tmp_dir/run.sh
 touch $__essh_var_docker_runfile
 chmod 755 $__essh_var_docker_runfile
 
@@ -88,27 +90,20 @@ exit $__essh_var_status
 
 EOF-ESSH-DOCKER_SCRIPT
 
-# echo "Created temprary runfile '$__essh_var_docker_runfile'"
-
 echo "Running task in the docker container..."
 docker run \
-    -v ${__essh_var_docker_working_dir}:/essh \
+    -v $__essh_var_docker_working_dir:/essh \
+    -v $__essh_var_docker_tmp_dir:/tmp/essh \
     -w /essh \
     $__essh_var_docker_image \
-    sh ./.essh/tmp/$__essh_var_docker_runfilename --docker-run
+    sh /tmp/essh/run.sh --docker-run
 __essh_var_status=$?
 
-# delete runfile
-rm "$__essh_var_docker_runfile"
-
 echo "Removing tarminated containers."
-docker rm `${sudo}docker ps -a -q`
+docker rm `docker ps -a -q`
 
 echo "Task exited with $__essh_var_status."
 exit $__essh_var_status
 ]=]
-
-    return t
-end
 
 return docker
