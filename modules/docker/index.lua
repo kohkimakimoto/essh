@@ -71,8 +71,6 @@ fi
 __essh_var_docker_tmp_dir=$(mktemp -d -t .$(whoami).essh_docker.XXXX)
 trap "rm -rf $__essh_var_docker_tmp_dir; exit" 0
 
-{{if .Debug}}echo "[essh debug] created temporary directory: $__essh_var_docker_tmp_dir"{{end}}
-
 # create runfile
 __essh_var_docker_runfile=$__essh_var_docker_tmp_dir/run.sh
 touch $__essh_var_docker_runfile
@@ -98,7 +96,7 @@ docker run \
     -v $__essh_var_docker_tmp_dir:/tmp/essh \
     -w /essh \
     $__essh_var_docker_image \
-    sh /tmp/essh/run.sh --docker-run
+    bash /tmp/essh/run.sh --docker-run
 __essh_var_status=$?
 
 echo "Removing tarminated containers."
