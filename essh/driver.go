@@ -3,13 +3,14 @@ package essh
 import (
 	"bytes"
 	"github.com/yuin/gopher-lua"
+	"runtime"
 	"text/template"
 )
 
 type Driver struct {
 	Name   string
 	Config *lua.LTable
-	Props map[string]interface{}
+	Props  map[string]interface{}
 	Engine func(*Driver) (string, error)
 }
 
@@ -49,6 +50,8 @@ func (driver *Driver) GenerateRunnableContent(task *Task) (string, error) {
 	}
 
 	dict := map[string]interface{}{
+		"GOARCH":  runtime.GOARCH,
+		"GOOS":    runtime.GOOS,
 		"Debug":   debugFlag,
 		"Driver":  driver,
 		"Task":    task,

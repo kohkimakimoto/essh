@@ -71,7 +71,7 @@ var (
 	prefixStringVar string
 	driverVar       string
 	// beta implementation
-	formatVar       string
+	formatVar string
 )
 
 func Start() error {
@@ -326,7 +326,7 @@ func Start() error {
 	CurrentContext = &Context{
 		DataDir:       UserDataDir,
 		LoadedModules: map[string]*Module{},
-		Type: ContextTypeUserData,
+		Type:          ContextTypeUserData,
 	}
 
 	if err := CurrentContext.MkDirs(); err != nil {
@@ -375,7 +375,7 @@ func Start() error {
 			CurrentContext = &Context{
 				DataDir:       WorkingDataDir,
 				LoadedModules: map[string]*Module{},
-				Type: ContextTypeWorkingData,
+				Type:          ContextTypeWorkingData,
 			}
 
 			if err := CurrentContext.MkDirs(); err != nil {
@@ -1170,9 +1170,9 @@ func convertHook(L *lua.LState, hook interface{}) (string, error) {
 
 		if ret == lua.LNil {
 			return "", nil
-		} else if retStr, ok := toString(ret); ok  {
+		} else if retStr, ok := toString(ret); ok {
 			return retStr, nil
-		} else if retFn, ok := toLFunction(ret); ok  {
+		} else if retFn, ok := toLFunction(ret); ok {
 			return convertHook(L, retFn)
 		} else {
 			return "", fmt.Errorf("hook function return value must be string or function.")
@@ -1293,7 +1293,7 @@ func removeModules() error {
 	if !noGlobalFlag {
 		c := &Context{
 			DataDir: UserDataDir,
-			Type: ContextTypeUserData,
+			Type:    ContextTypeUserData,
 		}
 
 		if _, err := os.Stat(c.ModulesDir()); err == nil {
@@ -1302,15 +1302,29 @@ func removeModules() error {
 				return err
 			}
 		}
+
+		if _, err := os.Stat(c.TmpDir()); err == nil {
+			err = os.RemoveAll(c.TmpDir())
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	c := &Context{
 		DataDir: WorkingDataDir,
-		Type: ContextTypeWorkingData,
+		Type:    ContextTypeWorkingData,
 	}
 
 	if _, err := os.Stat(c.ModulesDir()); err == nil {
 		err = os.RemoveAll(c.ModulesDir())
+		if err != nil {
+			return err
+		}
+	}
+
+	if _, err := os.Stat(c.TmpDir()); err == nil {
+		err = os.RemoveAll(c.TmpDir())
 		if err != nil {
 			return err
 		}
@@ -1398,7 +1412,6 @@ Github:
 
 `)
 }
-
 
 func getEditor() string {
 	editor := os.Getenv("ESSH_EDITOR")

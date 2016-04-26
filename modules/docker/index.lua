@@ -1,6 +1,8 @@
 local docker = {}
 
 docker.driver = [=[
+set -e
+
 {{if .Task.IsRemoteTask}}
 echo "[error] docker driver engine supports only running a local task."
 exit 1
@@ -67,8 +69,8 @@ if [ -z $(docker images -q $__essh_var_docker_image) ]; then
     fi
 fi
 
-# create temporary working directory
-__essh_var_docker_tmp_dir=$(mktemp -d -t .$(whoami).essh_docker.XXXX)
+# create temporary directory
+__essh_var_docker_tmp_dir=$(mktemp -d {{.Task.Context.TmpDir}}/.essh_docker.XXXXXXXX)
 trap "rm -rf $__essh_var_docker_tmp_dir; exit" 0
 chmod 777 $__essh_var_docker_tmp_dir
 

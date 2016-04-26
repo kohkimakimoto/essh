@@ -14,7 +14,6 @@ type Context struct {
 const (
 	ContextTypeUserData = 0
 	ContextTypeWorkingData = 1
-
 )
 
 func (ctx *Context) ModulesDir() string {
@@ -23,6 +22,14 @@ func (ctx *Context) ModulesDir() string {
 
 func (ctx *Context) LockDir() string {
 	return filepath.Join(ctx.DataDir, "lock")
+}
+
+func (ctx *Context) TmpDir() string {
+	return filepath.Join(ctx.DataDir, "tmp")
+}
+
+func (ctx *Context) VarDir() string {
+	return filepath.Join(ctx.DataDir, "var")
 }
 
 func (ctx *Context) MkDirs() error {
@@ -35,6 +42,20 @@ func (ctx *Context) MkDirs() error {
 
 	if _, err := os.Stat(ctx.LockDir()); os.IsNotExist(err) {
 		err = os.MkdirAll(ctx.LockDir(), os.FileMode(0755))
+		if err != nil {
+			return err
+		}
+	}
+
+	if _, err := os.Stat(ctx.TmpDir()); os.IsNotExist(err) {
+		err = os.MkdirAll(ctx.TmpDir(), os.FileMode(0755))
+		if err != nil {
+			return err
+		}
+	}
+
+	if _, err := os.Stat(ctx.VarDir()); os.IsNotExist(err) {
+		err = os.MkdirAll(ctx.VarDir(), os.FileMode(0755))
 		if err != nil {
 			return err
 		}

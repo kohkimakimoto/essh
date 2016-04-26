@@ -3,6 +3,7 @@ package essh
 import (
 	"fmt"
 	"github.com/cjoudrey/gluahttp"
+	"github.com/kohkimakimoto/essh/gluamapper"
 	"github.com/kohkimakimoto/gluafs"
 	"github.com/kohkimakimoto/gluajson"
 	"github.com/kohkimakimoto/gluaquestion"
@@ -12,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"unicode"
-	"github.com/kohkimakimoto/essh/gluamapper"
 )
 
 func InitLuaState(L *lua.LState) {
@@ -50,7 +50,6 @@ func InitLuaState(L *lua.LState) {
 		"debug":   esshDebug,
 	})
 }
-
 
 func esshDebug(L *lua.LState) int {
 	msg := L.CheckString(1)
@@ -380,7 +379,7 @@ func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) 
 			}
 
 			for i := 1; i <= maxn; i++ {
-				if err := registerHook(L , host, hookPoint, tb.RawGetInt(i)); err != nil {
+				if err := registerHook(L, host, hookPoint, tb.RawGetInt(i)); err != nil {
 					return err
 				}
 			}
@@ -769,4 +768,3 @@ func checkTaskContext(L *lua.LState) *TaskContext {
 	L.ArgError(1, "TaskContext expected")
 	return nil
 }
-
