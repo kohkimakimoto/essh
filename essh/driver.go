@@ -49,6 +49,7 @@ func (driver *Driver) GenerateRunnableContent(task *Task) (string, error) {
 	}
 
 	dict := map[string]interface{}{
+		"Debug":   debugFlag,
 		"Driver":  driver,
 		"Task":    task,
 		"Scripts": scripts,
