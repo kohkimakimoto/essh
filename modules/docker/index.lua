@@ -97,7 +97,7 @@ docker run \
     -v $__essh_var_docker_tmp_dir:/tmp/essh \
     -w /essh \
     $__essh_var_docker_image \
-    bash /tmp/essh/run.sh --docker-run
+    bash /tmp/essh/run.sh
 __essh_var_status=$?
 
 echo "Removing tarminated containers."

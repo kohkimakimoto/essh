@@ -1302,13 +1302,6 @@ func removeModules() error {
 				return err
 			}
 		}
-
-		if _, err := os.Stat(c.TmpDir()); err == nil {
-			err = os.RemoveAll(c.TmpDir())
-			if err != nil {
-				return err
-			}
-		}
 	}
 
 	c := &Context{
@@ -1318,13 +1311,6 @@ func removeModules() error {
 
 	if _, err := os.Stat(c.ModulesDir()); err == nil {
 		err = os.RemoveAll(c.ModulesDir())
-		if err != nil {
-			return err
-		}
-	}
-
-	if _, err := os.Stat(c.TmpDir()); err == nil {
-		err = os.RemoveAll(c.TmpDir())
 		if err != nil {
 			return err
 		}
