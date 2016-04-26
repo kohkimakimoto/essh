@@ -13,6 +13,11 @@ Essh is an extended ssh client command. The features are the following:
 * **Task Runner**: Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
 * **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
 
+Demo: Changing terminal color by using hook.
+
+![optimized](essh-demo01.gif)
+
+
 Table of contents
 
 * [Getting Started](#getting-started)
