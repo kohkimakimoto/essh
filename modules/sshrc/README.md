@@ -1,6 +1,6 @@
 # Essh sshrc Module
 
-Using [sshrc](https://github.com/Russell91/sshrc) in Essh.
+This module provides `after_connect` hook for using [sshrc](https://github.com/Russell91/sshrc) in Essh.
 
 ## Usage
 
@@ -13,16 +13,20 @@ host "your-server" {
    hooks = {
       after_connect = {
          sshrc,
+         -- and your custome hooks...
       },
    },
 }
 ```
 
-Using custom `SSHHOME`. default is `~`
+You can modify `SSHHOME`.
 
 ```lua
+-- sshhome default is `~`.
 sshrc { sshhome = "path/to/sshhome" }
 ```
+
+see also: [Russell91/sshrc](https://github.com/Russell91/sshrc)
 
 ## About sshrc
 
