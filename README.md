@@ -24,8 +24,8 @@ Table of contents
   * [Configuration files](#configuration-files)
   * [Hosts](#hosts)
   * [Tasks](#tasks)
+  * [Lua Libraries](#lua-libraries)
   * [Modules](#modules)
-  * [Libraries](#libraries)
   * [Drivers](#drivers)
 * [Command line options](#command-line-options)
 * [Integrating other SSH related commands](#integrating-other-ssh-related-commands)
@@ -247,17 +247,15 @@ host "web01.localhost" {
     }
     ```
 
-    `before_connect` and `after_disconnect` also can be written as Lua function instead of shell script.
-
 ### Tasks
 
 WIP...
 
-### Modules
+### Lua Libraries
 
 WIP...
 
-### Libraries
+### Modules
 
 WIP...
 
