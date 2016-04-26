@@ -239,7 +239,11 @@ db01.localhost     db01 server                 db,backend
 
 ### Running Command
 
-WIP...
+Essh allow you to run commands on the selected remote hosts by using `--exec` and `--on` options.
+
+```
+$ essh --exec --on=web uptime
+```
 
 ### Using Task
 
