@@ -270,7 +270,7 @@ task "hello" {
 }
 ```
 
-Run it.
+Run the task.
 
 ```
 $ essh hello
