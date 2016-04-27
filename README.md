@@ -13,6 +13,31 @@ Essh is an extended ssh client command. The features are the following:
 
 > **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
+Configuration Example:
+
+```lua
+host "web01.localhost" {
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+    tags = {
+        "web",
+    },
+}
+
+task "deploy" {
+    description = "deploy new application.",
+    prefix = true,
+    parallel= true,
+    on = "web",
+    script = [=[
+        cd /path/to/dir
+        git clone http://github.com/your/repo.git
+        make
+        echo "Done!"
+    ]=],
+}
+```
 
 Demo1: Completing a hostname and changing terminal color by using hook.
 
