@@ -327,7 +327,7 @@ WIP...
 
 ### Next Steps
 
-See [Configuration][#configuration] section.
+See [Configuration](#configuration) section.
 
 ## Configuration
 
