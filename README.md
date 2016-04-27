@@ -66,7 +66,7 @@ Table of contents
   * [Next steps](#next-steps)
 * [Configuration](#configuration)
   * [Syntax](#syntax)
-  * [Configuration files](#configuration-files)
+  * [Configuration Files](#configuration-files)
   * [Hosts](#hosts)
   * [Tasks](#tasks)
   * [Lua Libraries](#lua-libraries)
@@ -363,7 +363,7 @@ task "uptime" {
 }
 ```
 
-### Configuration files
+### Configuration Files
 
 Essh loads configuration files from three different places.
 
