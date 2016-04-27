@@ -13,7 +13,16 @@ Essh is an extended ssh client command. The features are the following:
 
 > **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
-Configuration Example:
+
+**Demo1: Completing a hostname and changing terminal color by using hook.**
+
+![optimized](essh-demo01.gif)
+
+**Demo2: Listing and filtering hosts. Running a command on the selected hosts.**
+
+![optimized](essh-demo02.gif)
+
+**Simple Configuration Example: `host` and `task`**
 
 ```lua
 host "web01.localhost" {
@@ -33,19 +42,13 @@ task "deploy" {
     script = [=[
         cd /path/to/dir
         git clone http://github.com/your/repo.git
+        cd repo
         make
         echo "Done!"
     ]=],
 }
 ```
 
-Demo1: Completing a hostname and changing terminal color by using hook.
-
-![optimized](essh-demo01.gif)
-
-Demo2: Listing and filtering hosts. Running a command on the selected hosts.
-
-![optimized](essh-demo02.gif)
 
 Table of contents
 
