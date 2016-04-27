@@ -45,6 +45,8 @@ Table of contents
 
 ## Getting Started
 
+This section covers the basic features of Essh. If you are begginer of Essh, I recommend you to read it at first.
+
 ### Installation
 
 Essh is provided as a single binary. You can download it and drop it in your $PATH.
