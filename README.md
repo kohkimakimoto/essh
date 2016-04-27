@@ -31,6 +31,10 @@ Table of contents
   * [Tagging Hosts](#tagging-hosts)
   * [Running Commands](#running-commands)
   * [Running Tasks](#running-tasks)
+  * [Using Lua Libraries][#using-lua-libraries]
+  * [Using Modules][#using-modules]
+  * [Using Drivers][#using-drivers]
+  * [Next steps][#next-steps]
 * [Configuration](#configuration)
   * [Syntax](#syntax)
   * [Configuration files](#configuration-files)
@@ -280,6 +284,16 @@ $ essh hello
 [web01.localhost] hello on web01.localhost
 [web02.localhost] hello on web02.localhost
 ```
+
+### Using Lua Libraries
+
+### Using Modules
+
+### Using Drivers
+
+### Next Steps
+
+See [Configuration][#configuration] section.
 
 ## Configuration
 
