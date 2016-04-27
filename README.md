@@ -49,7 +49,7 @@ task "deploy" {
 }
 ```
 
-Are you interesting in Essh? There are documents below.
+Are you interesting in Essh? There are documents below. Please start to read **[Getting Started](#getting-started)**.
 
 Table of contents
 
