@@ -315,9 +315,15 @@ $ essh hello
 
 ### Using Lua Libraries
 
+WIP...
+
 ### Using Modules
 
+WIP...
+
 ### Using Drivers
+
+WIP...
 
 ### Next Steps
 
