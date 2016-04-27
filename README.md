@@ -1,7 +1,5 @@
 # Essh
 
-**Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
-
 Essh is an extended ssh client command. The features are the following:
 
 * **Simple**: A single binary CLI tool. Essh simply wraps `ssh` command. You can use it in the same way as `ssh`.
@@ -12,6 +10,9 @@ Essh is an extended ssh client command. The features are the following:
 * **Per-Project Configuration**: Essh supports per-project configuration. This allows you to change SSH hosts config by changing current working directory.
 * **Task Runner**: Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
 * **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
+
+> **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
+
 
 Demo1: Completing a hostname and changing terminal color by using hook.
 
