@@ -28,8 +28,8 @@ Table of contents
   * [Using As SSH](#using-as-ssh)
   * [Zsh Completion](#zsh-completion)
   * [Tagging Hosts](#tagging-hosts)
-  * [Running Command](#running-command)
-  * [Using Task](#using-task)
+  * [Running Commands](#running-commands)
+  * [Running Tasks](#running-tasks)
 * [Configuration](#configuration)
   * [Syntax](#syntax)
   * [Configuration files](#configuration-files)
@@ -247,7 +247,7 @@ web02.localhost    web02 development server    web
 db01.localhost     db01 server                 db,backend
 ```
 
-### Running Command
+### Running Commands
 
 Essh allow you to run commands on the selected remote hosts by using `--exec` and `--on` options.
 
@@ -255,9 +255,28 @@ Essh allow you to run commands on the selected remote hosts by using `--exec` an
 $ essh --exec --on=web uptime
 ```
 
-### Using Task
+### Running Tasks
 
-WIP...
+You can define tasks that are executed on remote and local servers. For instance:
+
+```lua
+task "hello" {
+    description = "say hello",
+    prefix = true,
+    on = "web",
+    script = [=[
+        echo "hello on $(hostname)"
+    ]=],
+}
+```
+
+Run it.
+
+```
+$ essh hello
+[web01.localhost] hello on web01.localhost
+[web02.localhost] hello on web02.localhost
+```
 
 ## Configuration
 
