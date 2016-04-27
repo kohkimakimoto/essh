@@ -31,10 +31,10 @@ Table of contents
   * [Tagging Hosts](#tagging-hosts)
   * [Running Commands](#running-commands)
   * [Running Tasks](#running-tasks)
-  * [Using Lua Libraries][#using-lua-libraries]
-  * [Using Modules][#using-modules]
-  * [Using Drivers][#using-drivers]
-  * [Next steps][#next-steps]
+  * [Using Lua Libraries](#using-lua-libraries)
+  * [Using Modules](#using-modules)
+  * [Using Drivers](#using-drivers)
+  * [Next steps](#next-steps)
 * [Configuration](#configuration)
   * [Syntax](#syntax)
   * [Configuration files](#configuration-files)
