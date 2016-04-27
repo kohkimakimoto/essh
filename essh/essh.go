@@ -1511,6 +1511,8 @@ _essh_tags() {
     _describe -t tag "tag" __essh_tags
 }
 
+_essh_global_options() {
+}
 
 _essh_options() {
     local -a __essh_options
@@ -1528,21 +1530,9 @@ _essh_options() {
         '--working-dir:Change working directory.'
         '--hosts:List hosts.'
         '--tags:List tags.'
-        '--quiet:Show only names.'
-        '--all:Show all that includs hidden objects.'
-        '--filter:Use only the hosts filtered with a tag or a host'
         '--tasks:List tasks.'
         '--debug:Output debug log.'
         '--exec:Execute commands with the hosts.'
-        '--on:Run commands on remote hosts.'
-        '--foreach:Run commands locally for each hosts.'
-        '--prefix:Enable outputing prefix.'
-        '--prefix-string:Custom string of the prefix.'
-        '--privileged:Run by the privileged user.'
-        '--parallel:Run in parallel.'
-        '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
-        '--file:Load commands from a file.'
-        '--driver:Specify a driver.'
         '--rsync:Run rsync with essh configuration.'
         '--scp:Run scp with essh configuration.'
         '--zsh-completion:Output zsh completion code.'
@@ -1558,6 +1548,15 @@ _essh_hosts_options() {
         '--quiet:Show only names.'
         '--all:Show all that includs hidden objects.'
         '--filter:Use only the hosts filtered with a tag or a host'
+     )
+    _describe -t option "option" __essh_options
+}
+
+_essh_tags_options() {
+    local -a __essh_options
+    __essh_options=(
+        '--debug:Output debug log.'
+        '--quiet:Show only names.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1581,49 +1580,76 @@ _essh_exec_options() {
 
 _essh () {
     local curcontext="$curcontext" state line
+    local last_arg arg execMode hostsMode tasksMode tagsMode
+
     typeset -A opt_args
 
     _arguments \
-        '1: :->all' \
+        '1: :->objects' \
         '*: :->args' \
-		&& ret=0
+        && ret=0
 
     case $state in
-        all)
-            _essh_tasks
-            _essh_hosts
-            _essh_options
+        objects)
+            case $line[1] in
+                -*)
+                    _essh_options
+                    ;;
+                *)
+                    _essh_tasks
+                    _essh_hosts
+                    ;;
+            esac
             ;;
         args)
-            last_arg="${words[${#words[@]}-1]}"
+            last_arg="${line[${#line[@]}-1]}"
+
+            for arg in ${line[@]}; do
+                case $arg in
+                    --exec)
+                        execMode="on"
+                        ;;
+                    --hosts)
+                        hostsMode="on"
+                        ;;
+                    --tasks)
+                        tasksMode="on"
+                        ;;
+                    --tags)
+                        tagsMode="on"
+                        ;;
+                    *)
+                        ;;
+                esac
+            done
+
             case $last_arg in
                 --print|--help|--version|--gen|--config|--system-config)
                     ;;
                 --file|--config-file)
                     _files
                     ;;
-                --exec)
-                    _essh_exec_options
-                    ;;
-                --hosts|--tags|--tasks)
-                    _essh_hosts_options
-                    ;;
                 --filter|--on|--foreach)
                     _essh_hosts
                     _essh_tags
                     ;;
                 *)
-                    _essh_tasks
-                    _essh_hosts
-                    _essh_options
-                    _files
+                    if [ "$execMode" = "on" ]; then
+                        _essh_exec_options
+                    elif [ "$hostsMode" = "on" ]; then
+                        _essh_hosts_options
+                    elif [ "$tasksMode" = "on" ]; then
+                        _essh_hosts_options
+                    elif [ "$tagsMode" = "on" ]; then
+                        _essh_tags_options
+                    else
+                        _essh_options
+                        _files
+                    fi
                     ;;
             esac
             ;;
         *)
-            _essh_tasks
-            _essh_hosts
-            _essh_options
             _files
             ;;
     esac
