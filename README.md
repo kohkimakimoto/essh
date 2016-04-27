@@ -41,7 +41,7 @@ task "deploy" {
     on = "web",
     script = [=[
         cd /path/to/dir
-        git clone http://github.com/your/repo.git
+        git clone git@github.com:path/to/app.git
         cd repo
         make
         echo "Done!"
