@@ -97,10 +97,10 @@ func Tags() []string {
 	return tags
 }
 
-func ManagedHostsByNames(names []string) []*Host {
+func HostsByNames(names []string) []*Host {
 	var hosts = []*Host{}
 
-	for _, host := range ManagedHosts() {
+	for _, host := range Hosts {
 	B1:
 		for _, name := range names {
 			if host.Name == name {
@@ -123,15 +123,15 @@ func ManagedHostsByNames(names []string) []*Host {
 	return hosts
 }
 
-func ManagedHosts() []*Host {
-	var hosts = []*Host{}
-	for _, host := range Hosts {
-		if !host.Hidden {
-			hosts = append(hosts, host)
-		}
-	}
-	return hosts
-}
+//func ManagedHosts() []*Host {
+//	var hosts = []*Host{}
+//	for _, host := range Hosts {
+//		if !host.Hidden {
+//			hosts = append(hosts, host)
+//		}
+//	}
+//	return hosts
+//}
 
 func ResetHosts() {
 	Hosts = []*Host{}

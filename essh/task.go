@@ -15,6 +15,7 @@ type Task struct {
 	Privileged  bool
 	Lock        bool
 	Disabled    bool
+	Hidden      bool
 	Prefix      string
 	Context     *Context
 }

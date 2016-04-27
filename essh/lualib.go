@@ -431,6 +431,11 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		task.Disabled = disabledBool
 	}
 
+	hidden := config.RawGetString("hidden")
+	if hiddenBool, ok := toBool(hidden); ok {
+		task.Hidden = hiddenBool
+	}
+
 	lock := config.RawGetString("lock")
 	if lockBool, ok := toBool(lock); ok {
 		task.Lock = lockBool

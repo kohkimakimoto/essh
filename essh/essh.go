@@ -41,6 +41,7 @@ var (
 	debugFlag              bool
 	hostsFlag              bool
 	quietFlag              bool
+	allFlag                bool
 	tagsFlag               bool
 	tasksFlag              bool
 	genFlag                bool
@@ -106,6 +107,8 @@ func Start() error {
 			hostsFlag = true
 		} else if arg == "--quiet" {
 			quietFlag = true
+		} else if arg == "--all" {
+			allFlag = true
 		} else if arg == "--tasks" {
 			tasksFlag = true
 		} else if arg == "--filter" {
@@ -424,8 +427,10 @@ func Start() error {
 
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
-		for _, host := range ManagedHosts() {
-			fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.Description))
+		for _, host := range Hosts {
+			if !host.Hidden {
+				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.Description))
+			}
 		}
 
 		return nil
@@ -434,7 +439,7 @@ func Start() error {
 	// show tasks for zsh completion
 	if zshCompletionTasksFlag {
 		for _, task := range Tasks {
-			if !task.Disabled {
+			if !task.Disabled && !task.Hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(task.Name), ColonEscape(task.Description))
 			}
 		}
@@ -452,29 +457,24 @@ func Start() error {
 	if hostsFlag {
 		var hosts []*Host
 		if len(filtersVar) > 0 {
-			hosts = ManagedHostsByNames(filtersVar)
+			hosts = HostsByNames(filtersVar)
 		} else {
-			hosts = ManagedHosts()
+			hosts = Hosts
 		}
-
-		if formatVar == "json" {
-			printJson(hosts, "")
-		} else if formatVar == "prettyjson" {
-			printJson(hosts, "    ")
-		} else {
-			tb := helper.NewPlainTable(os.Stdout)
-			if !quietFlag {
-				tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS"})
-			}
-			for _, host := range hosts {
+		tb := helper.NewPlainTable(os.Stdout)
+		if !quietFlag {
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS"})
+		}
+		for _, host := range hosts {
+			if !host.Hidden || allFlag {
 				if quietFlag {
 					tb.Append([]string{host.Name})
 				} else {
 					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ",")})
 				}
 			}
-			tb.Render()
 		}
+		tb.Render()
 
 		return nil
 	}
@@ -500,10 +500,12 @@ func Start() error {
 		}
 		for _, t := range Tasks {
 			if !t.Disabled {
-				if quietFlag {
-					tb.Append([]string{t.Name})
-				} else {
-					tb.Append([]string{t.Name, t.Description})
+				if !t.Hidden || allFlag {
+					if quietFlag {
+						tb.Append([]string{t.Name})
+					} else {
+						tb.Append([]string{t.Name, t.Description})
+					}
 				}
 			}
 		}
@@ -785,7 +787,7 @@ func runTask(config string, task *Task, payload string) error {
 	// get target hosts.
 	if task.IsRemoteTask() {
 		// run remotely.
-		hosts := ManagedHostsByNames(task.On)
+		hosts := HostsByNames(task.On)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 		for _, host := range hosts {
@@ -810,7 +812,7 @@ func runTask(config string, task *Task, payload string) error {
 		wg.Wait()
 	} else {
 		// run locally.
-		hosts := ManagedHostsByNames(task.Foreach)
+		hosts := HostsByNames(task.Foreach)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 
@@ -1416,8 +1418,9 @@ manage hosts, tags and tasks.
   --hosts                       List hosts.
   --tags                        List tags.
   --tasks                       List tasks.
-  --quiet                       (Using with --hosts or --tags option) Show only names.
+  --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
   --filter <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
+  --all                         (Using with --hosts or --tasks option) Show all that includs hidden objects.
 
 manage modules.
   --update                      Update modules.
@@ -1526,6 +1529,7 @@ _essh_options() {
         '--hosts:List hosts.'
         '--tags:List tags.'
         '--quiet:Show only names.'
+        '--all:Show all that includs hidden objects.'
         '--filter:Use only the hosts filtered with a tag or a host'
         '--tasks:List tasks.'
         '--debug:Output debug log.'
@@ -1552,6 +1556,7 @@ _essh_hosts_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
+        '--all:Show all that includs hidden objects.'
         '--filter:Use only the hosts filtered with a tag or a host'
      )
     _describe -t option "option" __essh_options
