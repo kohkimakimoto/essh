@@ -1388,7 +1388,7 @@ func printHelp() {
 func printUsage() {
 	fmt.Print(`Usage: essh [<options>] [<ssh options and args...>]
 
-  essh is an extended ssh command.
+  Essh is an extended ssh command.
   version ` + Version + ` (` + CommitHash + `)
 
   Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
