@@ -298,6 +298,8 @@ For more information on tasks, see the [Tasks](#tasks) section.
 
 Example:
 
+Edit your `essh.lua`.
+
 ```lua
 task "hello" {
     description = "say hello",
@@ -311,7 +313,7 @@ task "hello" {
 
 Run the task.
 
-```
+```shell
 $ essh hello
 [web01.localhost] hello on web01.localhost
 [web02.localhost] hello on web02.localhost
