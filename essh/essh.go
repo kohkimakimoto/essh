@@ -953,7 +953,7 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 		shell = "cmd"
 		flag = "/C"
 	} else {
-		shell = "/bin/sh"
+		shell = "bash"
 		flag = "-c"
 	}
 

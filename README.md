@@ -293,7 +293,10 @@ $ essh --exec --on=web uptime
 
 ### Running Tasks
 
-You can define tasks that are executed on remote and local servers. For instance:
+You can define tasks that are executed on remote and local servers.
+For more information on tasks, see the [Tasks](#tasks) section.
+
+Example:
 
 ```lua
 task "hello" {
@@ -314,9 +317,43 @@ $ essh hello
 [web02.localhost] hello on web02.localhost
 ```
 
+If you don't specify `on` property, Essh runs a task locally.
+
+```lua
+task "hello" {
+    description = "say hello",
+    prefix = true,
+    script = [=[
+        echo "hello on $(hostname)"
+    ]=],
+}
+```
+
+```
+$ essh hello
+[Local] hello on your-hostname
+```
+
 ### Using Lua Libraries
 
-WIP...
+Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM that loads configuration files, and has several built-in lua libraries. You can use `require` function to load the libraries.
+
+
+```lua
+local question = require "essh.question"
+
+task "example" {
+    prepare = function ()
+        local r = question.ask("Are you OK [y/N]: ")
+        if r ~= "y" then
+            return false
+        end
+    end,
+    script = [=[
+        echo "foo"
+    ]=],
+}
+```
 
 ### Using Modules
 
