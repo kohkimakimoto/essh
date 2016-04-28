@@ -66,7 +66,7 @@ Table of contents
   * [Next steps](#next-steps)
 * [Configuration](#configuration)
   * [Syntax](#syntax)
-  * [Configuration Files](#configuration-files)
+  * [Configuration Files](#configuration-files)  
   * [Hosts](#hosts)
   * [Tasks](#tasks)
   * [Lua Libraries](#lua-libraries)
@@ -294,11 +294,7 @@ $ essh --exec --on=web uptime
 ### Running Tasks
 
 You can define tasks that are executed on remote and local servers.
-For more information on tasks, see the [Tasks](#tasks) section.
-
-Example:
-
-Edit your `essh.lua`.
+For example, edit your `essh.lua`.
 
 ```lua
 task "hello" {
@@ -313,7 +309,7 @@ task "hello" {
 
 Run the task.
 
-```shell
+```
 $ essh hello
 [web01.localhost] hello on web01.localhost
 [web02.localhost] hello on web02.localhost
@@ -336,9 +332,12 @@ $ essh hello
 [Local] hello on your-hostname
 ```
 
+For more information on tasks, see the [Tasks](#tasks) section.
+
 ### Using Lua Libraries
 
-Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM that loads configuration files, and has several built-in lua libraries. You can use `require` function to load the libraries.
+Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM that loads configuration files.
+Essh has several built-in lua libraries. You can use `require` function to load the libraries.
 
 
 ```lua
