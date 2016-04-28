@@ -213,6 +213,8 @@ host "web01.localhost" {
 
 You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
 
+For more information on hosts, see the [Hosts](#hosts) section.
+
 ### Tagging Hosts
 
 Tags allow you to classify hosts. For instance, edit `essh.lua` to add some hosts and set tags.
@@ -339,6 +341,7 @@ For more information on tasks, see the [Tasks](#tasks) section.
 Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM that loads configuration files.
 Essh has several built-in lua libraries. You can use `require` function to load the libraries.
 
+Example:
 
 ```lua
 local question = require "essh.question"
@@ -355,6 +358,19 @@ task "example" {
     ]=],
 }
 ```
+
+`essh.question` is a built-in library that is implemented in [gluaquestion](https://github.com/kohkimakimoto/gluaquestion). It provides functions to get user input from a terminal.
+And task's property `prepare` is a configuration that defines a function executed when the task starts.
+
+So, You run the task. Essh displays a message. and wait your input.
+
+```
+$ essh example
+Are you OK [y/N]: y
+foo
+```
+
+For more information on Lua libraries, see the [Lua Libraries](#lua-libraries) section.
 
 ### Using Modules
 
