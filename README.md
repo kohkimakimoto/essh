@@ -213,8 +213,6 @@ host "web01.localhost" {
 
 You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
 
-For more information on hosts, see the [Hosts](#hosts) section.
-
 ### Tagging Hosts
 
 Tags allow you to classify hosts. For instance, edit `essh.lua` to add some hosts and set tags.
@@ -284,6 +282,8 @@ web01.localhost    web01 development server    web
 web02.localhost    web02 development server    web       
 db01.localhost     db01 server                 db,backend
 ```
+
+For more information on hosts, see the [Hosts](#hosts) section.
 
 ### Running Commands
 
