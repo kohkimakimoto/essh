@@ -531,7 +531,7 @@ local jsontext = json.encode({aaa = "bbb", ccc = "ddd"})
 print(jsontext)
 ```
 
-The following are the libraries that are included in Essh.
+The following are the built-in libraries that are included in Essh.
 
 * `essh.json`: Json encoder/decoder. It is implemented in [gluajson](https://github.com/kohkimakimoto/gluajson).
 * `essh.fs`: Filesystem utility. It is implemented in [gluafs](https://github.com/kohkimakimoto/gluafs).
