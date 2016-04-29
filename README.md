@@ -57,6 +57,7 @@ Table of contents
   * [Installation](#installation)
   * [Using As SSH](#using-as-ssh)
   * [Zsh Completion](#zsh-completion)
+  * [Using Hooks](#using-hooks)
   * [Tagging Hosts](#tagging-hosts)
   * [Running Commands](#running-commands)
   * [Running Tasks](#running-tasks)
@@ -212,6 +213,42 @@ host "web01.localhost" {
 ```
 
 You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
+
+For more information on hosts, see the [Hosts](#hosts) section.
+
+### Using Hooks
+
+Hooks in Essh are scripts executed before and after connecting remote servers.
+
+```lua
+host "web01.localhost" {
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+
+    hooks = {
+        before_connect = "echo before_connect",
+        after_connect = "echo after_connect",
+        after_disconnect = "echo after_disconnect",
+    },
+}
+```
+
+`before_connect` fires on the localhost before you connect a server via SSH.
+`after_connect` fires on the remote host after you connect a server via SSH.
+`after_disconnect` fires on the local host after you disconnect from a SSH server.
+
+> Note: I am using this functionality to change OSX terminal profile(color). see the below example.
+
+```lua
+host "web01.localhost" {
+    -- ...
+    hooks = {
+        before_connect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Blue Profile\"'",
+        after_disconnect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Normal Profile\"'",
+    },
+}
+```
 
 ### Tagging Hosts
 
