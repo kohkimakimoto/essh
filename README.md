@@ -521,7 +521,17 @@ WIP...
 
 ### Lua Libraries
 
-Essh provides built-in lua libraries.
+Essh provides built-in Lua libraries that you can use in your configuration files.
+For instance, if you want to use `essh.json` library, you should use Lua's `require` function like below.
+
+```lua
+local json = require("essh.json")
+
+local jsontext = json.encode({aaa = "bbb", ccc = "ddd"})
+print(jsontext)
+```
+
+The following are the libraries that are included in Essh.
 
 * `essh.json`: Json encoder/decoder. It is implemented in [gluajson](https://github.com/kohkimakimoto/gluajson).
 * `essh.fs`: Filesystem utility. It is implemented in [gluafs](https://github.com/kohkimakimoto/gluafs).
