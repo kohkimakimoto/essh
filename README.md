@@ -523,14 +523,12 @@ WIP...
 
 Essh provides built-in lua libraries.
 
-* `essh.json`
-* `essh.fs`
-* `essh.yaml`
-* `essh.template`
-* `essh.question`
-* `essh.http`
-
-WIP...
+* `essh.json`: Json encoder/decoder. It is implemented in [gluajson](https://github.com/kohkimakimoto/gluajson).
+* `essh.fs`: Filesystem utility. It is implemented in [gluafs](https://github.com/kohkimakimoto/gluafs).
+* `essh.yaml`: Yaml parser. It is implemented in [gluayaml](https://github.com/kohkimakimoto/gluayaml).
+* `essh.template`: Text template. It is implemented in [gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
+* `essh.question`: A library to prompt the user for input. It is implemented in [gluaquestion](https://github.com/kohkimakimoto/gluaquestion).
+* `essh.http`: Http module. It is implemented in [gluahttp](https://github.com/cjoudrey/gluahttp).
 
 ### Modules
 
