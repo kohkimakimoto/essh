@@ -540,6 +540,8 @@ The following are the libraries that are included in Essh.
 * `essh.question`: A library to prompt the user for input. It is implemented in [gluaquestion](https://github.com/kohkimakimoto/gluaquestion).
 * `essh.http`: Http module. It is implemented in [gluahttp](https://github.com/cjoudrey/gluahttp).
 
+Of course, You can also use another Lua libraries by using `require`. See the Lua's [manual](http://www.lua.org/manual/5.1/manual.html#pdf-require).
+
 ### Modules
 
 WIP...
