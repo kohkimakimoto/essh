@@ -484,6 +484,15 @@ WIP...
 
 ### Lua Libraries
 
+Essh provides built-in lua libraries.
+
+* `essh.json`
+* `essh.fs`
+* `essh.yaml`
+* `essh.template`
+* `essh.question`
+* `essh.http`
+
 WIP...
 
 ### Modules
