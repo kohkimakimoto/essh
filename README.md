@@ -408,7 +408,7 @@ task "example" {
 }
 ```
 
-`essh.question` is a built-in library that is implemented in [gluaquestion](https://github.com/kohkimakimoto/gluaquestion). It provides functions to get user input from a terminal.
+`essh.question` is a built-in library of Essh, that is implemented in [gluaquestion](https://github.com/kohkimakimoto/gluaquestion). It provides functions to get user input from a terminal.
 And task's property `prepare` is a configuration that defines a function executed when the task starts.
 
 So, You run the task. Essh displays a message and waits your input.
