@@ -332,7 +332,7 @@ $ essh --exec --on=web uptime
  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
 ```
 
-Use `--prefix` option, Essh ouputs result of command with hostname prefix.
+Use `--prefix` option, Essh outputs result of command with hostname prefix.
 
 ```
 $ essh --exec --on=web --prefix uptime
