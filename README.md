@@ -107,7 +107,7 @@ See also:
 
 ### Using As SSH
 
-Try to connect a remote server by using Essh like `ssh` command.
+Essh is implemented as a wrapper of `ssh` command. That means you can completely use Essh in the same way as `ssh`. Try to connect a remote server by using Essh like `ssh` command.
 
 Create `essh.lua` in your current directory. This is a configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language. Now edit this file as the following.
 
