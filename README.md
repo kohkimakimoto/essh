@@ -397,8 +397,9 @@ local question = require "essh.question"
 
 task "example" {
     prepare = function ()
-        local r = question.ask("Are you OK [y/N]: ")
+        local r = question.ask("Are you OK? [y/N]: ")
         if r ~= "y" then
+            -- return false, the task does not run.
             return false
         end
     end,
@@ -415,7 +416,7 @@ So, You run the task. Essh displays a message and waits your input.
 
 ```
 $ essh example
-Are you OK [y/N]: y
+Are you OK? [y/N]: y
 foo
 ```
 
@@ -431,7 +432,7 @@ WIP...
 
 ### Next Steps
 
-See next [Configuration](#configuration) section.
+See next [Configuration](#configuration) section. This is an in-depth reference to all features of Essh.
 
 ## Configuration
 
