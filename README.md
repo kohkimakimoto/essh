@@ -238,7 +238,7 @@ host "web01.localhost" {
 `after_connect` fires on the remote host after you connect a server via SSH.
 `after_disconnect` fires on the local host after you disconnect from a SSH server.
 
-> Note: I am using this functionality to change OSX terminal profile(color). see the below example.
+> Note: I am using this functionality to change OSX terminal profile(color). See the below example.
 
 ```lua
 host "web01.localhost" {
@@ -328,7 +328,19 @@ Essh allow you to run commands on the selected remote hosts by using `--exec` an
 
 ```
 $ essh --exec --on=web uptime
+ 22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
+ 22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
 ```
+
+Use `--prefix` option, Essh ouputs result of command with hostname prefix.
+
+```
+$ essh --exec --on=web --prefix uptime
+[web01.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
+[web02.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
+```
+
+For more information, see the [Command Line Options](#command-line-options) section.
 
 ### Running Tasks
 
