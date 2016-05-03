@@ -37,6 +37,8 @@ bash.xterm = "TERM=xterm"
 
 bash.errexit_on = "set -e"
 
+bash.version = "bash --version"
+
 bash.driver = function(config)
     return [=[
 __essh_var_status=0
