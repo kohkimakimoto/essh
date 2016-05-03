@@ -421,7 +421,15 @@ For more information on Lua libraries, see the [Lua Libraries](#lua-libraries) s
 
 ### Using Modules
 
-WIP...
+Essh has a modular system that allows you to use reusable code for Essh configuration.
+For instance, I provide [bash module](https://github.com/kohkimakimoto/essh/tree/master/modules/bash).
+You can use `essh.require` function to load a module.
+
+```lua
+local bash = essh.require "github.com/kohkimakimoto/essh//modules/bash"
+```
+
+For more information on Modules, see the [Modules](#modules) section.
 
 ### Using Drivers
 
