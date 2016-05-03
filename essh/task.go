@@ -52,6 +52,14 @@ func (t *Task) IsRemoteTask() bool {
 	}
 }
 
+func (t *Task) DescriptionOrDefault() string {
+	if t.Description == "" {
+		return t.Name + " task"
+	}
+
+	return t.Description
+}
+
 type TaskContext struct {
 	Task    *Task
 	Payload string

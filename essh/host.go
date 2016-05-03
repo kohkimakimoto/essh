@@ -44,6 +44,15 @@ func (h *Host) Params() []map[string]string {
 	return values
 }
 
+func (h *Host) DescriptionOrDefault() string {
+	if h.Description == "" {
+		return h.Name + " host"
+	}
+
+	return h.Description
+}
+
+
 var Hosts []*Host = []*Host{}
 
 func GetHost(hostname string) *Host {

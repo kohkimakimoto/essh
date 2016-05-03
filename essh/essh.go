@@ -429,7 +429,7 @@ func Start() error {
 	if zshCompletionHostsFlag {
 		for _, host := range Hosts {
 			if !host.Hidden {
-				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.Description))
+				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.DescriptionOrDefault()))
 			}
 		}
 
@@ -440,7 +440,7 @@ func Start() error {
 	if zshCompletionTasksFlag {
 		for _, task := range Tasks {
 			if !task.Disabled && !task.Hidden {
-				fmt.Printf("%s\t%s\n", ColonEscape(task.Name), ColonEscape(task.Description))
+				fmt.Printf("%s\t%s\n", ColonEscape(task.Name), ColonEscape(task.DescriptionOrDefault()))
 			}
 		}
 		return nil
