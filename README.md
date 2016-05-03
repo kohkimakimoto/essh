@@ -64,15 +64,12 @@ Table of contents
   * [Using Lua Libraries](#using-lua-libraries)
   * [Using Modules](#using-modules)
   * [Using Drivers](#using-drivers)
-  * [Next steps](#next-steps)
-* [Configuration](#configuration)
-  * [Syntax](#syntax)
-  * [Configuration Files](#configuration-files)  
-  * [Hosts](#hosts)
-  * [Tasks](#tasks)
-  * [Lua Libraries](#lua-libraries)
-  * [Modules](#modules)
-  * [Drivers](#drivers)
+* [Configuration Files](#configuration-files)  
+* [Hosts](#hosts)
+* [Tasks](#tasks)
+* [Lua Libraries](#lua-libraries)
+* [Modules](#modules)
+* [Drivers](#drivers)
 * [Command Line Options](#command-line-options)
 * [Integrating Other SSH Related Commands](#integrating-other-ssh-related-commands)
 * [Author](#author)
@@ -430,13 +427,7 @@ WIP...
 
 WIP...
 
-### Next Steps
-
-See next [Configuration](#configuration) section. This is an in-depth reference to all features of Essh.
-
-## Configuration
-
-### Syntax
+## Configuration Files
 
 Essh configuration is written in [Lua](https://www.lua.org/). In the configuration files, you can also use DSL syntax that is more human-readable. Here is an example:
 
@@ -467,19 +458,17 @@ task "uptime" {
 }
 ```
 
-### Configuration Files
-
 Essh loads configuration files from three different places.
 
 * At first, loads `/etc/essh/config.lua` that is the system-wide configuration.
 * At second, loads `~/.essh/config.lua` that is the per-user configuration.
 * At last, loads `essh.lua` in the current directory for the per-project configuration.
 
-### Hosts
+## Hosts
 
 WIP...
 
-#### Example
+### Example
 
 ```lua
 host "web01.localhost" {
@@ -498,7 +487,7 @@ host "web01.localhost" {
 }
 ```
 
-#### Special purpose properties
+### Special purpose properties
 
 * `tags`: Tags classify hosts.
 
@@ -528,11 +517,11 @@ host "web01.localhost" {
     }
     ```
 
-### Tasks
+## Tasks
 
 WIP...
 
-### Lua Libraries
+## Lua Libraries
 
 Essh provides built-in Lua libraries that you can use in your configuration files.
 For instance, if you want to use `essh.json` library, you should use Lua's `require` function like below.
@@ -555,11 +544,11 @@ The following are the built-in libraries that are included in Essh.
 
 Of course, You can also use another Lua libraries by using `require`. See the Lua's [manual](http://www.lua.org/manual/5.1/manual.html#pdf-require).
 
-### Modules
+## Modules
 
 WIP...
 
-### Drivers
+## Drivers
 
 WIP...
 
