@@ -508,7 +508,7 @@ Essh loads configuration files from three different places.
 
 ## Hosts
 
-
+Hosts in Essh are managed SSH servers. Using hosts configuration, Essh dynamically generates SSH config, provides hook functions, classify the hosts by tags.
 
 ### Example
 
