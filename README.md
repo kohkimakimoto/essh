@@ -552,6 +552,7 @@ All the properties of this type are listed below.
 
     ```lua
     hooks = {
+        -- WIP...
     }
     ```
 
@@ -563,7 +564,7 @@ All the properties of this type are listed below.
         "production",
     }
     ```
-* `props` (table):
+* `props` (table): WIP...
 
 ## Tasks
 
