@@ -67,8 +67,12 @@ Table of contents
   * [Next Steps](#next-steps)
 * [Configuration Files](#configuration-files)  
 * [Hosts](#hosts)
+  * [SSH Config Properties](#ssh-config-properties)
+  * [Special Purpose Properties](#special-purpose-properties)
 * [Tasks](#tasks)
-* [Lua Libraries](#lua-libraries)
+* [Lua VM](#lua-vm)
+  * [Libraries](#libraries)
+  * [Predefined Variables](#predefined-variables)
 * [Modules](#modules)
 * [Drivers](#drivers)
 * [Command Line Options](#command-line-options)
@@ -418,7 +422,7 @@ Are you OK? [y/N]: y
 foo
 ```
 
-For more information on Lua libraries, see the [Lua Libraries](#lua-libraries) section.
+For more information on Lua libraries, see the [Lua VM](#lua-vm) section.
 
 ### Using Modules
 
@@ -510,7 +514,7 @@ Essh loads configuration files from three different places.
 
 Hosts in Essh are managed SSH servers. Using hosts configuration, Essh dynamically generates SSH config, provides hook functions, classify the hosts by tags.
 
-### Example
+Example:
 
 ```lua
 host "web01.localhost" {
@@ -532,14 +536,14 @@ host "web01.localhost" {
 }
 ```
 
-Host is composed of two different kinds of properties. **SSH config properties** and **Special purpose properties**.
+Host is composed of two different kinds of properties. **SSH Config Properties** and **Special Purpose Properties**.
 
-### SSH config properties
+### SSH Config Properties
 
 SSH config properties require that the first character is upper case.
 For instance `HostName` and `Port`. They are used to generate **ssh_config**. You can use all ssh options to these properties. see ssh_config(5).
 
-### Special purpose properties
+### Special Purpose Properties
 
 Special purpose properties require first character is lower case.
 They are used for special purpose of Essh functions, not ssh_config.
@@ -580,7 +584,9 @@ All the properties of this type are listed below.
 
 WIP...
 
-## Lua Libraries
+## Lua VM
+
+### Libraries
 
 Essh provides built-in Lua libraries that you can use in your configuration files.
 For instance, if you want to use `essh.json` library, you should use Lua's `require` function like below.
@@ -603,6 +609,39 @@ The following are the built-in libraries that are included in Essh.
 
 Of course, You can also use another Lua libraries by using `require`. See the Lua's [manual](http://www.lua.org/manual/5.1/manual.html#pdf-require).
 
+### Predefined Variables
+
+Essh provides predefined variables.
+In the recent version of Essh, there is one predefined varilable: `essh`.
+
+`essh` is a table that has some functions and variables. see below
+
+* `ssh_config` (string): ssh_config is ssh_config file path. At default it is a temporary file that is generated automatically when you run Essh. You can overwrite this value for generating ssh_config to a static destination. If you use a gateway host that is a server between your client computer and a target server, you may use this variable to specify `ProxyCommand`. See below example:
+
+    ```lua
+    --
+    -- network environment.
+    -- [your-computer] -- [getway-server1] -- [web-server]
+    --
+
+    host "web-server" {
+        HostName = "192.168.0.1",
+        ProxyCommand = "ssh -q -F " .. essh.ssh_config .. " -W %h:%p getway-server1",
+    }
+    ```
+
+* `debug` (function): debug is a function to output the debug message. The debug message outputs only when you run Essh with `--debug` option.
+
+  ```lua
+  essh.debug("this is a debug message!")
+  ```
+
+* `require` (function): require is a function to load Essh module. see the [Module](#module) section.
+
+  ```lua
+  local bash = essh.require "github.com/kohkimakimoto/essh/modules/bash"
+  ```
+
 ## Modules
 
 WIP...
@@ -614,7 +653,9 @@ WIP...
 ## Command Line Options
 
 * `--version`: Print version.
+
 * `--help`: Print help.
+
 * `--print`: Print generated ssh config.
 
 WIP...
@@ -625,9 +666,9 @@ Essh can be used with `scp`, `rsync` and `git`.
 
 * `git`: To use Essh inside of the git command. Write the following line in your `~/.zshrc`.
 
-    ```
-    export GIT_SSH=essh
-    ```
+  ```
+  export GIT_SSH=essh
+  ```
 
 * `scp`: Essh support to use with scp.
 
