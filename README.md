@@ -389,8 +389,7 @@ For more information on tasks, see the [Tasks](#tasks) section.
 
 ### Using Lua Libraries
 
-Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM to load configuration files written in Lua.
-Essh also has several built-in Lua libraries. You can use `require` function to load the libraries.
+Essh uses Lua for configuration and also has several built-in Lua libraries. You can use `require` function to load the libraries.
 
 Example:
 
@@ -585,6 +584,8 @@ All the properties of this type are listed below.
 WIP...
 
 ## Lua VM
+
+Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM to load configuration files written in Lua.
 
 ### Libraries
 
