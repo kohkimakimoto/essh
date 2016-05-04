@@ -564,7 +564,16 @@ All the properties of this type are listed below.
         "production",
     }
     ```
-* `props` (table): WIP...
+* `props` (table): Props set environment variables when the host is used in tasks.
+
+    ```lua
+    props = {
+        foo = "bar",
+    }
+
+    -- you get the environment variables in tasks.
+    -- ESSH_PROPS_FOO=bar
+    ```
 
 ## Tasks
 
