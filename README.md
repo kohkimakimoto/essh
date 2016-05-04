@@ -406,7 +406,7 @@ task "example" {
 }
 ```
 
-`essh.question` is a built-in library of Essh, that is implemented in [gluaquestion](https://github.com/kohkimakimoto/gluaquestion). It provides functions to get user input from a terminal.
+`essh.question` is a built-in library of Essh, that is implemented by [gluaquestion](https://github.com/kohkimakimoto/gluaquestion). It provides functions to get user input from a terminal.
 And task's property `prepare` is a configuration that defines a function executed when the task starts.
 
 So, You run the task. Essh displays a message and waits your input.
@@ -569,12 +569,12 @@ print(jsontext)
 
 The following are the built-in libraries that are included in Essh.
 
-* `essh.json`: Json encoder/decoder. It is implemented in [gluajson](https://github.com/kohkimakimoto/gluajson).
-* `essh.fs`: Filesystem utility. It is implemented in [gluafs](https://github.com/kohkimakimoto/gluafs).
-* `essh.yaml`: Yaml parser. It is implemented in [gluayaml](https://github.com/kohkimakimoto/gluayaml).
-* `essh.template`: Text template. It is implemented in [gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
-* `essh.question`: A library to prompt the user for input. It is implemented in [gluaquestion](https://github.com/kohkimakimoto/gluaquestion).
-* `essh.http`: Http module. It is implemented in [gluahttp](https://github.com/cjoudrey/gluahttp).
+* `essh.json`: Json encoder/decoder. It is implemented by [gluajson](https://github.com/kohkimakimoto/gluajson).
+* `essh.fs`: Filesystem utility. It is implemented by [gluafs](https://github.com/kohkimakimoto/gluafs).
+* `essh.yaml`: Yaml parser. It is implemented by [gluayaml](https://github.com/kohkimakimoto/gluayaml).
+* `essh.template`: Text template. It is implemented by [gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
+* `essh.question`: A library to prompt the user for input. It is implemented by [gluaquestion](https://github.com/kohkimakimoto/gluaquestion).
+* `essh.http`: Http module. It is implemented by [gluahttp](https://github.com/cjoudrey/gluahttp).
 
 Of course, You can also use another Lua libraries by using `require`. See the Lua's [manual](http://www.lua.org/manual/5.1/manual.html#pdf-require).
 
