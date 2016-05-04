@@ -421,7 +421,7 @@ For more information on Lua libraries, see the [Lua Libraries](#lua-libraries) s
 
 ### Using Modules
 
-Essh has a modular system that allows you to use reusable code for Essh configuration.
+Essh has a modular system that allows you to use reusable code easily for Essh configuration.
 For instance, I provide [bash module](https://github.com/kohkimakimoto/essh/tree/master/modules/bash) that is a collection of bash scripts for using in your Essh tasks.
 You can use `essh.require` function to load a module.
 
@@ -440,7 +440,8 @@ task "example" {
 
 `bash.version` is a simple string `bash --version`. So this task prints bash version and then runs `echo foo`.
 
-The modules will be installed automatically, when you run Essh. If you run the task, you will get as below.
+The modules are installed automatically, when you run Essh.
+You run the task, you will get as below.
 
 ```
 $ essh example
