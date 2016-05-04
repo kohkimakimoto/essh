@@ -547,7 +547,9 @@ They are used for special purpose of Essh functions, not ssh_config.
 All the properties of this type are listed below.
 
 * `description` (string): Description is a description of the host.
+
 * `hidden` (bool): If you set it true, zsh completion doesn't show the host.
+
 * `hooks` (table): Hooks is a table that defines `before_connect`(string or function), `after_connect`(string or function) and `after_disconnect`(string or function).
 
     ```lua
