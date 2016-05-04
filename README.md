@@ -581,6 +581,25 @@ All the properties of this type are listed below.
 
 ## Tasks
 
+Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
+
+Example:
+
+```lua
+task "example" {
+    description = "example task",
+    on = {
+        "web"
+    },
+    parallel = true,
+    prefix = true,
+    script = {
+        "echo foo",
+        "echo bar"
+    },
+}
+```
+
 WIP...
 
 ## Lua VM
