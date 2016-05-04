@@ -532,9 +532,15 @@ host "web01.localhost" {
 }
 ```
 
+Host is composed of two different kinds of properties. **SSH config properties** and **Special purpose properties**.
+
+the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
+
+
 ### SSH config properties
 
-WIP...
+SSH config properties require that the first character is upper case.
+For instance `HostName` and `Port`. They are used to generate **SSH Config**. You can use all ssh options to these properties. see ssh_config(5).
 
 ### Special purpose properties
 
