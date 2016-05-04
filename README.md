@@ -564,7 +564,7 @@ All the properties of this type are listed below.
         "production",
     }
     ```
-* `props` (table): Props set environment variables when the host is used in tasks. The table key is modified to upper cased.
+* `props` (table): Props set environment variables `ESSH_PROPS_{KEY}` when the host is used in tasks. The table key is modified to upper cased.
 
     ```lua
     props = {
