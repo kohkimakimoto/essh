@@ -571,7 +571,6 @@ All the properties of this type are listed below.
         foo = "bar",
     }
 
-    -- you get the environment variables in tasks.
     -- ESSH_PROPS_FOO=bar
     ```
 
