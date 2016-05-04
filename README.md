@@ -438,7 +438,7 @@ task "example" {
 }
 ```
 
-`bash.version` is a simple string `bash --version`. So this task prints bash version and then runs `echo foo`.
+`bash.version` is a variable that actually is a simple string `bash --version`. So this task prints bash version and then runs `echo foo`.
 
 The modules are installed automatically, when you run Essh.
 You run the task, you will get as below.
