@@ -467,7 +467,7 @@ This is an advanced topic. For more information on Drivers, see the [Drivers](#d
 
 ### Next Steps
 
-In the [Getting Started](#getting-started) guide. I have explained the basic features of Essh. If you want to get in-depth information about Essh, proceed to next section.
+In the [Getting Started](#getting-started) guide. I have explained the basic features of Essh. If you want to get in-depth information about Essh, proceed to the next section.
 
 ## Configuration Files
 
@@ -538,16 +538,16 @@ WIP...
 
 ### Special purpose properties
 
-* `description`(string): Description is a description of the host.
-* `hidden`(bool): If you set it true, zsh completion doesn't show the host.
-* `hooks`(table): Hooks is a table that defines `before_connect`(string or function), `after_connect`(string or function) and `after_disconnect`(string or function).
+* `description` (string): Description is a description of the host.
+* `hidden` (bool): If you set it true, zsh completion doesn't show the host.
+* `hooks` (table): Hooks is a table that defines `before_connect`(string or function), `after_connect`(string or function) and `after_disconnect`(string or function).
 
     ```lua
     hooks = {
     }
     ```
 
-* `tags`(array table): Tags classify hosts.
+* `tags` (array table): Tags classify hosts.
 
     ```lua
     tags = {
@@ -555,7 +555,7 @@ WIP...
         "production",
     }
     ```
-* `props`(table):
+* `props` (table):
 
 ## Tasks
 
