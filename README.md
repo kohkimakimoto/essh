@@ -64,6 +64,7 @@ Table of contents
   * [Using Lua Libraries](#using-lua-libraries)
   * [Using Modules](#using-modules)
   * [Using Drivers](#using-drivers)
+  * [Next Steps](#next-steps)
 * [Configuration Files](#configuration-files)  
 * [Hosts](#hosts)
 * [Tasks](#tasks)
@@ -464,6 +465,10 @@ Essh usually executes tasks by using built-in default driver. But you can also u
 
 This is an advanced topic. For more information on Drivers, see the [Drivers](#drivers) section.
 
+### Next Steps
+
+In the [Getting Started](#getting-started) guide. I have explained the basic features of Essh. If you want to get in-depth information about Essh, proceed to next section.
+
 ## Configuration Files
 
 Essh configuration is written in [Lua](https://www.lua.org/). In the configuration files, you can also use DSL syntax that is more human-readable. Here is an example:
@@ -503,30 +508,46 @@ Essh loads configuration files from three different places.
 
 ## Hosts
 
-WIP...
+
 
 ### Example
 
 ```lua
 host "web01.localhost" {
-    ForwardAgent = "yes",
+    -- SSH config properties.
     HostName = "192.168.0.11",
     Port = "22",
     User = "kohkimakimoto",
+
+    -- Special purpose properties.
     description = "web01 development server",
     hidden = false,
-    tags = {
-
-    },
+    props = {},
+    tags = {},
     hooks = {
-
+        before_connect = "",
+        after_connect = "",
+        after_disconnect = "",
     },
 }
 ```
 
+### SSH config properties
+
+WIP...
+
 ### Special purpose properties
 
-* `tags`: Tags classify hosts.
+* `description`(string): Description is a description of the host.
+* `hidden`(bool): If you set it true, zsh completion doesn't show the host.
+* `hooks`(table): Hooks is a table that defines `before_connect`(string or function), `after_connect`(string or function) and `after_disconnect`(string or function).
+
+    ```lua
+    hooks = {
+    }
+    ```
+
+* `tags`(array table): Tags classify hosts.
 
     ```lua
     tags = {
@@ -534,25 +555,7 @@ host "web01.localhost" {
         "production",
     }
     ```
-
-* `description`: Description.
-* `hidden`: If you set it true, zsh completion doesn't show the host.
-* `hooks`: Hooks is a table that defines `before_connect`, `after_connect` and `after_disconnect`.
-
-    ```lua
-    hooks = {
-        -- Runs the script on the local before connecting. This is an example to change screen color to red.
-        before_connect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Red Sands\"'",
-
-        -- Runs the script on the remote after connecting.
-        after_connect = [=[
-        echo "Connected to $(hostname)"
-        ]=],
-
-        -- Runs the script on the local after disconnecting. This is an example to change screen color to black.
-        after_disconnect = "osascript -e 'tell application \"Terminal\" to set current settings of first window to settings set \"Pro\"'",
-    }
-    ```
+* `props`(table):
 
 ## Tasks
 
