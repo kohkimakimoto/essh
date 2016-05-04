@@ -52,7 +52,6 @@ func (h *Host) DescriptionOrDefault() string {
 	return h.Description
 }
 
-
 var Hosts []*Host = []*Host{}
 
 func GetHost(hostname string) *Host {

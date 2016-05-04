@@ -48,6 +48,7 @@ var (
 	updateFlag             bool
 	noGlobalFlag           bool
 	cleanFlag              bool
+	zshCompletionModeFlag  bool
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
 	zshCompletionTagsFlag  bool
@@ -73,7 +74,24 @@ var (
 	formatVar string
 )
 
-func Start() error {
+func Start() (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = fmt.Errorf("%v", e)
+		}
+
+		if err != nil && zshCompletionModeFlag && !debugFlag {
+			// suppress the error in running completion code.
+			err = nil
+		}
+	}()
+
+	err = start()
+
+	return err
+}
+
+func start() error {
 	if len(os.Args) == 1 {
 		printUsage()
 		return nil
@@ -139,12 +157,16 @@ func Start() error {
 			noGlobalFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletionFlag = true
+			zshCompletionModeFlag = true
 		} else if arg == "--zsh-completion-hosts" {
 			zshCompletionHostsFlag = true
+			zshCompletionModeFlag = true
 		} else if arg == "--zsh-completion-tags" {
 			zshCompletionTagsFlag = true
+			zshCompletionModeFlag = true
 		} else if arg == "--zsh-completion-tasks" {
 			zshCompletionTasksFlag = true
+			zshCompletionModeFlag = true
 		} else if arg == "--bash-completion" {
 			bashCompletionFlag = true
 		} else if arg == "--aliases" {
@@ -221,6 +243,10 @@ func Start() error {
 
 		osArgsIndex++
 		osArgs = osArgs[1:]
+	}
+
+	if os.Getenv("ESSH_DEBUG") != "" {
+		debugFlag = true
 	}
 
 	if workindDirVar != "" {
