@@ -70,6 +70,7 @@ Table of contents
   * [SSH Config Properties](#ssh-config-properties)
   * [Special Purpose Properties](#special-purpose-properties)
 * [Tasks](#tasks)
+  * [Properties](#properties)
 * [Lua VM](#lua-vm)
   * [Libraries](#libraries)
   * [Predefined Variables](#predefined-variables)
@@ -551,7 +552,7 @@ All the properties of this type are listed below.
 
 * `description` (string): Description is a description of the host.
 
-* `hidden` (bool): If you set it true, zsh completion doesn't show the host.
+* `hidden` (boolean): If you set it true, zsh completion doesn't show the host.
 
 * `hooks` (table): Hooks is a table that defines `before_connect`(string or function), `after_connect`(string or function) and `after_disconnect`(string or function).
 
@@ -599,6 +600,36 @@ task "example" {
     },
 }
 ```
+
+### Properties
+
+* `description` (string):
+
+* `configure` (function):
+
+* `pty` (boolean):
+
+* `dirver` (string):
+
+* `parallel` (boolean):
+
+* `privileged` (boolean):
+
+* `disabled` (boolean):
+
+* `hidden` (boolean):
+
+* `lock` (boolean):
+
+* `on` (string|table):
+
+* `foreach` (string|table):
+
+* `prefix` (boolean|string):
+
+* `prepare` (function):
+
+* `script` (string|table):
 
 WIP...
 
