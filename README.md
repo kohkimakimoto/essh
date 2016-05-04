@@ -459,7 +459,21 @@ For more information on Modules, see the [Modules](#modules) section.
 
 ### Using Drivers
 
-WIP...
+Drivers in Essh are templates to construct script in tasks execution.
+Essh usually execute tasks by using built-in default driver. But you can also use your custome drivers.
+
+Example.
+
+```lua
+task "example" {
+    script = {
+        "echo foo",
+        "echo bar",
+    },
+}
+```
+
+For more information on Drivers, see the [Drivers](#drivers) section.
 
 ## Configuration Files
 
