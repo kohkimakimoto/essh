@@ -544,7 +544,7 @@ For instance `HostName` and `Port`. They are used to generate **ssh_config**. Yo
 Special purpose properties require first character is lower case.
 They are used for special purpose of Essh functions, not ssh_config.
 
-The all properties of this type listed below.
+All the properties of this type are listed below.
 
 * `description` (string): Description is a description of the host.
 * `hidden` (bool): If you set it true, zsh completion doesn't show the host.
