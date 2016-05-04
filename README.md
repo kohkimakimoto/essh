@@ -3,7 +3,7 @@
 Essh is an extended ssh client command. The features are the following:
 
 * **Simple**: A single binary CLI tool. Essh simply wraps `ssh` command. You can use it in the same way as `ssh`.
-* **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in Lua code. So your SSH config can become more dynamic.
+* **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in Lua code. So your ssh_config can become more dynamic.
 * **Hooks**: Essh supports hooks that execute commands when it connects a remote server.
 * **Servers List Management**: Essh provides utilities for managing hosts, that list and classify servers by using tags.
 * **Zsh Completion**: Essh provides built-in zsh completion.
@@ -210,7 +210,7 @@ host "web01.localhost" {
 }
 ```
 
-You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
+You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **ssh_config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
 
 For more information on hosts, see the [Hosts](#hosts) section.
 
@@ -534,15 +534,17 @@ host "web01.localhost" {
 
 Host is composed of two different kinds of properties. **SSH config properties** and **Special purpose properties**.
 
-the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **SSH config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
-
-
 ### SSH config properties
 
 SSH config properties require that the first character is upper case.
-For instance `HostName` and `Port`. They are used to generate **SSH Config**. You can use all ssh options to these properties. see ssh_config(5).
+For instance `HostName` and `Port`. They are used to generate **ssh_config**. You can use all ssh options to these properties. see ssh_config(5).
 
 ### Special purpose properties
+
+Special purpose properties require first character is lower case.
+They are used for special purpose of Essh functions, not ssh_config.
+
+The all properties of this type listed below.
 
 * `description` (string): Description is a description of the host.
 * `hidden` (bool): If you set it true, zsh completion doesn't show the host.
