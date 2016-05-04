@@ -6,7 +6,7 @@ It allows you to run a Essh task in a docker container.
 ## Usage
 
 ```lua
-local docker = essh.require "github.com/kohkimakimoto/essh//modules/docker"
+local docker = essh.require "github.com/kohkimakimoto/essh/modules/docker"
 
 task "example" {
     description = "example",

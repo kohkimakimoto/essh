@@ -5,7 +5,7 @@ Collection of the bash code for Essh script.
 ## Usage
 
 ```lua
-local bash = essh.require "github.com/kohkimakimoto/essh//modules/bash"
+local bash = essh.require "github.com/kohkimakimoto/essh/modules/bash"
 
 task "example" {
     script = {
