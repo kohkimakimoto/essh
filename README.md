@@ -617,7 +617,7 @@ In the recent version of Essh, there is one predefined varilable: `essh`.
 
 `essh` is a table that has some functions and variables. see below
 
-* `ssh_config` (string): ssh_config is ssh_config file path. At default it is a temporary file that is generated automatically when you run Essh. You can overwrite this value for generating ssh_config to a static destination. If you use a gateway host that is a server between your client computer and a target server, you may use this variable to specify `ProxyCommand`. See below example:
+* `ssh_config` (string): ssh_config is ssh_config file path. At default, it is a temporary file that is generated automatically when you run Essh. You can overwrite this value for generating ssh_config to a static destination. If you use a gateway host that is a server between your client computer and a target server, you may use this variable to specify `ProxyCommand`. See below example:
 
     ```lua
     --
