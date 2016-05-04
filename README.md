@@ -58,7 +58,7 @@ Table of contents
   * [Using As SSH](#using-as-ssh)
   * [Zsh Completion](#zsh-completion)
   * [Using Hooks](#using-hooks)
-  * [Tagging Hosts](#tagging-hosts)
+  * [Managing Hosts](#managing-hosts)
   * [Running Commands](#running-commands)
   * [Running Tasks](#running-tasks)
   * [Using Lua Libraries](#using-lua-libraries)
@@ -247,7 +247,7 @@ host "web01.localhost" {
 }
 ```
 
-### Tagging Hosts
+### Managing Hosts
 
 Tags allow you to classify hosts. For instance, edit `essh.lua` to add some hosts and set tags.
 
