@@ -8,7 +8,7 @@ Thumbs.db
 /build/dev/*
 /build/dist/*
 .essh
-.essh.lua
 essh.lua
+essh.*.lua
 
 !.gitkeep

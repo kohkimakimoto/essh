@@ -360,7 +360,7 @@ func start() error {
 	// load system wide config
 	if _, err := os.Stat(SystemWideConfigFile); err == nil {
 		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s \n", SystemWideConfigFile)
+			fmt.Printf("[essh debug] loading config file: %s\n", SystemWideConfigFile)
 		}
 
 		if err := L.DoFile(SystemWideConfigFile); err != nil {
@@ -368,14 +368,14 @@ func start() error {
 		}
 
 		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s \n", SystemWideConfigFile)
+			fmt.Printf("[essh debug] loaded config file: %s\n", SystemWideConfigFile)
 		}
 	}
 
 	// load per-user wide config
 	if _, err := os.Stat(UserConfigFile); err == nil {
 		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s \n", UserConfigFile)
+			fmt.Printf("[essh debug] loading config file: %s\n", UserConfigFile)
 		}
 
 		if err := L.DoFile(UserConfigFile); err != nil {
@@ -383,7 +383,7 @@ func start() error {
 		}
 
 		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s \n", UserConfigFile)
+			fmt.Printf("[essh debug] loaded config file: %s\n", UserConfigFile)
 		}
 	}
 
@@ -392,7 +392,7 @@ func start() error {
 		if _, err := os.Stat(WorkingDirConfigFile); err == nil {
 
 			if debugFlag {
-				fmt.Printf("[essh debug] loading config file: %s \n", WorkingDirConfigFile)
+				fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirConfigFile)
 			}
 
 			// change context to working dir context
@@ -408,7 +408,26 @@ func start() error {
 			}
 
 			if debugFlag {
-				fmt.Printf("[essh debug] loaded config file: %s \n", WorkingDirConfigFile)
+				fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirConfigFile)
+			}
+		}
+
+		// load additional config files.
+		files, err := filepath.Glob(filepath.Join(WorkingDir, "essh.*.lua"))
+		if err != nil {
+			return err
+		}
+		for _, file := range files {
+			if debugFlag {
+				fmt.Printf("[essh debug] loading config file: %s\n", file)
+			}
+
+			if err := L.DoFile(file); err != nil {
+				return err
+			}
+
+			if debugFlag {
+				fmt.Printf("[essh debug] loaded config file: %s\n", file)
 			}
 		}
 	}
