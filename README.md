@@ -8,7 +8,7 @@ Essh is an extended ssh client command. The features are the following:
 * **Servers List Management**: Essh provides utilities for managing hosts, that list and classify servers by using tags.
 * **Zsh Completion**: Essh provides built-in zsh completion.
 * **Per-Project Configuration**: Essh supports per-project configuration. This allows you to change SSH hosts config by changing current working directory.
-* **Task Runner**: Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
+* **Task Runner**: Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
 * **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
 
 > **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
@@ -583,7 +583,7 @@ All the properties of this type are listed below.
 
 ## Tasks
 
-Task is code that runs on remote and local servers. You can use it to automate your system administration tasks.
+Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
 
 Example:
 
