@@ -551,7 +551,7 @@ They are used for special purpose of Essh functions, not ssh_config.
 
 All the properties of this type are listed below.
 
-* `description` (string): Description is a description of the host.
+* `description` (string): Description is a description of the task.
 
 * `hidden` (boolean): If you set it true, zsh completion doesn't show the host.
 
