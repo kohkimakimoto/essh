@@ -77,6 +77,9 @@ Table of contents
 * [Modules](#modules)
 * [Drivers](#drivers)
 * [Command Line Options](#command-line-options)
+  * [General Options](#general-options)
+  * [Manage Hosts, Tags And Tasks](#manage-hosts-tags-and-tasks)
+  * [Execute Commands Using Hosts Configuration](#execute-commands-using-hosts-configuration)
 * [Integrating Other SSH Related Commands](#integrating-other-ssh-related-commands)
 * [Author](#author)
 * [License](#license)
@@ -704,7 +707,7 @@ WIP...
 
 ## Command Line Options
 
-### General Options.
+### General Options
 
 * `--version`: Print version.
 
@@ -724,7 +727,7 @@ WIP...
 
 * `--debug`: Output debug log.
 
-### Manage Hosts, Tags And Tasks.
+### Manage Hosts, Tags And Tasks
 
 * `--hosts`: List hosts.
 
@@ -738,7 +741,7 @@ WIP...
 
 * `--all`: (Using with --hosts or --tasks option) Show all that includs hidden objects.
 
-### Manage Modules.
+### Manage Modules
 
 * `--update`: Update modules.
 
@@ -746,7 +749,7 @@ WIP...
 
 * `--no-global`: (Using with --update or --clean option) Update or clean only the modules about per-project config.
 
-### Execute Commands Using Hosts Configuration.
+### Execute Commands Using Hosts Configuration
 
 * `--exec`: Execute commands with the hosts.
 
