@@ -551,7 +551,7 @@ They are used for special purpose of Essh functions, not ssh_config.
 
 All the properties of this type are listed below.
 
-* `description` (string): Description is a description of the task.
+* `description` (string): Description is a description of the host.
 
 * `hidden` (boolean): If you set it true, zsh completion doesn't show the host.
 
@@ -604,7 +604,7 @@ task "example" {
 
 ### Properties
 
-* `description` (string): Description of the host.
+* `description` (string): Description of the task.
 
 * `pty` (boolean): If it true, SSH connection allocates pseudo-terminal by running ssh command with multiple -t options like `ssh -t -t`.
 
