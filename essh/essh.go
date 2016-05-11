@@ -1456,7 +1456,6 @@ general options.
   --user-config                 Edit per-user config file.
   --system-config               Edit system wide config file.
   --working-dir <dir>           Change working directory.
-                                If you use this option, it does not use other default config files like a "/etc/essh/config.lua".
   --debug                       Output debug log.
 
 manage hosts, tags and tasks.

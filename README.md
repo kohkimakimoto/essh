@@ -704,11 +704,69 @@ WIP...
 
 ## Command Line Options
 
+### General Options.
+
 * `--version`: Print version.
 
 * `--help`: Print help.
 
 * `--print`: Print generated ssh config.
+
+* `--gen`: Only generate ssh config.
+
+* `--config`: Edit config file in the current directory.
+
+* `--user-config`: Edit per-user config file.
+
+* `--system-config`: Edit system wide config file.
+
+* `--working-dir <dir>`: Change working directory.
+
+* `--debug`: Output debug log.
+
+### Manage Hosts, Tags And Tasks.
+
+* `--hosts`: List hosts.
+
+* `--tags`: List tags.
+
+* `--tasks`: List tasks.
+
+* `--quiet`: (Using with --hosts, --tasks or --tags option) Show only names.
+
+* `--filter <tag|host>`: (Using with --hosts option) Use only the hosts filtered with a tag or a host.
+
+* `--all`: (Using with --hosts or --tasks option) Show all that includs hidden objects.
+
+### Manage Modules.
+
+* `--update`: Update modules.
+
+* `--clean`: Clean the downloaded modules.
+
+* `--no-global`: (Using with --update or --clean option) Update or clean only the modules about per-project config.
+
+### Execute Commands Using Hosts Configuration.
+
+* `--exec`: Execute commands with the hosts.
+
+* `--on <tag|host>`: (Using with --exec option) Run commands on remote hosts.
+
+* `--foreach <tag|host>`: (Using with --exec option) Run commands locally for each hosts.
+
+* `--prefix`: (Using with --exec option) Enable outputing prefix.
+
+* `--prefix-string [<prefix>]`: (Using with --exec option) Custom string of the prefix.
+
+* `--privileged`: (Using with --exec option) Run by the privileged user.
+
+* `--parallel`: (Using with --exec option) Run in parallel.
+
+* `--pty`: (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
+
+* `--file`: (Using with --exec option) Load commands from a file.
+
+* `--driver`: (Using with --exec option) Specify a driver.
 
 WIP...
 
