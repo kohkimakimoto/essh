@@ -604,25 +604,23 @@ task "example" {
 
 ### Properties
 
-* `description` (string):
+* `description` (string): Description of the host.
 
-* `configure` (function):
+* `pty` (boolean): If it true, SSH connection allocates pseudo-terminal by running ssh command with multiple -t options like `ssh -t -t`.
 
-* `pty` (boolean):
+* `dirver` (string): driver name is used in the task.
 
-* `dirver` (string):
+* `parallel` (boolean): If it true, runs task's script in parallel.
 
-* `parallel` (boolean):
+* `privileged` (boolean): If it true, runs task's script by privilaged user.
 
-* `privileged` (boolean):
+* `disabled` (boolean): If it true, this task does not run and is not displayed in tasks list.
 
-* `disabled` (boolean):
-
-* `hidden` (boolean):
+* `hidden` (boolean): If it true, this task is not displayed in tasks list.
 
 * `lock` (boolean):
 
-* `on` (string|table):
+* `on` (string|table): Host names and tags that the task's scripts is executed on.
 
 * `foreach` (string|table):
 
@@ -631,6 +629,8 @@ task "example" {
 * `prepare` (function):
 
 * `script` (string|table):
+
+* `configure` (function):
 
 WIP...
 
