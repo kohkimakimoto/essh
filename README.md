@@ -768,8 +768,6 @@ WIP...
 
 * `--driver`: (Using with --exec option) Specify a driver.
 
-WIP...
-
 ## Integrating Other SSH Related Commands
 
 Essh can be used with `scp`, `rsync` and `git`.
