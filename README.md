@@ -621,8 +621,6 @@ task "example" {
 
 * `hidden` (boolean): If it true, this task is not displayed in tasks list.
 
-* `lock` (boolean):
-
 * `on` (string|table): Host names and tags that the task's scripts is executed on.
 
 * `foreach` (string|table):

@@ -13,6 +13,7 @@ type Task struct {
 	Foreach     []string
 	Parallel    bool
 	Privileged  bool
+	// Lock is deprecated. use "bash.lock" in `modules/bash/index.lua`
 	Lock        bool
 	Disabled    bool
 	Hidden      bool
