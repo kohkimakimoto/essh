@@ -905,19 +905,22 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 
 	var script string
 	script = "export ESSH_HOSTNAME=" + ShellEscape(host.Name) + "\n"
+	script += "export ESSH_HOST_HOSTNAME=" + ShellEscape(host.Name) + "\n"
 	for _, param := range host.Params() {
 		for key, value := range param {
-			script += "export ESSH_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
+			script += "export ESSH_HOST_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
 		}
 	}
 
 	for propKey, propValue := range host.Props {
-		script += "export ESSH_PROPS_" + strings.ToUpper(propKey) + "=" + ShellEscape(propValue) + "\n"
+		script += "export ESSH_HOST_PROPS_" + strings.ToUpper(propKey) + "=" + ShellEscape(propValue) + "\n"
 	}
 
 	for _, tagName := range host.Tags {
-		script += "export ESSH_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
+		script += "export ESSH_HOST_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
 	}
+
+	script += "export ESSH_TASK_NAME=" + ShellEscape(task.Name) + "\n"
 
 	// generate commands by using driver
 	driver := Drivers[BuiltinDefaultDriverName]
@@ -1005,20 +1008,23 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 	var script string
 	if host != nil {
 		script = "export ESSH_HOSTNAME=" + ShellEscape(host.Name) + "\n"
+		script += "export ESSH_HOST_HOSTNAME=" + ShellEscape(host.Name) + "\n"
 		for _, param := range host.Params() {
 			for key, value := range param {
-				script += "export ESSH_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
+				script += "export ESSH_HOST_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
 			}
 		}
 
 		for propKey, propValue := range host.Props {
-			script += "export ESSH_PROPS_" + strings.ToUpper(propKey) + "=" + ShellEscape(propValue) + "\n"
+			script += "export ESSH_HOST_PROPS_" + strings.ToUpper(propKey) + "=" + ShellEscape(propValue) + "\n"
 		}
 
 		for _, tagName := range host.Tags {
-			script += "export ESSH_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
+			script += "export ESSH_HOST_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
 		}
 	}
+
+	script += "export ESSH_TASK_NAME=" + ShellEscape(task.Name) + "\n"
 
 	// generate commands by using driver
 	driver := Drivers[BuiltinDefaultDriverName]

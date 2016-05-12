@@ -53,4 +53,40 @@ exit $__essh_var_status
 end
 
 
+bash.lock = [=[
+essh_bash_lockdir=${TMPDIR:-/tmp}
+essh_bash_lockdir=${essh_bash_lockdir%/}/essh_lock.${ESSH_TASK_NAME:-unknown}
+essh_bash_trylocking=0
+essh_bash_trylocking_count=0
+
+while [ ${essh_bash_trylocking} -eq 0 ]
+do
+    if ( mkdir ${essh_bash_lockdir} ) 2> /dev/null; then
+        echo $$ > ${essh_bash_lockdir}/pid
+        # break loop
+        essh_bash_trylocking=1
+        trap 'rm -rf "$essh_bash_lockdir"; exit $?' INT TERM EXIT
+    else
+        # could not get a lock, try to check pid.
+        if ps -p $(cat ${essh_bash_lockdir}/pid) > /dev/null 2>&1; then
+            # pid exists.
+            echo "Lock exists: $essh_bash_lockdir owned by $(cat ${essh_bash_lockdir}/pid)" >&2
+            exit 1
+        else
+            # pid does not exist. remove lockdir
+            echo "Lock exists: $essh_bash_lockdir owned by $(cat ${essh_bash_lockdir}/pid). But the process terminated." >&2
+            echo "Trying to clean the lock and start it again..." >&2
+            rm -rf "$essh_bash_lockdir"
+
+            essh_bash_trylocking_count=$((essh_bash_trylocking_count+1))
+
+            if [ "$essh_bash_trylocking_count" -gt 5 ]; then
+                echo "Could not get the lock." >&2
+                exit 1
+            fi
+        fi
+    fi
+done
+]=]
+
 return bash
