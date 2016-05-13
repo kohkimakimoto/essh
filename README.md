@@ -811,7 +811,7 @@ task "example" {
 `bash.indent` is [this code snippet](https://github.com/kohkimakimoto/essh/blob/master/modules%2Fbash%2Findex.lua#L3-L17).
 So the task displays indented output.
 
-`essh.require` is implemented by using [hashicorp/go-getter](https://github.com/hashicorp/go-getter). You can use git url and local filesystem to specify a module path.
+`essh.require` is implemented by using [hashicorp/go-getter](https://github.com/hashicorp/go-getter). You can use git url and local filesystem path to specify a module path.
 
 ### Create Modules
 
