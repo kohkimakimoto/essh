@@ -566,7 +566,7 @@ All the properties of this type are listed below.
     }
     ```
 
-* `tags` (array table): Tags classify hosts.
+* `tags` (array table): Tags classifys hosts.
 
     ```lua
     tags = {
@@ -574,14 +574,14 @@ All the properties of this type are listed below.
         "production",
     }
     ```
-* `props` (table): Props set environment variables `ESSH_PROPS_{KEY}` when the host is used in tasks. The table key is modified to upper cased.
+* `props` (table): Props sets environment variables `ESSH_HOST_PROPS_{KEY}` when the host is used in tasks. The table key is modified to upper cased.
 
     ```lua
     props = {
         foo = "bar",
     }
 
-    -- ESSH_PROPS_FOO=bar
+    -- ESSH_HOST_PROPS_FOO=bar
     ```
 
 ## Tasks
@@ -605,29 +605,63 @@ task "example" {
 }
 ```
 
+You can run a task below command.
+
+```
+$ essh example
+```
+
+You can pass an arbitrary string data to the task. This is called payload. See the example:
+
+```
+$ essh example hogehoge
+```
+
+In the task, You can get payload from standard input.
+
+```lua
+task "example" {
+    script = "cat -",
+}
+```
+
 ### Properties
 
 * `description` (string): Description of the task.
 
-* `pty` (boolean): If it true, SSH connection allocates pseudo-terminal by running ssh command with multiple -t options like `ssh -t -t`.
+* `pty` (boolean): If it is true, SSH connection allocates pseudo-terminal by running ssh command with multiple -t options like `ssh -t -t`.
 
-* `dirver` (string): driver name is used in the task.
+* `dirver` (string): driver name is used in the task. see [Drivers](#drivers).
 
-* `parallel` (boolean): If it true, runs task's script in parallel.
+* `parallel` (boolean): If it is true, runs task's script in parallel.
 
-* `privileged` (boolean): If it true, runs task's script by privilaged user.
+* `privileged` (boolean): If it is true, runs task's script by privileged user. If you use it, you have to configure your machine to be able to be used `sudo` without password.
 
-* `disabled` (boolean): If it true, this task does not run and is not displayed in tasks list.
+* `disabled` (boolean): If it is true, this task does not run and is not displayed in tasks list.
 
-* `hidden` (boolean): If it true, this task is not displayed in tasks list.
+* `hidden` (boolean): If it is true, this task is not displayed in tasks list.
 
-* `on` (string|table): Host names and tags that the task's scripts is executed on.
+* `on` (string|table): Host names and tags that the task's scripts is executed on. If you set this, the task is executed on the remote hosts. `on` couldn't be used with `foreach`.
 
-* `foreach` (string|table):
+* `foreach` (string|table): Host names and tags that the task's scripts is executed for. If you set this, the task is executed on the local hosts. `foreach` couldn't be used with `on`.
 
-* `prefix` (boolean|string):
+* `prefix` (boolean|string): If it is true, Essh displays task's output with hostname prefix. If it is string, Essh displays task's output with custom prefix. This string can be used with text/template as `{{.Host.Name}}`.
 
-* `prepare` (function):
+* `prepare` (function): Prepare is a function to be executed when the task starts. See example:
+
+  ```lua
+  task "example" {
+      prepare = function (ctx)
+          -- get a payload
+          print(ctx:payload())
+          -- set a payload
+          ctx:payload("new value")
+          -- cancel the task execution by returns false.
+          return false
+      end,
+  }
+  ```
+  Prepare function can have a argument. This argument is a context object of the task. you can get and modify the payload. By the prepare function returns false, you can cancel to execute the task.
 
 * `script` (string|table):
 
