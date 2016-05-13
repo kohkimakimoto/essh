@@ -662,7 +662,8 @@ task "example" {
   }
   ```
 
-  Prepare function can have a argument. This argument is a context object of the task. you can get and modify the payload. By the prepare function returns false, you can cancel to execute the task.
+  Prepare function can have a argument. This argument is a context object of the task. You can get and change the payload by using this context object.
+  By the prepare function returns false, you can cancel to execute the task.
 
 * `script` (string|table):
 
