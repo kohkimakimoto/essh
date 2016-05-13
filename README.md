@@ -686,6 +686,12 @@ task "example" {
   If you set it as a table, Essh concatenates strings in the table with newline code. And Essh runs the script as a bash script.
   But this is just default behavior. You can change it by [Drivers](#drivers).
 
+  You can use predefined environment variables in your script, See below:
+
+  * `ESSH_HOST_HOSTNAME`: hostname
+
+  * `ESSH_HOST_SSH_{SSH_CONFIG_KEY}`: ssh_config key/value pare.
+
 * `configure` (function):
 
 WIP...
