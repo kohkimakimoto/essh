@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/kohkimakimoto/essh/color"
 	"github.com/kohkimakimoto/essh/helper"
-	"github.com/kohkimakimoto/essh/lock"
 	"github.com/yuin/gopher-lua"
 	"io"
 	"io/ioutil"
@@ -776,44 +775,45 @@ func runTask(config string, task *Task, payload string) error {
 		}
 	}
 
-	if task.Context != nil && task.Lock {
-		// lock
-		context := task.Context
-
-		// create lock directory, if it doesn't exist.
-		if _, err := os.Stat(context.LockDir()); os.IsNotExist(err) {
-			err = os.MkdirAll(context.LockDir(), os.FileMode(0755))
-			if err != nil {
-				return err
-			}
-		}
-
-		taskLockFile, err := lock.Lock(filepath.Join(context.LockDir(), "task-"+task.Name+".lock"), true, 1)
-		if err != nil {
-			return fmt.Errorf("'%v'. could not get exclusive lock. please wait!", err)
-		}
-		if debugFlag {
-			fmt.Printf("[essh debug] created lockfile: %s\n", taskLockFile.Path())
-		}
-
-		defer func() {
-			err := taskLockFile.UnLock()
-			if err != nil {
-				fmt.Fprintf(color.StderrWriter, "Did not unlock lockfile! %v\n", err)
-				return
-			}
-
-			if debugFlag {
-				fmt.Printf("[essh debug] unlocked: %s\n", taskLockFile.Path())
-			}
-
-			err = taskLockFile.Remove()
-			if err != nil {
-				fmt.Fprintf(color.StderrWriter, "Did not remove lockfile! %v\n", err)
-				return
-			}
-		}()
-	}
+	// deprecated.
+	//if task.Context != nil && task.Lock {
+	//	// lock
+	//	context := task.Context
+	//
+	//	// create lock directory, if it doesn't exist.
+	//	if _, err := os.Stat(context.LockDir()); os.IsNotExist(err) {
+	//		err = os.MkdirAll(context.LockDir(), os.FileMode(0755))
+	//		if err != nil {
+	//			return err
+	//		}
+	//	}
+	//
+	//	taskLockFile, err := lock.Lock(filepath.Join(context.LockDir(), "task-"+task.Name+".lock"), true, 1)
+	//	if err != nil {
+	//		return fmt.Errorf("'%v'. could not get exclusive lock. please wait!", err)
+	//	}
+	//	if debugFlag {
+	//		fmt.Printf("[essh debug] created lockfile: %s\n", taskLockFile.Path())
+	//	}
+	//
+	//	defer func() {
+	//		err := taskLockFile.UnLock()
+	//		if err != nil {
+	//			fmt.Fprintf(color.StderrWriter, "Did not unlock lockfile! %v\n", err)
+	//			return
+	//		}
+	//
+	//		if debugFlag {
+	//			fmt.Printf("[essh debug] unlocked: %s\n", taskLockFile.Path())
+	//		}
+	//
+	//		err = taskLockFile.Remove()
+	//		if err != nil {
+	//			fmt.Fprintf(color.StderrWriter, "Did not remove lockfile! %v\n", err)
+	//			return
+	//		}
+	//	}()
+	//}
 
 	if task.Prepare != nil {
 		if debugFlag {
