@@ -75,6 +75,8 @@ Table of contents
   * [Libraries](#libraries)
   * [Predefined Variables](#predefined-variables)
 * [Modules](#modules)
+  * [Usage](#usage)
+  * [Create Modules](#create-modules)
 * [Drivers](#drivers)
 * [Command Line Options](#command-line-options)
   * [General Options](#general-options)
