@@ -782,6 +782,37 @@ In the recent version of Essh, there is one predefined varilable: `essh`.
 
 ## Modules
 
+Module allows you to use, create and share reusable code easily for Essh configuration.
+
+### Usage
+
+Use `essh.require` function to load module.
+
+```lua
+local bash = essh.require "github.com/kohkimakimoto/essh/modules/bash"
+```
+
+`essh.require` returns Lua value. In the above case, `bash` is Lua table that has several variables and functions.
+You can use `bash` in your configuration.
+
+```lua
+local bash = essh.require "github.com/kohkimakimoto/essh//modules/bash"
+
+task "example" {
+    script = {
+        bash.indent,
+        "echo hello | indent",
+    },
+}
+```
+
+`bash.indent` is [this code snippet](https://github.com/kohkimakimoto/essh/blob/master/modules%2Fbash%2Findex.lua#L3).
+So the task displays indented output.
+
+`essh.require` is implemented by using [hashicorp/go-getter](https://github.com/hashicorp/go-getter). You can use git url and local filesystem to specify a module path.
+
+### Create Modules
+
 WIP...
 
 ## Drivers
