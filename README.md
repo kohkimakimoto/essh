@@ -815,6 +815,21 @@ So the task displays indented output.
 
 ### Create Modules
 
+Creating new modules is easy. A minimum Essh module is a directory that includes `index.lua`.
+
+Create `my_module` directory and `index.lua` file in the directory.
+
+```lua
+-- my_module/index.lua
+local m = {}
+
+m.hello = "echo hello"
+
+return m
+```
+
+`index.lua`
+
 WIP...
 
 ## Drivers
