@@ -617,7 +617,7 @@ You can pass an arbitrary string data to the task. This is called payload. See t
 $ essh example hogehoge
 ```
 
-In the task, You can get payload from standard input.
+In the task, You can get the payload from standard input.
 
 ```lua
 task "example" {
@@ -645,7 +645,7 @@ task "example" {
 
 * `foreach` (string|table): Host names and tags that the task's scripts is executed for. If you set this, the task is executed on the local hosts. `foreach` couldn't be used with `on`.
 
-* `prefix` (boolean|string): If it is true, Essh displays task's output with hostname prefix. If it is string, Essh displays task's output with custom prefix. This string can be used with text/template as `{{.Host.Name}}`.
+* `prefix` (boolean|string): If it is true, Essh displays task's output with hostname prefix. If it is string, Essh displays task's output with custom prefix. This string can be used with text/template format like `{{.Host.Name}}`.
 
 * `prepare` (function): Prepare is a function to be executed when the task starts. See example:
 
@@ -661,6 +661,7 @@ task "example" {
       end,
   }
   ```
+
   Prepare function can have a argument. This argument is a context object of the task. you can get and modify the payload. By the prepare function returns false, you can cancel to execute the task.
 
 * `script` (string|table):
