@@ -688,13 +688,13 @@ task "example" {
 
   You can use predefined environment variables in your script, See below:
 
+  * `ESSH_TASK_NAME`: task name.
+
   * `ESSH_HOST_HOSTNAME`: host name.
 
   * `ESSH_HOST_SSH_{SSH_CONFIG_KEY}`: ssh_config key/value pare.
 
   * `ESSH_HOST_TAGS_{TAG}`: tag.
-
-  * `ESSH_TASK_NAME`: task name.
 
   * `ESSH_HOST_PROPS_{KEY}`: property that is set by host's props. See Hosts [Special Purpose Properties](#special-purpose-properties).
 
