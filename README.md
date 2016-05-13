@@ -683,7 +683,7 @@ task "example" {
   }
   ```
 
-  If you set it as table, Essh concatenates strings with newline code. And Essh runs the script as a bash script.
+  If you set it as a table, Essh concatenates strings in the table with newline code. And Essh runs the script as a bash script.
   But this is just default behavior. You can change it by [Drivers](#drivers).
 
 * `configure` (function):
