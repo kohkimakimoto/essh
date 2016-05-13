@@ -703,7 +703,7 @@ task "example" {
   Configure is a function that override Essh config when the task runs. This allows you to define **private config** in the task. Especially It is useful for hosts config. See the below example:
 
   ```lua
-  task "dev:example" {
+  task "example" {
       configure = function()
           host "server1" {
               HostName = "192.168.0.1",
