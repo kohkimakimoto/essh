@@ -76,7 +76,7 @@ Table of contents
   * [Predefined Variables](#predefined-variables)
 * [Modules](#modules)
   * [Usage](#usage)
-  * [Create Modules](#create-modules)
+  * [Creating Modules](#creating-modules)
 * [Drivers](#drivers)
 * [Command Line Options](#command-line-options)
   * [General Options](#general-options)
@@ -819,7 +819,7 @@ Modules are installed automatically when Essh runs. The installed modules are st
 $ essh --update
 ```
 
-### Create Modules
+### Creating Modules
 
 Creating new modules is easy. A minimum module is a directory that includes only `index.lua`.
 Try to create `my_module` directory and `index.lua` file in the directory.
