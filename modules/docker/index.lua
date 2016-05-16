@@ -1,6 +1,8 @@
 local docker = {}
 
 docker.driver = [=[
+{{template "environment" .}}
+
 set -e
 
 {{if .Task.IsRemoteTask}}
@@ -81,6 +83,8 @@ chmod 777 $__essh_var_docker_runfile
 
 # input content to the runfile.
 cat << 'EOF-ESSH-DOCKER_SCRIPT' > $__essh_var_docker_runfile
+
+{{template "environment" .}}
 
 __essh_var_status=0
 {{range $i, $script := .Scripts}}

@@ -41,6 +41,8 @@ bash.version = "bash --version"
 
 bash.driver = function(config)
     return [=[
+{{template "environment" .}}
+
 __essh_var_status=0
 {{range $i, $script := .Scripts}}
 if [ $__essh_var_status -eq 0 ]; then
