@@ -46,6 +46,7 @@ bash.driver = function(config)
 __essh_var_status=0
 {{range $i, $script := .Scripts}}
 if [ $__essh_var_status -eq 0 ]; then
+echo "==> script: {{$i}}{{if $script.description}} ({{$script.description}}){{end}}"
 {{$script.code}}
 __essh_var_status=$?
 fi
