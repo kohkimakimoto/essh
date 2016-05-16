@@ -2,7 +2,7 @@
 
 This module provides `after_connect` hook for using [sshrc](https://github.com/Russell91/sshrc) in Essh.
 
-## Usage
+## Usage Example
 
 ```lua
 local sshrc = essh.require "github.com/kohkimakimoto/essh/modules/sshrc"
