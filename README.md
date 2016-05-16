@@ -882,7 +882,7 @@ task "example" {
 
 Try to run this task with `--debug` option to display the actual script.
 
-```lua
+```
 $ essh example --debug
 [essh debug] ...
 [essh debug] real local command: [bash -c
