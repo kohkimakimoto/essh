@@ -5,6 +5,7 @@ import (
 	"github.com/yuin/gopher-lua"
 	"runtime"
 	"text/template"
+	"strings"
 )
 
 type Driver struct {
@@ -26,7 +27,7 @@ func NewDriver() *Driver {
 	}
 }
 
-func (driver *Driver) GenerateRunnableContent(task *Task) (string, error) {
+func (driver *Driver) GenerateRunnableContent(task *Task, host *Host) (string, error) {
 	templateText, err := driver.Engine(driver)
 	if err != nil {
 		return "", err
@@ -44,9 +45,10 @@ func (driver *Driver) GenerateRunnableContent(task *Task) (string, error) {
 	}
 
 	funcMap := template.FuncMap{
-		"ShellEscape": func(str string) string {
-			return ShellEscape(str)
-		},
+		"ShellEscape": ShellEscape,
+		"ToUpper": strings.ToUpper,
+		"ToLower": strings.ToLower,
+		"EnvKeyEscape": EnvKeyEscape,
 	}
 
 	dict := map[string]interface{}{
@@ -55,10 +57,16 @@ func (driver *Driver) GenerateRunnableContent(task *Task) (string, error) {
 		"Debug":   debugFlag,
 		"Driver":  driver,
 		"Task":    task,
+		"Host":    host,
 		"Scripts": scripts,
 	}
 
-	tmpl, err := template.New("T").Funcs(funcMap).Parse(templateText)
+	baseTempl, err := template.New("base").Funcs(funcMap).Parse(templateText)
+	if err != nil {
+		return "", err
+	}
+
+	tmpl, err := baseTempl.Parse(EnvironmentTemplate)
 	if err != nil {
 		return "", err
 	}
@@ -77,6 +85,26 @@ func init() {
 	ResetDrivers()
 }
 
+const EnvironmentTemplate = `{{define "environment" -}}
+export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
+{{if .Host -}}
+export ESSH_HOSTNAME={{.Host.Name | ShellEscape}}
+export ESSH_HOST_HOSTNAME={{.Host.Name | ShellEscape}}
+{{range $i, $kvpair := .Host.SSHConfig -}}
+{{range $key, $value := $kvpair -}}
+export ESSH_HOST_SSH_{{$key | ToUpper}}={{$value | ShellEscape }}
+{{end -}}
+{{end -}}
+{{range $key, $value := .Host.Props -}}
+export ESSH_HOST_PROPS_{{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape }}
+{{end -}}
+{{range $i, $value := .Host.Tags -}}
+export ESSH_HOST_TAGS_{{$value | ToUpper | EnvKeyEscape}}=1
+{{end -}}
+{{end -}}
+{{end}}
+`
+
 func ResetDrivers() {
 	Drivers = map[string]*Driver{}
 
@@ -84,7 +112,9 @@ func ResetDrivers() {
 	driver := NewDriver()
 	driver.Name = BuiltinDefaultDriverName
 	driver.Engine = func(driver *Driver) (string, error) {
-		return `{{range $i, $script := .Scripts}}{{$script.code}}
+		return `
+{{template "environment" .}}
+{{range $i, $script := .Scripts}}{{$script.code}}
 {{end}}`, nil
 	}
 	Drivers[driver.Name] = driver

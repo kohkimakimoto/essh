@@ -697,7 +697,7 @@ func printJson(hosts []*Host, indent string) {
 		h := map[string]map[string]interface{}{}
 
 		hv := map[string]interface{}{}
-		for _, pair := range host.Params() {
+		for _, pair := range host.SSHConfig() {
 			for k, v := range pair {
 				hv[k] = v
 			}
@@ -736,9 +736,8 @@ func processTaskConfigure(task *Task) error {
 		fmt.Printf("[essh debug] run configure function.\n")
 	}
 
-	// clean hosts and drivers.
+	// clean hosts.
 	ResetHosts()
-	ResetDrivers()
 
 	err := os.Setenv("ESSH_TASK_CONFIGURE_TASK", task.Name)
 	if err != nil {
@@ -903,25 +902,6 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 		sshCommandArgs = []string{"-F", config, host.Name}
 	}
 
-	var script string
-	script = "export ESSH_HOSTNAME=" + ShellEscape(host.Name) + "\n"
-	script += "export ESSH_HOST_HOSTNAME=" + ShellEscape(host.Name) + "\n"
-	for _, param := range host.Params() {
-		for key, value := range param {
-			script += "export ESSH_HOST_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
-		}
-	}
-
-	for propKey, propValue := range host.Props {
-		script += "export ESSH_HOST_PROPS_" + strings.ToUpper(propKey) + "=" + ShellEscape(propValue) + "\n"
-	}
-
-	for _, tagName := range host.Tags {
-		script += "export ESSH_HOST_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
-	}
-
-	script += "export ESSH_TASK_NAME=" + ShellEscape(task.Name) + "\n"
-
 	// generate commands by using driver
 	driver := Drivers[BuiltinDefaultDriverName]
 	if task.Driver != "" {
@@ -934,7 +914,8 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 		fmt.Printf("[essh debug] driver: %s \n", driver.Name)
 	}
 
-	content, err := driver.GenerateRunnableContent(task)
+	var script string
+	content, err := driver.GenerateRunnableContent(task, host)
 	if err != nil {
 		return err
 	}
@@ -1005,27 +986,6 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 		flag = "-c"
 	}
 
-	var script string
-	if host != nil {
-		script = "export ESSH_HOSTNAME=" + ShellEscape(host.Name) + "\n"
-		script += "export ESSH_HOST_HOSTNAME=" + ShellEscape(host.Name) + "\n"
-		for _, param := range host.Params() {
-			for key, value := range param {
-				script += "export ESSH_HOST_SSH_" + strings.ToUpper(key) + "=" + ShellEscape(value) + "\n"
-			}
-		}
-
-		for propKey, propValue := range host.Props {
-			script += "export ESSH_HOST_PROPS_" + strings.ToUpper(propKey) + "=" + ShellEscape(propValue) + "\n"
-		}
-
-		for _, tagName := range host.Tags {
-			script += "export ESSH_HOST_TAGS_" + EnvKeyEscape(strings.ToUpper(tagName)) + "=1\n"
-		}
-	}
-
-	script += "export ESSH_TASK_NAME=" + ShellEscape(task.Name) + "\n"
-
 	// generate commands by using driver
 	driver := Drivers[BuiltinDefaultDriverName]
 	if task.Driver != "" {
@@ -1038,7 +998,8 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 		fmt.Printf("[essh debug] driver: %s \n", driver.Name)
 	}
 
-	content, err := driver.GenerateRunnableContent(task)
+	var script string
+	content, err := driver.GenerateRunnableContent(task, host)
 	if err != nil {
 		return err
 	}
