@@ -869,7 +869,7 @@ task "example" {
 Drivers are templates to construct script in tasks execution.
 If you don't specify the driver in the task configuration, Essh uses default built-in driver.
 
-To understand what drivers do, see the following example:
+To understand what drivers do, see the following short example:
 
 ```lua
 task "example" {
@@ -909,6 +909,48 @@ The built-in driver is the following text template:
 {{template "environment" .}}
 {{range $i, $script := .Scripts}}{{$script.code}}
 {{end}}
+```
+
+`{{template "environment" .}}` generates environment variables section. In the above example, this section is
+
+```
+export ESSH_TASK_NAME='example'
+```
+
+And after that, Essh concatenates `script` texts with new line code. In the above example,
+
+```
+echo aaa
+echo bbb
+```
+
+Conclusion: Drivers are templates for outputting bash script.
+
+### Custom drivers
+
+You can use and create your custom drivers using `driver` function.
+
+Example:
+
+```lua
+task "example" {
+    configure = function()
+
+        driver "my_driver" {
+            engine = [=[
+{{template "environment" .}}
+{{range $i, $script := .Scripts}}{{$script.code}}
+{{end}}
+]=],
+        }
+
+    end,
+    driver = "my_driver",
+    script = {
+        "echo aaa",
+        "echo bbb",
+    }
+}
 ```
 
 WIP...
