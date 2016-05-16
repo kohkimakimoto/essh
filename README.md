@@ -78,6 +78,7 @@ Table of contents
   * [Usage](#usage)
   * [Creating Modules](#creating-modules)
 * [Drivers](#drivers)
+  * [Custom Drivers](#custom-drivers)
 * [Command Line Options](#command-line-options)
   * [General Options](#general-options)
   * [Manage Hosts, Tags And Tasks](#manage-hosts-tags-and-tasks)
@@ -926,25 +927,22 @@ echo bbb
 
 Conclusion: Drivers are templates for outputting bash script.
 
-### Custom drivers
+### Custom Drivers
 
-You can use and create your custom drivers using `driver` function.
+You can define and use your custom drivers using `driver` function.
 
 Example:
 
 ```lua
+driver "my_driver" {
+    engine = [=[
+        {{template "environment" .}}
+        {{range $i, $script := .Scripts}}{{$script.code}}
+        {{end}}
+    ]=],
+}
+
 task "example" {
-    configure = function()
-
-        driver "my_driver" {
-            engine = [=[
-{{template "environment" .}}
-{{range $i, $script := .Scripts}}{{$script.code}}
-{{end}}
-]=],
-        }
-
-    end,
     driver = "my_driver",
     script = {
         "echo aaa",
@@ -952,6 +950,11 @@ task "example" {
     }
 }
 ```
+
+`driver` configuration needs the required parameter `engine`. This is the template text.
+To use you custom driver, you need to set task's `driver` property.
+
+See more the example implementation:  [bash.driver](https://github.com/kohkimakimoto/essh/blob/master/modules%2Fbash%2Findex.lua).
 
 WIP...
 
