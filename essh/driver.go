@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"github.com/yuin/gopher-lua"
 	"runtime"
-	"text/template"
+	"sort"
 	"strings"
+	"text/template"
 )
 
 type Driver struct {
-	Name   string
-	Config *lua.LTable
-	Props  map[string]interface{}
-	Engine func(*Driver) (string, error)
+	Name    string
+	Config  *lua.LTable
+	Props   map[string]interface{}
+	Engine  func(*Driver) (string, error)
+	Context *Context
 }
 
 var Drivers map[string]*Driver = map[string]*Driver{}
@@ -45,9 +47,9 @@ func (driver *Driver) GenerateRunnableContent(task *Task, host *Host) (string, e
 	}
 
 	funcMap := template.FuncMap{
-		"ShellEscape": ShellEscape,
-		"ToUpper": strings.ToUpper,
-		"ToLower": strings.ToLower,
+		"ShellEscape":  ShellEscape,
+		"ToUpper":      strings.ToUpper,
+		"ToLower":      strings.ToLower,
 		"EnvKeyEscape": EnvKeyEscape,
 	}
 
@@ -118,4 +120,21 @@ func ResetDrivers() {
 {{end}}`, nil
 	}
 	Drivers[driver.Name] = driver
+}
+
+func SortedDrivers() []*Driver {
+	sortedDrives := []*Driver{}
+	names := []string{}
+
+	for name, _ := range Drivers {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	for _, n := range names {
+		sortedDrives = append(sortedDrives, Drivers[n])
+	}
+
+	return sortedDrives
 }

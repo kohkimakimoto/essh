@@ -43,6 +43,7 @@ var (
 	allFlag                bool
 	tagsFlag               bool
 	tasksFlag              bool
+	driversFlag            bool
 	genFlag                bool
 	updateFlag             bool
 	noGlobalFlag           bool
@@ -128,6 +129,8 @@ func start() error {
 			allFlag = true
 		} else if arg == "--tasks" {
 			tasksFlag = true
+		} else if arg == "--drivers" {
+			driversFlag = true
 		} else if arg == "--filter" {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--filter reguires an argument.")
@@ -459,11 +462,6 @@ func start() error {
 		}
 	}
 
-	// update hosts that use extend property.
-	if err := processHostsExtend(); err != nil {
-		return err
-	}
-
 	// validate config
 	if err := validateConfig(); err != nil {
 		return err
@@ -551,6 +549,27 @@ func start() error {
 						tb.Append([]string{t.Name, t.Description, t.Context.TypeString(), fmt.Sprintf("%v", t.Hidden)})
 					}
 				}
+			}
+		}
+		tb.Render()
+
+		return nil
+	}
+
+	if driversFlag {
+		tb := helper.NewPlainTable(os.Stdout)
+		if !quietFlag {
+			tb.SetHeader([]string{"NAME", "REGISTRY"})
+		}
+		for _, d := range SortedDrivers() {
+			if d.Name == BuiltinDefaultDriverName {
+				continue
+			}
+
+			if quietFlag {
+				tb.Append([]string{d.Name})
+			} else {
+				tb.Append([]string{d.Name, d.Context.TypeString()})
 			}
 		}
 		tb.Render()
@@ -1284,32 +1303,6 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
-func processHostsExtend() error {
-
-	// TODO
-
-	//for _, host := range Hosts {
-	//	if host.Extend != "" {
-	//		superHost := GetHost(host.Extend)
-	//		if superHost == nil {
-	//			return fmt.Errorf("%s is not defined.", host.Extend)
-	//		}
-	//
-	//		childConfig := host.Config
-	//		childProps := host.Props
-	//		childHooks := host.Hooks
-	//		childDescription := host.Description
-	//		childHidden := host.Hidden
-	//
-	//
-	//		host.Config = superHost.Config
-	//		host.Description = superHost.Description
-	//	}
-	//}
-
-	return nil
-}
-
 func validateConfig() error {
 	// check duplication of the host, task and tag names
 	names := map[string]bool{}
@@ -1425,11 +1418,12 @@ general options.
   --working-dir <dir>           Change working directory.
   --debug                       Output debug log.
 
-manage hosts, tags and tasks.
+manage hosts, tags, tasks. and drivers.
   --hosts                       List hosts.
   --tags                        List tags.
   --tasks                       List tasks.
-  --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
+  --drivers                     List drivers.
+  --quiet                       (Using with --hosts, --tasks --tags or --drivers option) Show only names.
   --filter <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
   --all                         (Using with --hosts or --tasks option) Show all that includs hidden objects.
 
@@ -1542,6 +1536,7 @@ _essh_options() {
         '--hosts:List hosts.'
         '--tags:List tags.'
         '--tasks:List tasks.'
+        '--drivers:List drivers.'
         '--debug:Output debug log.'
         '--exec:Execute commands with the hosts.'
         '--rsync:Run rsync with essh configuration.'
@@ -1626,7 +1621,7 @@ _essh () {
                     --tasks)
                         tasksMode="on"
                         ;;
-                    --tags)
+                    --tags | --drivers)
                         tagsMode="on"
                         ;;
                     *)

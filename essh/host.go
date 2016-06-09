@@ -15,9 +15,9 @@ type Host struct {
 	Description string
 	Hidden      bool
 	// Extend is not implemented.
-	Extend string
-	Tags   []string
-	Context     *Context
+	Extend  string
+	Tags    []string
+	Context *Context
 }
 
 func (h *Host) SSHConfig() []map[string]string {

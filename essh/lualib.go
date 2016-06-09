@@ -228,6 +228,7 @@ func registerDriverByTable(L *lua.LState, tb *lua.LTable) {
 func registerDriver(L *lua.LState, name string, config *lua.LTable) {
 	driver := NewDriver()
 	driver.Name = name
+	driver.Context = CurrentContext
 
 	if debugFlag {
 		fmt.Printf("[essh debug] register driver: %s\n", name)
@@ -297,11 +298,11 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	})
 
 	h := &Host{
-		Name:   name,
-		Config: newConfig,
-		Props:  map[string]string{},
-		Hooks:  map[string][]interface{}{},
-		Tags:   []string{},
+		Name:    name,
+		Config:  newConfig,
+		Props:   map[string]string{},
+		Hooks:   map[string][]interface{}{},
+		Tags:    []string{},
 		Context: CurrentContext,
 	}
 

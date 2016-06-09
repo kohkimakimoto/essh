@@ -14,11 +14,11 @@ type Task struct {
 	Parallel    bool
 	Privileged  bool
 	// Lock is deprecated. use "bash.lock" in `modules/bash/index.lua`
-	Lock        bool
-	Disabled    bool
-	Hidden      bool
-	Prefix      string
-	Context     *Context
+	Lock     bool
+	Disabled bool
+	Hidden   bool
+	Prefix   string
+	Context  *Context
 }
 
 var Tasks []*Task = []*Task{}
