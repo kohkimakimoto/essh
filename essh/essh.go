@@ -507,14 +507,14 @@ func start() error {
 		}
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "HIDDEN"})
 		}
 		for _, host := range hosts {
 			if !host.Hidden || allFlag {
 				if quietFlag {
 					tb.Append([]string{host.Name})
 				} else {
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ",")})
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), fmt.Sprintf("%v", host.Hidden)})
 				}
 			}
 		}
