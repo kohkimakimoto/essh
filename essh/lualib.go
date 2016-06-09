@@ -302,6 +302,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		Props:  map[string]string{},
 		Hooks:  map[string][]interface{}{},
 		Tags:   []string{},
+		Context: CurrentContext,
 	}
 
 	props := config.RawGetString("props")
@@ -632,7 +633,7 @@ func esshRequire(L *lua.LState) int {
 		module = NewModule(name)
 
 		update := updateFlag
-		if CurrentContext.Type == ContextTypeUserData && noGlobalFlag {
+		if CurrentContext.Type == ContextTypeGlobal && noGlobalFlag {
 			update = false
 		}
 

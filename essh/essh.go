@@ -348,8 +348,8 @@ func start() error {
 	// set temporary ssh config file path
 	lessh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
 
-	// user context
-	CurrentContext = NewContext(UserDataDir, ContextTypeUserData)
+	// global context
+	CurrentContext = NewContext(UserDataDir, ContextTypeGlobal)
 	ContextMap[CurrentContext.Key] = CurrentContext
 
 	if err := CurrentContext.MkDirs(); err != nil {
@@ -394,8 +394,8 @@ func start() error {
 				fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirConfigFile)
 			}
 
-			// change context to working dir context
-			CurrentContext = NewContext(WorkingDataDir, ContextTypeWorkingData)
+			// change context to local context
+			CurrentContext = NewContext(WorkingDataDir, ContextTypeLocal)
 			ContextMap[CurrentContext.Key] = CurrentContext
 
 			if err := CurrentContext.MkDirs(); err != nil {
@@ -507,14 +507,14 @@ func start() error {
 		}
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "HIDDEN"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN"})
 		}
 		for _, host := range hosts {
 			if !host.Hidden || allFlag {
 				if quietFlag {
 					tb.Append([]string{host.Name})
 				} else {
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), fmt.Sprintf("%v", host.Hidden)})
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), fmt.Sprintf("%v", host.Hidden)})
 				}
 			}
 		}
@@ -540,7 +540,7 @@ func start() error {
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "HIDDEN"})
 		}
 		for _, t := range Tasks {
 			if !t.Disabled {
@@ -548,7 +548,7 @@ func start() error {
 					if quietFlag {
 						tb.Append([]string{t.Name})
 					} else {
-						tb.Append([]string{t.Name, t.Description})
+						tb.Append([]string{t.Name, t.Description, t.Context.TypeString(), fmt.Sprintf("%v", t.Hidden)})
 					}
 				}
 			}
@@ -1350,7 +1350,7 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 
 func removeModules() error {
 	if !noGlobalFlag {
-		c := NewContext(UserDataDir, ContextTypeUserData)
+		c := NewContext(UserDataDir, ContextTypeGlobal)
 		if _, err := os.Stat(c.ModulesDir()); err == nil {
 			err = os.RemoveAll(c.ModulesDir())
 			if err != nil {
@@ -1366,7 +1366,7 @@ func removeModules() error {
 		}
 	}
 
-	c := NewContext(WorkingDataDir, ContextTypeWorkingData)
+	c := NewContext(WorkingDataDir, ContextTypeLocal)
 	if _, err := os.Stat(c.ModulesDir()); err == nil {
 		err = os.RemoveAll(c.ModulesDir())
 		if err != nil {

@@ -17,6 +17,7 @@ type Host struct {
 	// Extend is not implemented.
 	Extend string
 	Tags   []string
+	Context     *Context
 }
 
 func (h *Host) SSHConfig() []map[string]string {
