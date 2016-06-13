@@ -310,19 +310,19 @@ db01.localhost       db01 server                 db,backend
 cache01.localhost    cache01 server              cache,backend
 ```
 
-You can see the all hosts. Next, try to run it with `--filter` option.
+You can see the all hosts. Next, try to run it with `--tag` option.
 
 ```
-$ essh --hosts --filter=web
+$ essh --hosts --tag=web
 NAME               DESCRIPTION                 TAGS
 web01.localhost    web01 development server    web
 web02.localhost    web02 development server    web
 ```
 
-You will get filtered hosts by `web` tag. `--filter` can be specified multiple times. Each filters are used in OR condition.
+You will get filtered hosts by `web` tag. `--tag` can be specified multiple times. Each filters are used in OR condition.
 
 ```
-$ essh --hosts --filter=web --filter=db
+$ essh --hosts --tagr=web --tag=db
 NAME               DESCRIPTION                 TAGS      
 web01.localhost    web01 development server    web       
 web02.localhost    web02 development server    web       
@@ -333,10 +333,10 @@ For more information on hosts, see the [Hosts](#hosts) section.
 
 ### Running Commands
 
-Essh allow you to run commands on the selected remote hosts by using `--exec` and `--on` options.
+Essh allow you to run commands on the selected remote hosts by using `--exec` and `--tag` options.
 
 ```
-$ essh --exec --on=web uptime
+$ essh --exec --backend=remote --tag=web uptime
  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
 ```
@@ -344,7 +344,7 @@ $ essh --exec --on=web uptime
 Use `--prefix` option, Essh outputs result of command with hostname prefix.
 
 ```
-$ essh --exec --on=web --prefix uptime
+$ essh --exec --backend=remote --tag=web --prefix uptime
 [web01.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
 [web02.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
 ```
