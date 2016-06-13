@@ -508,7 +508,7 @@ host "web02.localhost" {
 }
 
 task "uptime" {
-    on = "web",
+    tags = "web",
     script = "uptime",
 }
 ```
@@ -599,7 +599,7 @@ Example:
 ```lua
 task "example" {
     description = "example task",
-    on = {
+    tags = {
         "web"
     },
     parallel = true,
