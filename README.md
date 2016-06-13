@@ -39,6 +39,7 @@ task "deploy" {
     prefix = true,
     parallel= true,
     tags = {"web"},
+    backend = "remote",
     script = [=[
         cd /path/to/dir
         git clone git@github.com:path/to/app.git
