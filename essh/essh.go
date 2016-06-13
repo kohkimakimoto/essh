@@ -65,9 +65,7 @@ var (
 	scpFlag                bool
 
 	workindDirVar   string
-	filtersVar      []string = []string{}
-	onVar           []string = []string{}
-	foreachVar      []string = []string{}
+	tagVar          []string = []string{}
 	prefixStringVar string
 	driverVar       string
 	// beta implementation
@@ -131,14 +129,14 @@ func start() error {
 			tasksFlag = true
 		} else if arg == "--drivers" {
 			driversFlag = true
-		} else if arg == "--filter" {
+		} else if arg == "--tag" {
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--filter reguires an argument.")
+				return fmt.Errorf("--tag reguires an argument.")
 			}
-			filtersVar = append(filtersVar, osArgs[1])
+			tagVar = append(tagVar, osArgs[1])
 			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--filter=") {
-			filtersVar = append(filtersVar, strings.Split(arg, "=")[1])
+		} else if strings.HasPrefix(arg, "--tag=") {
+			tagVar = append(tagVar, strings.Split(arg, "=")[1])
 		} else if arg == "--format" {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--format reguires an argument.")
@@ -183,22 +181,6 @@ func start() error {
 			workindDirVar = strings.Split(arg, "=")[1]
 		} else if arg == "--exec" {
 			execFlag = true
-		} else if arg == "--on" {
-			if len(osArgs) < 2 {
-				return fmt.Errorf("--on reguires an argument.")
-			}
-			onVar = append(onVar, osArgs[1])
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--on=") {
-			onVar = append(onVar, strings.Split(arg, "=")[1])
-		} else if arg == "--foreach" {
-			if len(osArgs) < 2 {
-				return fmt.Errorf("--foreach reguires an argument.")
-			}
-			foreachVar = append(foreachVar, osArgs[1])
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--foreach=") {
-			foreachVar = append(foreachVar, strings.Split(arg, "=")[1])
 		} else if arg == "--privileged" {
 			privilegedFlag = true
 		} else if arg == "--parallel" {
@@ -498,21 +480,36 @@ func start() error {
 	// only print hosts list
 	if hostsFlag {
 		var hosts []*Host
-		if len(filtersVar) > 0 {
-			hosts = HostsByNames(filtersVar)
+		if len(tagVar) > 0 {
+			hosts = HostsByTags(tagVar)
 		} else {
 			hosts = Hosts
 		}
-		tb := helper.NewPlainTable(os.Stdout)
+		tb := helper.NewPlainTable(color.StdoutWriter)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "DISABLED", "HIDDEN"})
 		}
 		for _, host := range hosts {
-			if !host.Hidden || allFlag {
+			if (!host.Hidden && !host.Disabled) || allFlag {
 				if quietFlag {
 					tb.Append([]string{host.Name})
 				} else {
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), fmt.Sprintf("%v", host.Hidden)})
+					//
+					var disabled string
+					if host.Disabled {
+						disabled = color.FgRB(fmt.Sprintf("%v", host.Disabled))
+					} else {
+						disabled = fmt.Sprintf("%v", host.Disabled)
+					}
+
+					var hidden string
+					if host.Hidden {
+						hidden = color.FgRB(fmt.Sprintf("%v", host.Hidden))
+					} else {
+						hidden = fmt.Sprintf("%v", host.Hidden)
+					}
+
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), disabled, hidden})
 				}
 			}
 		}
@@ -632,13 +629,7 @@ func start() error {
 				map[string]string{"code": command},
 			}
 		}
-		task.On = onVar
-		task.Foreach = foreachVar
-
-		if len(task.Foreach) >= 1 && len(task.On) >= 1 {
-			return fmt.Errorf("invalid options: can't use '--foreach' and '--on' at the same time.")
-		}
-
+		task.Tags = tagVar
 		if prefixStringVar == "" {
 			if prefixFlag {
 				if task.IsRemoteTask() {
@@ -793,46 +784,6 @@ func runTask(config string, task *Task, payload string) error {
 		}
 	}
 
-	// deprecated.
-	//if task.Context != nil && task.Lock {
-	//	// lock
-	//	context := task.Context
-	//
-	//	// create lock directory, if it doesn't exist.
-	//	if _, err := os.Stat(context.LockDir()); os.IsNotExist(err) {
-	//		err = os.MkdirAll(context.LockDir(), os.FileMode(0755))
-	//		if err != nil {
-	//			return err
-	//		}
-	//	}
-	//
-	//	taskLockFile, err := lock.Lock(filepath.Join(context.LockDir(), "task-"+task.Name+".lock"), true, 1)
-	//	if err != nil {
-	//		return fmt.Errorf("'%v'. could not get exclusive lock. please wait!", err)
-	//	}
-	//	if debugFlag {
-	//		fmt.Printf("[essh debug] created lockfile: %s\n", taskLockFile.Path())
-	//	}
-	//
-	//	defer func() {
-	//		err := taskLockFile.UnLock()
-	//		if err != nil {
-	//			fmt.Fprintf(color.StderrWriter, "Did not unlock lockfile! %v\n", err)
-	//			return
-	//		}
-	//
-	//		if debugFlag {
-	//			fmt.Printf("[essh debug] unlocked: %s\n", taskLockFile.Path())
-	//		}
-	//
-	//		err = taskLockFile.Remove()
-	//		if err != nil {
-	//			fmt.Fprintf(color.StderrWriter, "Did not remove lockfile! %v\n", err)
-	//			return
-	//		}
-	//	}()
-	//}
-
 	if task.Prepare != nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] run prepare function.\n")
@@ -850,7 +801,11 @@ func runTask(config string, task *Task, payload string) error {
 	// get target hosts.
 	if task.IsRemoteTask() {
 		// run remotely.
-		hosts := HostsByNames(task.On)
+		hosts := EnabledHostsByTagsAndRegistries(task.Tags, task.Registries)
+		if len(hosts) == 0 {
+			return fmt.Errorf("There are not specified remote hosts. Nothing to do.")
+		}
+
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 		for _, host := range hosts {
@@ -875,7 +830,7 @@ func runTask(config string, task *Task, payload string) error {
 		wg.Wait()
 	} else {
 		// run locally.
-		hosts := HostsByNames(task.Foreach)
+		hosts := EnabledHostsByTagsAndRegistries(task.Tags, task.Registries)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 
@@ -1306,13 +1261,6 @@ func runCommand(command string) error {
 func validateConfig() error {
 	// check duplication of the host, task and tag names
 	names := map[string]bool{}
-	for _, host := range Hosts {
-		if _, ok := names[host.Name]; ok {
-			return fmt.Errorf("'%s' is duplicated", host.Name)
-		}
-		names[host.Name] = true
-	}
-
 	for _, task := range Tasks {
 		if _, ok := names[task.Name]; ok {
 			return fmt.Errorf("'%s' is duplicated", task.Name)
@@ -1424,7 +1372,7 @@ manage hosts, tags, tasks. and drivers.
   --tasks                       List tasks.
   --drivers                     List drivers.
   --quiet                       (Using with --hosts, --tasks --tags or --drivers option) Show only names.
-  --filter <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
+  --tag <tag>                   (Using with --hosts option) Use only the hosts filtered with a tag.
   --all                         (Using with --hosts or --tasks option) Show all that includs hidden objects.
 
 manage modules.
@@ -1553,7 +1501,7 @@ _essh_hosts_options() {
         '--debug:Output debug log.'
         '--quiet:Show only names.'
         '--all:Show all that includs hidden objects.'
-        '--filter:Use only the hosts filtered with a tag or a host'
+        '--tag:Use only the hosts filtered with a tag.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1571,8 +1519,7 @@ _essh_exec_options() {
     local -a __essh_options
     __essh_options=(
         '--debug:Output debug log.'
-        '--on:Run commands on remote hosts.'
-        '--foreach:Run commands locally for each hosts.'
+        '--tag:Use only the hosts filtered with a tag.'
         '--prefix:Disable outputing prefix.'
         '--prefix-string:Custom string of the prefix.'
         '--privileged:Run by the privileged user.'
@@ -1635,8 +1582,11 @@ _essh () {
                 --file|--config-file)
                     _files
                     ;;
-                --filter|--on|--foreach)
+                --on|--foreach)
                     _essh_hosts
+                    _essh_tags
+                    ;;
+                --tag)
                     _essh_tags
                     ;;
                 *)

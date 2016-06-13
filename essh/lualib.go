@@ -366,6 +366,15 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		})
 	}
 
+	if existedHost := HostsMap[h.Name]; existedHost != nil {
+		if existedHost.Context.Type == ContextTypeGlobal && h.Context.Type == ContextTypeLocal {
+			existedHost.Disabled = true
+		} else {
+			panic(fmt.Sprintf("'%s' is duplicated", h.Name))
+		}
+	}
+
+	HostsMap[h.Name] = h
 	Hosts = append(Hosts, h)
 }
 
@@ -403,9 +412,18 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	task.Name = name
 	task.Context = CurrentContext
 
+
 	description := config.RawGetString("description")
 	if descStr, ok := toString(description); ok {
 		task.Description = descStr
+	}
+
+	backend := config.RawGetString("backend")
+	if backendStr, ok := toString(backend); ok {
+		task.Backend = backendStr
+		if backendStr != TASK_BACKEND_LOCAL && backendStr != TASK_BACKEND_REMOTE {
+			L.RaiseError("backend must be '%s' or '%s'.", TASK_BACKEND_LOCAL, TASK_BACKEND_REMOTE)
+		}
 	}
 
 	pty := config.RawGetString("pty")
@@ -458,30 +476,28 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
 	}
 
-	on := config.RawGetString("on")
-	if onStr, ok := toString(on); ok {
-		task.On = []string{onStr}
-	} else if onSlice, ok := toSlice(on); ok {
-		for _, target := range onSlice {
+	tags := config.RawGetString("tags")
+	if tagsStr, ok := toString(tags); ok {
+		task.Tags = []string{tagsStr}
+	} else if tagsSlice, ok := toSlice(tags); ok {
+		for _, target := range tagsSlice {
 			if targetStr, ok := target.(string); ok {
-				task.On = append(task.On, targetStr)
+				task.Tags = append(task.Tags, targetStr)
 			}
 		}
 	}
 
-	foreach := config.RawGetString("foreach")
-	if foreachStr, ok := toString(foreach); ok {
-		task.Foreach = []string{foreachStr}
-	} else if foreachSlice, ok := toSlice(foreach); ok {
-		for _, target := range foreachSlice {
+	registries := config.RawGetString("registries")
+	if registriesStr, ok := toString(registries); ok {
+		task.Registries = []string{registriesStr}
+	} else if registriesSlice, ok := toSlice(registries); ok {
+		for _, target := range registriesSlice {
 			if targetStr, ok := target.(string); ok {
-				task.Foreach = append(task.Foreach, targetStr)
+				task.Registries = append(task.Registries, targetStr)
 			}
 		}
-	}
-
-	if len(task.Foreach) >= 1 && len(task.On) >= 1 {
-		L.RaiseError("invalid task definition: can't use 'foreach' and 'on' at the same time.")
+	} else {
+		task.Registries = []string{CurrentContext.TypeString()}
 	}
 
 	prefix := config.RawGetString("prefix")

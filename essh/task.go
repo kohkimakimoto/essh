@@ -3,22 +3,24 @@ package essh
 type Task struct {
 	Name        string
 	Description string
+	// deprecated...
 	Configure   func() error
 	Prepare     func(task *TaskContext) error
 	Driver      string
 	Pty         bool
 	Script      []map[string]string
 	File        string
-	On          []string
-	Foreach     []string
+	Tags        []string
 	Parallel    bool
 	Privileged  bool
 	// Lock is deprecated. use "bash.lock" in `modules/bash/index.lua`
-	Lock     bool
-	Disabled bool
-	Hidden   bool
-	Prefix   string
-	Context  *Context
+	Lock       bool
+	Disabled   bool
+	Hidden     bool
+	Backend    string
+	Registries []string
+	Prefix     string
+	Context    *Context
 }
 
 var Tasks []*Task = []*Task{}
@@ -28,10 +30,16 @@ var (
 	DefaultPrefixLocal  = "[Local => {{.Host.Name}}] "
 )
 
+const (
+	TASK_BACKEND_LOCAL = "local"
+	TASK_BACKEND_REMOTE = "remote"
+)
+
 func NewTask() *Task {
 	return &Task{
-		On:      []string{},
-		Foreach: []string{},
+		Tags: []string{},
+		Registries: []string{},
+		Backend: TASK_BACKEND_LOCAL,
 		Script:  []map[string]string{},
 	}
 }
@@ -46,7 +54,7 @@ func GetTask(name string) *Task {
 }
 
 func (t *Task) IsRemoteTask() bool {
-	if len(t.On) >= 1 {
+	if t.Backend == TASK_BACKEND_REMOTE {
 		return true
 	} else {
 		return false
