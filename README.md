@@ -303,37 +303,37 @@ Run `essh` with `--hosts` option.
 
 ```
 $ essh --hosts
-NAME                 DESCRIPTION                 TAGS         
-web01.localhost      web01 development server    web          
-web02.localhost      web02 development server    web          
-db01.localhost       db01 server                 db,backend   
-cache01.localhost    cache01 server              cache,backend
+NAME                 DESCRIPTION                 TAGS             REGISTRY    DISABLED    HIDDEN
+web01.localhost      web01 development server    web              local       false       false
+web02.localhost      web02 development server    web              local       false       false
+db01.localhost       db01 server                 db,backend       local       false       false
+cache01.localhost    cache01 server              cache,backend    local       false       false
 ```
 
 You can see the all hosts. Next, try to run it with `--tag` option.
 
 ```
 $ essh --hosts --tag=web
-NAME               DESCRIPTION                 TAGS
-web01.localhost    web01 development server    web
-web02.localhost    web02 development server    web
+NAME               DESCRIPTION                 TAGS    REGISTRY    DISABLED    HIDDEN
+web01.localhost    web01 development server    web     local       false       false
+web02.localhost    web02 development server    web     local       false       false
 ```
 
-You will get filtered hosts by `web` tag. `--tag` can be specified multiple times. Each filters are used in OR condition.
+You will get filtered hosts by `web` tag. `--tag` can be specified multiple times. Each tag filters are used in OR condition.
 
 ```
 $ essh --hosts --tagr=web --tag=db
-NAME               DESCRIPTION                 TAGS      
-web01.localhost    web01 development server    web       
-web02.localhost    web02 development server    web       
-db01.localhost     db01 server                 db,backend
+NAME               DESCRIPTION                 TAGS          REGISTRY    DISABLED    HIDDEN
+web01.localhost    web01 development server    web           local       false       false
+web02.localhost    web02 development server    web           local       false       false
+db01.localhost     db01 server                 db,backend    local       false       false
 ```
 
 For more information on hosts, see the [Hosts](#hosts) section.
 
 ### Running Commands
 
-Essh allow you to run commands on the selected remote hosts by using `--exec` and `--tag` options.
+Essh allow you to run commands on the selected remote hosts by using `--exec`, `--backend=remote` and `--tag` options.
 
 ```
 $ essh --exec --backend=remote --tag=web uptime
@@ -360,7 +360,8 @@ For example, edit your `essh.lua`.
 task "hello" {
     description = "say hello",
     prefix = true,
-    on = "web",
+    tags = "web",
+    backend = "remote",
     script = [=[
         echo "hello on $(hostname)"
     ]=],
@@ -375,12 +376,13 @@ $ essh hello
 [web02.localhost] hello on web02.localhost
 ```
 
-If you don't specify `on` property, Essh runs a task locally.
+If you specify `backend` property `local` (or does not specify any value, uses default), Essh runs a task locally.
 
 ```lua
 task "hello" {
     description = "say hello",
     prefix = true,
+    backend = "local",
     script = [=[
         echo "hello on $(hostname)"
     ]=],
@@ -644,9 +646,11 @@ task "example" {
 
 * `hidden` (boolean): If it is true, this task is not displayed in tasks list.
 
-* `on` (string|table): Host names and tags that the task's scripts is executed on. If you set this, the task is executed on the remote hosts. `on` couldn't be used with `foreach`.
+* `tags` (string|table): Tag names that the task's scripts is executed on.
 
-* `foreach` (string|table): Host names and tags that the task's scripts is executed for. If you set this, the task is executed on the local hosts. `foreach` couldn't be used with `on`.
+* `backend` (string): `local` or `remote`.
+
+* `registries` (string|table): `local` and, or `global`.
 
 * `prefix` (boolean|string): If it is true, Essh displays task's output with hostname prefix. If it is string, Essh displays task's output with custom prefix. This string can be used with text/template format like `{{.Host.Name}}`.
 
@@ -700,28 +704,6 @@ task "example" {
   * `ESSH_HOST_TAGS_{TAG}`: tag.
 
   * `ESSH_HOST_PROPS_{KEY}`: property that is set by host's props. See Hosts [Special Purpose Properties](#special-purpose-properties).
-
-* `configure` (function):
-
-  Configure is a function that overrides Essh config when the task runs. This allows you to define **private config** in the task. Especially It is useful for hosts config. See the below example:
-
-  ```lua
-  task "example" {
-      configure = function()
-          host "server1" {
-              HostName = "192.168.0.1",
-              User = "kohkimakimoto",
-          }
-      end,
-      on = "server1",
-      script = {
-          "echo hello",
-      },
-  }
-  ```
-
-  If you use `configure`, before the task running, Essh cleans any hosts config. And update hosts config in the configure function process.
-  Therefore, this task runs on "server1 (192.168.0.1)", and ignores other hosts config that are defined in other places.
 
 ## Lua VM
 
@@ -960,69 +942,7 @@ WIP...
 
 ## Command Line Options
 
-### General Options
-
-* `--version`: Print version.
-
-* `--help`: Print help.
-
-* `--print`: Print generated ssh config.
-
-* `--gen`: Only generate ssh config.
-
-* `--config`: Edit config file in the current directory.
-
-* `--user-config`: Edit per-user config file.
-
-* `--system-config`: Edit system wide config file.
-
-* `--working-dir <dir>`: Change working directory.
-
-* `--debug`: Output debug log.
-
-### Manage Hosts, Tags And Tasks
-
-* `--hosts`: List hosts.
-
-* `--tags`: List tags.
-
-* `--tasks`: List tasks.
-
-* `--quiet`: (Using with --hosts, --tasks or --tags option) Show only names.
-
-* `--filter <tag|host>`: (Using with --hosts option) Use only the hosts filtered with a tag or a host.
-
-* `--all`: (Using with --hosts or --tasks option) Show all that includs hidden objects.
-
-### Manage Modules
-
-* `--update`: Update modules.
-
-* `--clean`: Clean the downloaded modules.
-
-* `--no-global`: (Using with --update or --clean option) Update or clean only the modules about per-project config.
-
-### Execute Commands Using Hosts Configuration
-
-* `--exec`: Execute commands with the hosts.
-
-* `--on <tag|host>`: (Using with --exec option) Run commands on remote hosts.
-
-* `--foreach <tag|host>`: (Using with --exec option) Run commands locally for each hosts.
-
-* `--prefix`: (Using with --exec option) Enable outputing prefix.
-
-* `--prefix-string [<prefix>]`: (Using with --exec option) Custom string of the prefix.
-
-* `--privileged`: (Using with --exec option) Run by the privileged user.
-
-* `--parallel`: (Using with --exec option) Run in parallel.
-
-* `--pty`: (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
-
-* `--file`: (Using with --exec option) Load commands from a file.
-
-* `--driver`: (Using with --exec option) Specify a driver.
+Please run `essh --help`.
 
 ## Integrating Other SSH Related Commands
 
