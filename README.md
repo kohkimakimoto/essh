@@ -38,7 +38,7 @@ task "deploy" {
     description = "deploy new application.",
     prefix = true,
     parallel= true,
-    on = "web",
+    tags = {"web"},
     script = [=[
         cd /path/to/dir
         git clone git@github.com:path/to/app.git
