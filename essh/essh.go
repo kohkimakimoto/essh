@@ -63,9 +63,10 @@ var (
 	ptyFlag                bool
 	rsyncFlag              bool
 	scpFlag                bool
-
 	workindDirVar   string
 	tagVar          []string = []string{}
+	backendVar      string
+	registryVar          []string = []string{}
 	prefixStringVar string
 	driverVar       string
 	// beta implementation
@@ -137,6 +138,14 @@ func start() error {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--tag=") {
 			tagVar = append(tagVar, strings.Split(arg, "=")[1])
+		} else if arg == "--registry" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--registry reguires an argument.")
+			}
+			registryVar = append(registryVar, osArgs[1])
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--registry=") {
+			registryVar = append(registryVar, strings.Split(arg, "=")[1])
 		} else if arg == "--format" {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--format reguires an argument.")
@@ -195,6 +204,14 @@ func start() error {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--prefix-string=") {
 			prefixStringVar = strings.Split(arg, "=")[1]
+		} else if arg == "--backend" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--backend reguires an argument.")
+			}
+			backendVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--backend=") {
+			backendVar = strings.Split(arg, "=")[1]
 		} else if arg == "--driver" {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--driver reguires an argument.")
@@ -629,6 +646,18 @@ func start() error {
 				map[string]string{"code": command},
 			}
 		}
+
+		if backendVar != "" {
+			task.Backend = backendVar
+		}
+
+		if len(registryVar) == 0 {
+			registryVar = []string{
+				"local",
+			}
+		}
+		task.Registries = registryVar
+
 		task.Tags = tagVar
 		if prefixStringVar == "" {
 			if prefixFlag {
@@ -1373,7 +1402,7 @@ manage hosts, tags, tasks. and drivers.
   --drivers                     List drivers.
   --quiet                       (Using with --hosts, --tasks --tags or --drivers option) Show only names.
   --tag <tag>                   (Using with --hosts option) Use only the hosts filtered with a tag.
-  --all                         (Using with --hosts or --tasks option) Show all that includs hidden objects.
+  --all                         (Using with --hosts or --tasks option) Show all that includs hidden and disabled objects.
 
 manage modules.
   --update                      Update modules.
@@ -1382,8 +1411,9 @@ manage modules.
 
 execute commands using hosts configuration.
   --exec                        Execute commands with the hosts.
-  --on <tag|host>               (Using with --exec option) Run commands on remote hosts.
-  --foreach <tag|host>          (Using with --exec option) Run commands locally for each hosts.
+  --registry <local|global>     (Using with --exec option) Registry (local|global).
+  --tag <tag>                   (Using with --exec option) Use only the hosts filtered with a tag.
+  --backend <local|remote>      (Using with --exec option) Backend (local|remote).
   --prefix                      (Using with --exec option) Enable outputing prefix.
   --prefix-string [<prefix>]    (Using with --exec option) Custom string of the prefix.
   --privileged                  (Using with --exec option) Run by the privileged user.
@@ -1464,6 +1494,15 @@ _essh_tags() {
     _describe -t tag "tag" __essh_tags
 }
 
+_essh_backends() {
+    local -a _essh_backends
+    PRE_IFS=$IFS
+    IFS=$'\n'
+    _essh_backends=('local' 'remote')
+    IFS=$PRE_IFS
+    _describe -t backend "backend" _essh_backends
+}
+
 _essh_global_options() {
 }
 
@@ -1520,6 +1559,8 @@ _essh_exec_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--tag:Use only the hosts filtered with a tag.'
+        '--registry:Registry (local|global)'
+        '--backend:Backend (local|remote)'
         '--prefix:Disable outputing prefix.'
         '--prefix-string:Custom string of the prefix.'
         '--privileged:Run by the privileged user.'
@@ -1568,7 +1609,7 @@ _essh () {
                     --tasks)
                         tasksMode="on"
                         ;;
-                    --tags | --drivers)
+                    --tags|--drivers)
                         tagsMode="on"
                         ;;
                     *)
@@ -1582,12 +1623,11 @@ _essh () {
                 --file|--config-file)
                     _files
                     ;;
-                --on|--foreach)
-                    _essh_hosts
-                    _essh_tags
-                    ;;
                 --tag)
                     _essh_tags
+                    ;;
+                --backend)
+                    _essh_backends
                     ;;
                 *)
                     if [ "$execMode" = "on" ]; then
