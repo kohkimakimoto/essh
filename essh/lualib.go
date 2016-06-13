@@ -23,11 +23,9 @@ func InitLuaState(L *lua.LState) {
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
+	L.SetGlobal("remote_task", L.NewFunction(esshRemoteTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
-	// L.SetGlobal("remote_task", L.NewFunction(esshRemoteTask))
-	// backend compatibility
-	L.SetGlobal("Host", L.NewFunction(esshHost))
-	L.SetGlobal("Task", L.NewFunction(esshTask))
+
 
 	// modules
 	L.PreloadModule("essh.json", gluajson.Loader)
@@ -45,6 +43,7 @@ func InitLuaState(L *lua.LState) {
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		"host":    esshHost,
 		"task":    esshTask,
+		"remote_task":    esshRemoteTask,
 		"driver":  esshDriver,
 		"require": esshRequire,
 		"debug":   esshDebug,
@@ -142,6 +141,34 @@ func esshTask(L *lua.LState) int {
 
 	return 1
 }
+func esshRemoteTask(L *lua.LState) int {
+	first := L.CheckAny(1)
+	if tb, ok := first.(*lua.LTable); ok {
+		registerRemoteTaskByTable(L, tb)
+		return 0
+	}
+
+	name := L.CheckString(1)
+
+	// procedural style
+	if L.GetTop() == 2 {
+		tb := L.CheckTable(2)
+		registerRemoteTask(L, name, tb)
+
+		return 0
+	}
+
+	// DSL style
+	L.Push(L.NewFunction(func(L *lua.LState) int {
+		tb := L.CheckTable(1)
+		registerRemoteTask(L, name, tb)
+
+		return 0
+	}))
+
+	return 1
+}
+
 
 func registerTaskByTable(L *lua.LState, tb *lua.LTable) {
 	maxn := tb.MaxN()
@@ -407,11 +434,46 @@ func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) 
 	return nil
 }
 
-func registerTask(L *lua.LState, name string, config *lua.LTable) {
+func registerRemoteTask(L *lua.LState, name string, config *lua.LTable) {
+	task := registerTask(L, name, config)
+	task.Backend = TASK_BACKEND_REMOTE
+	task.Prefix = DefaultPrefixRemote
+}
+
+func registerRemoteTaskByTable(L *lua.LState, tb *lua.LTable) {
+	maxn := tb.MaxN()
+	if maxn == 0 { // table
+		tb.ForEach(func(key, value lua.LValue) {
+			config, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			name, ok := key.(lua.LString)
+			if !ok {
+				return
+			}
+
+			t := registerTask(L, string(name), config)
+			t.Backend = TASK_BACKEND_REMOTE
+
+		})
+	} else { // array
+		for i := 1; i <= maxn; i++ {
+			value := tb.RawGetInt(i)
+			valueTb, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			registerTaskByTable(L, valueTb)
+		}
+	}
+}
+
+
+func registerTask(L *lua.LState, name string, config *lua.LTable) *Task {
 	task := NewTask()
 	task.Name = name
 	task.Context = CurrentContext
-
 
 	description := config.RawGetString("description")
 	if descStr, ok := toString(description); ok {
@@ -569,7 +631,10 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	}
 
 	Tasks = append(Tasks, task)
+
+	return task
 }
+
 
 func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 	ret := []map[string]string{}
