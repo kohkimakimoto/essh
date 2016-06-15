@@ -459,11 +459,6 @@ func start() error {
 		}
 	}
 
-	// update hosts that use extend property.
-	if err := processHostsExtend(); err != nil {
-		return err
-	}
-
 	// validate config
 	if err := validateConfig(); err != nil {
 		return err
@@ -471,7 +466,7 @@ func start() error {
 
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
-		for _, host := range Hosts {
+		for _, host := range SortedHosts() {
 			if !host.Hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.DescriptionOrDefault()))
 			}
@@ -564,7 +559,7 @@ func start() error {
 	}
 
 	// generate ssh hosts config
-	content, err := UpdateSSHConfig(outputConfig, SortedHosts())
+	content, err := UpdateSSHConfig(outputConfig, SortedPublicHosts())
 	if err != nil {
 		return err
 	}
@@ -1245,36 +1240,10 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
-func processHostsExtend() error {
-
-	// TODO
-
-	//for _, host := range Hosts {
-	//	if host.Extend != "" {
-	//		superHost := GetHost(host.Extend)
-	//		if superHost == nil {
-	//			return fmt.Errorf("%s is not defined.", host.Extend)
-	//		}
-	//
-	//		childConfig := host.Config
-	//		childProps := host.Props
-	//		childHooks := host.Hooks
-	//		childDescription := host.Description
-	//		childHidden := host.Hidden
-	//
-	//
-	//		host.Config = superHost.Config
-	//		host.Description = superHost.Description
-	//	}
-	//}
-
-	return nil
-}
-
 func validateConfig() error {
 	// check duplication of the host, task and tag names
 	names := map[string]bool{}
-	for _, host := range Hosts {
+	for _, host := range SortedPublicHosts() {
 		if _, ok := names[host.Name]; ok {
 			return fmt.Errorf("'%s' is duplicated", host.Name)
 		}

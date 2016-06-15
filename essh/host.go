@@ -19,7 +19,9 @@ type Host struct {
 	Private bool
 }
 
-var Hosts map[string]*Host = map[string]*Host{}
+var GlobalHosts map[string]*Host = map[string]*Host{}
+var LocalHosts map[string]*Host = map[string]*Host{}
+
 var PublicHosts map[string]*Host = map[string]*Host{}
 
 func (h *Host) SSHConfig() []map[string]string {
@@ -73,19 +75,56 @@ func GetPublicHost(hostname string) *Host {
 
 func SortedHosts() []*Host {
 	names := []string{}
+	namesMap := map[string]bool{}
 	hosts := []*Host{}
 
-	for name, _ := range Hosts {
+
+	for name, _ := range GlobalHosts {
+		if namesMap[name] {
+			// already registerd to names
+			continue
+		}
+
 		names = append(names, name)
+		namesMap[name] = true
+	}
+
+	for name, _ := range LocalHosts {
+		if namesMap[name] {
+			// already registerd to names
+			continue
+		}
+
+		names = append(names, name)
+		namesMap[name] = true
 	}
 
 	sort.Strings(names)
 
 	for _, name := range names {
-		hosts = append(hosts, Hosts[name])
+		if h, ok := GlobalHosts[name]; ok {
+			hosts = append(hosts, h)
+		}
+
+		if h, ok := LocalHosts[name]; ok {
+			hosts = append(hosts, h)
+		}
 	}
 
 	return hosts
+}
+
+func SortedPublicHosts() []*Host {
+	hosts := []*Host{}
+
+	for _, h := range SortedHosts() {
+		if !h.Private {
+			hosts = append(hosts, h)
+		}
+	}
+
+	return hosts
+
 }
 
 func SameContextHosts(contextType int) []*Host {
@@ -127,7 +166,7 @@ func Tags() []string {
 	tagsMap := map[string]string{}
 	tags := []string{}
 
-	for _, host := range Hosts {
+	for _, host := range SortedHosts() {
 		for _, t := range host.Tags {
 			if _, exists := tagsMap[t]; !exists {
 				tagsMap[t] = t
@@ -198,6 +237,7 @@ func HostsByNames(names []string) []*Host {
 }
 
 func ResetHosts() {
-	Hosts = map[string]*Host{}
+	LocalHosts = map[string]*Host{}
+	GlobalHosts = map[string]*Host{}
 
 }

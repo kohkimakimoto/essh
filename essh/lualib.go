@@ -365,7 +365,11 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		})
 	}
 
-	Hosts[h.Key()] = h
+	if h.Context.Type == ContextTypeLocal {
+		LocalHosts[h.Name] = h
+	} else 	if h.Context.Type == ContextTypeGlobal {
+		GlobalHosts[h.Name] = h
+	}
 
 	if !h.Private {
 		PublicHosts[h.Name] = h
