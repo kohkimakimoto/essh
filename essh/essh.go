@@ -466,7 +466,7 @@ func start() error {
 
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
-		for _, host := range SortedHosts() {
+		for _, host := range SortedPublicHosts() {
 			if !host.Hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.DescriptionOrDefault()))
 			}
@@ -500,7 +500,7 @@ func start() error {
 		} else {
 			hosts = SortedHosts()
 		}
-		tb := helper.NewPlainTable(os.Stdout)
+		tb := helper.NewPlainTable(color.StdoutWriter)
 		if !quietFlag {
 			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN", "SCOPE"})
 		}
@@ -509,7 +509,25 @@ func start() error {
 				if quietFlag {
 					tb.Append([]string{host.Name})
 				} else {
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), fmt.Sprintf("%v", host.Hidden), host.Scope()})
+					//
+					hidden := ""
+					if host.Hidden {
+						hidden = "true"
+					}
+					scope := ""
+					if host.Private {
+						scope = "private"
+					}
+
+					if host.Private {
+						green := color.FgG
+						tb.Append([]string{green(host.Name), green(host.Description), green(strings.Join(host.Tags, ",")), green(host.Context.TypeString()), green(hidden), green(scope)})
+					} else if host.Hidden {
+						yellow := color.FgY
+						tb.Append([]string{yellow(host.Name), yellow(host.Description), yellow(strings.Join(host.Tags, ",")), yellow(host.Context.TypeString()), yellow(hidden), yellow(scope)})
+					} else {
+						tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
+					}
 				}
 			}
 		}
@@ -517,6 +535,7 @@ func start() error {
 
 		return nil
 	}
+
 
 	// only print tags list
 	if tagsFlag {
