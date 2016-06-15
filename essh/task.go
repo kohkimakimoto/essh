@@ -16,12 +16,12 @@ type Task struct {
 	Parallel    bool
 	Privileged  bool
 	// Lock is deprecated. use "bash.lock" in `modules/bash/index.lua`
-	Lock        bool
-	Disabled    bool
-	Hidden      bool
-	Backend     string
-	Prefix      string
-	Context     *Context
+	Lock     bool
+	Disabled bool
+	Hidden   bool
+	Backend  string
+	Prefix   string
+	Context  *Context
 }
 
 var Tasks map[string]*Task = map[string]*Task{}
@@ -40,7 +40,7 @@ func NewTask() *Task {
 	return &Task{
 		On:      []string{},
 		Foreach: []string{},
-		Backend:    TASK_BACKEND_LOCAL,
+		Backend: TASK_BACKEND_LOCAL,
 		Script:  []map[string]string{},
 	}
 }

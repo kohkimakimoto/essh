@@ -536,7 +536,6 @@ func start() error {
 		return nil
 	}
 
-
 	// only print tags list
 	if tagsFlag {
 		tb := helper.NewPlainTable(os.Stdout)
@@ -783,7 +782,6 @@ func runTask(config string, task *Task, payload string) error {
 	if err != nil {
 		return err
 	}
-
 
 	if err := processTaskConfigure(task); err != nil {
 		return err

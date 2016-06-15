@@ -16,7 +16,7 @@ type Context struct {
 
 const (
 	ContextTypeGlobal = 0
-	ContextTypeLocal = 1
+	ContextTypeLocal  = 1
 )
 
 var CurrentContext *Context

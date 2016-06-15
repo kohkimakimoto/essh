@@ -22,12 +22,9 @@ func InitLuaState(L *lua.LState) {
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
+	L.SetGlobal("private_host", L.NewFunction(esshPrivateHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
-	// L.SetGlobal("remote_task", L.NewFunction(esshRemoteTask))
-	// backend compatibility
-	L.SetGlobal("Host", L.NewFunction(esshHost))
-	L.SetGlobal("Task", L.NewFunction(esshTask))
 
 	// modules
 	L.PreloadModule("essh.json", gluajson.Loader)
@@ -43,11 +40,12 @@ func InitLuaState(L *lua.LState) {
 	lessh.RawSetString("ssh_config", lua.LNil)
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
-		"host":    esshHost,
-		"task":    esshTask,
-		"driver":  esshDriver,
-		"require": esshRequire,
-		"debug":   esshDebug,
+		"host":         esshHost,
+		"private_host": esshPrivateHost,
+		"task":         esshTask,
+		"driver":       esshDriver,
+		"require":      esshRequire,
+		"debug":        esshDebug,
 	})
 }
 
@@ -81,6 +79,34 @@ func esshHost(L *lua.LState) int {
 	L.Push(L.NewFunction(func(L *lua.LState) int {
 		tb := L.CheckTable(1)
 		registerHost(L, name, tb)
+
+		return 0
+	}))
+
+	return 1
+}
+
+func esshPrivateHost(L *lua.LState, name string, config *lua.LTable) *Host {
+	first := L.CheckAny(1)
+	if tb, ok := first.(*lua.LTable); ok {
+		registerPrivateHostByTable(L, tb)
+		return 0
+	}
+
+	name := L.CheckString(1)
+
+	// procedural style
+	if L.GetTop() == 2 {
+		tb := L.CheckTable(2)
+		registerPrivateHost(L, name, tb)
+
+		return 0
+	}
+
+	// DSL style
+	L.Push(L.NewFunction(func(L *lua.LState) int {
+		tb := L.CheckTable(1)
+		registerPrivateHost(L, name, tb)
 
 		return 0
 	}))
@@ -278,7 +304,39 @@ func registerDriver(L *lua.LState, name string, config *lua.LTable) {
 	Drivers[driver.Name] = driver
 }
 
-func registerHost(L *lua.LState, name string, config *lua.LTable) {
+func registerPrivateHost(L *lua.LState, name string, config *lua.LTable) {
+	h := registerHost(L, name, config)
+	h.Private = true
+}
+
+func registerPrivateHostByTable(L *lua.LState, tb *lua.LTable) {
+	maxn := tb.MaxN()
+	if maxn == 0 { // table
+		tb.ForEach(func(key, value lua.LValue) {
+			config, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			name, ok := key.(lua.LString)
+			if !ok {
+				return
+			}
+
+			registerPrivateHost(L, string(name), config)
+		})
+	} else { // array
+		for i := 1; i <= maxn; i++ {
+			value := tb.RawGetInt(i)
+			valueTb, ok := value.(*lua.LTable)
+			if !ok {
+				return
+			}
+			registerPrivateHostByTable(L, valueTb)
+		}
+	}
+}
+
+func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
 	if debugFlag {
 		fmt.Printf("[essh debug] register host: %s\n", name)
 	}
@@ -297,11 +355,11 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	})
 
 	h := &Host{
-		Name:   name,
-		Config: newConfig,
-		Props:  map[string]string{},
-		Hooks:  map[string][]interface{}{},
-		Tags:   []string{},
+		Name:    name,
+		Config:  newConfig,
+		Props:   map[string]string{},
+		Hooks:   map[string][]interface{}{},
+		Tags:    []string{},
 		Context: CurrentContext,
 	}
 
@@ -367,13 +425,15 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 
 	if h.Context.Type == ContextTypeLocal {
 		LocalHosts[h.Name] = h
-	} else 	if h.Context.Type == ContextTypeGlobal {
+	} else if h.Context.Type == ContextTypeGlobal {
 		GlobalHosts[h.Name] = h
 	}
 
 	if !h.Private {
 		PublicHosts[h.Name] = h
 	}
+
+	return h
 }
 
 func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
@@ -405,7 +465,7 @@ func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) 
 	return nil
 }
 
-func registerTask(L *lua.LState, name string, config *lua.LTable) {
+func registerTask(L *lua.LState, name string, config *lua.LTable) *Task {
 	task := NewTask()
 	task.Name = name
 	task.Context = CurrentContext
@@ -560,6 +620,8 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 	}
 
 	Tasks[task.Name] = task
+
+	return task
 }
 
 func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {

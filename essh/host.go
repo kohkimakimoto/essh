@@ -14,9 +14,9 @@ type Host struct {
 	Hooks       map[string][]interface{}
 	Description string
 	Hidden      bool
-	Tags   []string
-	Context *Context
-	Private bool
+	Tags        []string
+	Context     *Context
+	Private     bool
 }
 
 var GlobalHosts map[string]*Host = map[string]*Host{}
@@ -77,7 +77,6 @@ func SortedHosts() []*Host {
 	names := []string{}
 	namesMap := map[string]bool{}
 	hosts := []*Host{}
-
 
 	for name, _ := range GlobalHosts {
 		if namesMap[name] {
@@ -188,7 +187,7 @@ func FindHosts(names []string, contextType int) []*Host {
 			continue
 		}
 
-		B1:
+	B1:
 		for _, name := range names {
 			if host.Name == name {
 				hosts = append(hosts, host)
@@ -196,7 +195,7 @@ func FindHosts(names []string, contextType int) []*Host {
 			}
 		}
 
-		B2:
+	B2:
 		for _, tag := range host.Tags {
 			for _, name := range names {
 				if tag == name {

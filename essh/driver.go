@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"github.com/yuin/gopher-lua"
 	"runtime"
-	"text/template"
 	"strings"
+	"text/template"
 )
 
 type Driver struct {
@@ -45,9 +45,9 @@ func (driver *Driver) GenerateRunnableContent(task *Task, host *Host) (string, e
 	}
 
 	funcMap := template.FuncMap{
-		"ShellEscape": ShellEscape,
-		"ToUpper": strings.ToUpper,
-		"ToLower": strings.ToLower,
+		"ShellEscape":  ShellEscape,
+		"ToUpper":      strings.ToUpper,
+		"ToLower":      strings.ToLower,
 		"EnvKeyEscape": EnvKeyEscape,
 	}
 
