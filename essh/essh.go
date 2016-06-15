@@ -349,7 +349,7 @@ func start() error {
 	lessh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
 
 	// user context
-	CurrentContext = NewContext(UserDataDir, ContextTypeUserData)
+	CurrentContext = NewContext(UserDataDir, ContextTypeGlobal)
 	ContextMap[CurrentContext.Key] = CurrentContext
 
 	if err := CurrentContext.MkDirs(); err != nil {
@@ -395,7 +395,7 @@ func start() error {
 			}
 
 			// change context to working dir context
-			CurrentContext = NewContext(WorkingDataDir, ContextTypeWorkingData)
+			CurrentContext = NewContext(WorkingDataDir, ContextTypeLocal)
 			ContextMap[CurrentContext.Key] = CurrentContext
 
 			if err := CurrentContext.MkDirs(); err != nil {
@@ -503,18 +503,18 @@ func start() error {
 		if len(filtersVar) > 0 {
 			hosts = HostsByNames(filtersVar)
 		} else {
-			hosts = Hosts
+			hosts = SortedHosts()
 		}
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN", "SCOPE"})
 		}
 		for _, host := range hosts {
-			if !host.Hidden || allFlag {
+			if (!host.Hidden && !host.Private) || allFlag {
 				if quietFlag {
 					tb.Append([]string{host.Name})
 				} else {
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ",")})
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), fmt.Sprintf("%v", host.Hidden), host.Scope()})
 				}
 			}
 		}
@@ -564,7 +564,7 @@ func start() error {
 	}
 
 	// generate ssh hosts config
-	content, err := UpdateSSHConfig(outputConfig)
+	content, err := UpdateSSHConfig(outputConfig, SortedHosts())
 	if err != nil {
 		return err
 	}
@@ -573,12 +573,6 @@ func start() error {
 	if printFlag {
 		fmt.Println(string(content))
 		return nil
-	}
-
-	// update temporary ssh config file
-	err = ioutil.WriteFile(outputConfig, content, 0644)
-	if err != nil {
-		return err
 	}
 
 	// only generating contents
@@ -670,13 +664,13 @@ func start() error {
 	return err
 }
 
-func UpdateSSHConfig(outputConfig string) ([]byte, error) {
+func UpdateSSHConfig(outputConfig string, enabledHosts []*Host) ([]byte, error) {
 	if debugFlag {
 		fmt.Printf("[essh debug] output ssh_config contents to the file: %s \n", outputConfig)
 	}
 
 	// generate ssh hosts config
-	content, err := GenHostsConfig()
+	content, err := GenHostsConfig(enabledHosts)
 	if err != nil {
 		return nil, err
 	}
@@ -762,57 +756,24 @@ func runTask(config string, task *Task, payload string) error {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
 	}
 
+	// re generate config (task u).
+	_, err := UpdateSSHConfig(config, SameContextHosts(task.Context.Type))
+	if err != nil {
+		return err
+	}
+
+
 	if err := processTaskConfigure(task); err != nil {
 		return err
 	}
 
 	if task.Configure != nil {
 		// re generate config.
-		_, err := UpdateSSHConfig(config)
+		_, err := UpdateSSHConfig(config, SortedHosts())
 		if err != nil {
 			return err
 		}
 	}
-
-	// deprecated.
-	//if task.Context != nil && task.Lock {
-	//	// lock
-	//	context := task.Context
-	//
-	//	// create lock directory, if it doesn't exist.
-	//	if _, err := os.Stat(context.LockDir()); os.IsNotExist(err) {
-	//		err = os.MkdirAll(context.LockDir(), os.FileMode(0755))
-	//		if err != nil {
-	//			return err
-	//		}
-	//	}
-	//
-	//	taskLockFile, err := lock.Lock(filepath.Join(context.LockDir(), "task-"+task.Name+".lock"), true, 1)
-	//	if err != nil {
-	//		return fmt.Errorf("'%v'. could not get exclusive lock. please wait!", err)
-	//	}
-	//	if debugFlag {
-	//		fmt.Printf("[essh debug] created lockfile: %s\n", taskLockFile.Path())
-	//	}
-	//
-	//	defer func() {
-	//		err := taskLockFile.UnLock()
-	//		if err != nil {
-	//			fmt.Fprintf(color.StderrWriter, "Did not unlock lockfile! %v\n", err)
-	//			return
-	//		}
-	//
-	//		if debugFlag {
-	//			fmt.Printf("[essh debug] unlocked: %s\n", taskLockFile.Path())
-	//		}
-	//
-	//		err = taskLockFile.Remove()
-	//		if err != nil {
-	//			fmt.Fprintf(color.StderrWriter, "Did not remove lockfile! %v\n", err)
-	//			return
-	//		}
-	//	}()
-	//}
 
 	if task.Prepare != nil {
 		if debugFlag {
@@ -831,7 +792,7 @@ func runTask(config string, task *Task, payload string) error {
 	// get target hosts.
 	if task.IsRemoteTask() {
 		// run remotely.
-		hosts := HostsByNames(task.On)
+		hosts := FindHosts(task.On, task.Context.Type)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 		for _, host := range hosts {
@@ -856,7 +817,7 @@ func runTask(config string, task *Task, payload string) error {
 		wg.Wait()
 	} else {
 		// run locally.
-		hosts := HostsByNames(task.Foreach)
+		hosts := FindHosts(task.Foreach, task.Context.Type)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 
@@ -1085,7 +1046,7 @@ func runSSH(L *lua.LState, config string, args []string) error {
 	// hooks fires only when the hostname is just specified.
 	if len(args) == 1 {
 		hostname := args[0]
-		if host := GetHost(hostname); host != nil {
+		if host := GetPublicHost(hostname); host != nil {
 			hooks = host.Hooks
 		}
 	}
@@ -1350,7 +1311,7 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 
 func removeModules() error {
 	if !noGlobalFlag {
-		c := NewContext(UserDataDir, ContextTypeUserData)
+		c := NewContext(UserDataDir, ContextTypeGlobal)
 		if _, err := os.Stat(c.ModulesDir()); err == nil {
 			err = os.RemoveAll(c.ModulesDir())
 			if err != nil {
@@ -1366,7 +1327,7 @@ func removeModules() error {
 		}
 	}
 
-	c := NewContext(WorkingDataDir, ContextTypeWorkingData)
+	c := NewContext(WorkingDataDir, ContextTypeLocal)
 	if _, err := os.Stat(c.ModulesDir()); err == nil {
 		err = os.RemoveAll(c.ModulesDir())
 		if err != nil {

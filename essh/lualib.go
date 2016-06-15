@@ -302,6 +302,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		Props:  map[string]string{},
 		Hooks:  map[string][]interface{}{},
 		Tags:   []string{},
+		Context: CurrentContext,
 	}
 
 	props := config.RawGetString("props")
@@ -343,14 +344,14 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		h.Description = descStr
 	}
 
-	extend := config.RawGetString("extend")
-	if extendStr, ok := toString(extend); ok {
-		h.Extend = extendStr
-	}
-
 	hidden := config.RawGetString("hidden")
 	if hiddenBool, ok := toBool(hidden); ok {
 		h.Hidden = hiddenBool
+	}
+
+	private := config.RawGetString("private")
+	if privateBool, ok := toBool(private); ok {
+		h.Private = privateBool
 	}
 
 	tags := config.RawGetString("tags")
@@ -364,7 +365,11 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		})
 	}
 
-	Hosts = append(Hosts, h)
+	Hosts[h.Key()] = h
+
+	if !h.Private {
+		PublicHosts[h.Name] = h
+	}
 }
 
 func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
@@ -632,7 +637,7 @@ func esshRequire(L *lua.LState) int {
 		module = NewModule(name)
 
 		update := updateFlag
-		if CurrentContext.Type == ContextTypeUserData && noGlobalFlag {
+		if CurrentContext.Type == ContextTypeGlobal && noGlobalFlag {
 			update = false
 		}
 

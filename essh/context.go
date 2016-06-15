@@ -15,8 +15,8 @@ type Context struct {
 }
 
 const (
-	ContextTypeUserData    = 0
-	ContextTypeWorkingData = 1
+	ContextTypeGlobal = 0
+	ContextTypeLocal = 1
 )
 
 var CurrentContext *Context
@@ -60,11 +60,11 @@ func (ctx *Context) MkDirs() error {
 }
 
 func (ctx *Context) TypeString() string {
-	if ctx.Type == ContextTypeUserData {
-		return "UserData"
-	} else if ctx.Type == ContextTypeWorkingData {
-		return "WorkingData"
+	if ctx.Type == ContextTypeGlobal {
+		return "global"
+	} else if ctx.Type == ContextTypeLocal {
+		return "local"
 	}
 
-	return "Unknown"
+	panic("unknown context")
 }
