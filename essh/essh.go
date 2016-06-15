@@ -444,7 +444,7 @@ func start() error {
 
 			taskConfigureTask := os.Getenv("ESSH_TASK_CONFIGURE_TASK")
 			if taskConfigureTask != "" {
-				task := GetTask(taskConfigureTask)
+				task := GetEnabledTask(taskConfigureTask)
 				if task == nil {
 					return fmt.Errorf("load configuration by using ESSH_TASK_CONFIGURE_TASK. but used unknown task '%s'", taskConfigureTask)
 				}
@@ -532,18 +532,26 @@ func start() error {
 		return nil
 	}
 
+	// only print tasks list
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "DISABLED", "HIDDEN"})
 		}
-		for _, t := range Tasks {
-			if !t.Disabled {
-				if !t.Hidden || allFlag {
-					if quietFlag {
-						tb.Append([]string{t.Name})
+		for _, t := range SortedTasks() {
+			if (!t.Hidden && !t.Disabled) || allFlag {
+				if quietFlag {
+					tb.Append([]string{t.Name})
+				} else {
+					//
+					if t.Disabled {
+						red := color.FgR
+						tb.Append([]string{red(t.Name), red(t.Description), red(fmt.Sprintf("%v", t.Disabled)), red(fmt.Sprintf("%v", t.Hidden))})
+					} else if t.Hidden {
+						yellow := color.FgY
+						tb.Append([]string{yellow(t.Name), yellow(t.Description), yellow(fmt.Sprintf("%v", t.Disabled)), yellow(fmt.Sprintf("%v", t.Hidden))})
 					} else {
-						tb.Append([]string{t.Name, t.Description})
+						tb.Append([]string{t.Name, t.Description, fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
 					}
 				}
 			}
@@ -630,7 +638,7 @@ func start() error {
 		// try to get a task.
 		if len(args) > 0 {
 			taskName := args[0]
-			task := GetTask(taskName)
+			task := GetEnabledTask(taskName)
 			if task != nil {
 				if len(args) > 2 {
 					return fmt.Errorf("too many arguments.")

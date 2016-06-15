@@ -1,5 +1,7 @@
 package essh
 
+import "sort"
+
 type Task struct {
 	Name        string
 	Description string
@@ -17,31 +19,56 @@ type Task struct {
 	Lock        bool
 	Disabled    bool
 	Hidden      bool
+	Backend     string
 	Prefix      string
 	Context     *Context
 }
 
-var Tasks []*Task = []*Task{}
+var Tasks map[string]*Task = map[string]*Task{}
 
 var (
 	DefaultPrefixRemote = "[{{.Host.Name}}] "
 	DefaultPrefixLocal  = "[Local => {{.Host.Name}}] "
 )
 
+const (
+	TASK_BACKEND_LOCAL  = "local"
+	TASK_BACKEND_REMOTE = "remote"
+)
+
 func NewTask() *Task {
 	return &Task{
 		On:      []string{},
 		Foreach: []string{},
+		Backend:    TASK_BACKEND_LOCAL,
 		Script:  []map[string]string{},
 	}
 }
 
-func GetTask(name string) *Task {
-	for _, task := range Tasks {
-		if task.Name == name && !task.Disabled {
+func SortedTasks() []*Task {
+	names := []string{}
+	tasks := []*Task{}
+
+	for name, _ := range Tasks {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	for _, name := range names {
+		tasks = append(tasks, Tasks[name])
+	}
+
+	return tasks
+}
+
+func GetEnabledTask(name string) *Task {
+	if task, ok := Tasks[name]; ok {
+		if !task.Disabled {
 			return task
 		}
 	}
+
 	return nil
 }
 

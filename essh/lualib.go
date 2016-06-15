@@ -559,7 +559,7 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		}
 	}
 
-	Tasks = append(Tasks, task)
+	Tasks[task.Name] = task
 }
 
 func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
