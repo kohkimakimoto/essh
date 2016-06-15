@@ -518,16 +518,17 @@ func start() error {
 					if host.Private {
 						scope = "private"
 					}
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
 
-					if host.Private {
-						green := color.FgG
-						tb.Append([]string{green(host.Name), green(host.Description), green(strings.Join(host.Tags, ",")), green(host.Context.TypeString()), green(hidden), green(scope)})
-					} else if host.Hidden {
-						yellow := color.FgY
-						tb.Append([]string{yellow(host.Name), yellow(host.Description), yellow(strings.Join(host.Tags, ",")), yellow(host.Context.TypeString()), yellow(hidden), yellow(scope)})
-					} else {
-						tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
-					}
+					//if host.Private {
+					//	green := color.FgG
+					//	tb.Append([]string{green(host.Name), green(host.Description), green(strings.Join(host.Tags, ",")), green(host.Context.TypeString()), green(hidden), green(scope)})
+					//} else if host.Hidden {
+					//	yellow := color.FgY
+					//	tb.Append([]string{yellow(host.Name), yellow(host.Description), yellow(strings.Join(host.Tags, ",")), yellow(host.Context.TypeString()), yellow(hidden), yellow(scope)})
+					//} else {
+					//	tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
+					//}
 				}
 			}
 		}

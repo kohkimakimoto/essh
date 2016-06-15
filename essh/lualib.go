@@ -61,7 +61,7 @@ func esshDebug(L *lua.LState) int {
 func esshHost(L *lua.LState) int {
 	first := L.CheckAny(1)
 	if tb, ok := first.(*lua.LTable); ok {
-		registerHostByTable(L, tb)
+		registerHostByTable(L, tb, false)
 		return 0
 	}
 
@@ -70,7 +70,7 @@ func esshHost(L *lua.LState) int {
 	// procedural style
 	if L.GetTop() == 2 {
 		tb := L.CheckTable(2)
-		registerHost(L, name, tb)
+		registerHost(L, name, tb, false)
 
 		return 0
 	}
@@ -78,7 +78,7 @@ func esshHost(L *lua.LState) int {
 	// DSL style
 	L.Push(L.NewFunction(func(L *lua.LState) int {
 		tb := L.CheckTable(1)
-		registerHost(L, name, tb)
+		registerHost(L, name, tb, false)
 
 		return 0
 	}))
@@ -86,10 +86,10 @@ func esshHost(L *lua.LState) int {
 	return 1
 }
 
-func esshPrivateHost(L *lua.LState, name string, config *lua.LTable) *Host {
+func esshPrivateHost(L *lua.LState) int {
 	first := L.CheckAny(1)
 	if tb, ok := first.(*lua.LTable); ok {
-		registerPrivateHostByTable(L, tb)
+		registerHostByTable(L, tb, true)
 		return 0
 	}
 
@@ -98,7 +98,7 @@ func esshPrivateHost(L *lua.LState, name string, config *lua.LTable) *Host {
 	// procedural style
 	if L.GetTop() == 2 {
 		tb := L.CheckTable(2)
-		registerPrivateHost(L, name, tb)
+		registerHost(L, name, tb, true)
 
 		return 0
 	}
@@ -106,7 +106,7 @@ func esshPrivateHost(L *lua.LState, name string, config *lua.LTable) *Host {
 	// DSL style
 	L.Push(L.NewFunction(func(L *lua.LState) int {
 		tb := L.CheckTable(1)
-		registerPrivateHost(L, name, tb)
+		registerHost(L, name, tb, true)
 
 		return 0
 	}))
@@ -114,7 +114,7 @@ func esshPrivateHost(L *lua.LState, name string, config *lua.LTable) *Host {
 	return 1
 }
 
-func registerHostByTable(L *lua.LState, tb *lua.LTable) {
+func registerHostByTable(L *lua.LState, tb *lua.LTable, private bool) {
 	maxn := tb.MaxN()
 	if maxn == 0 { // table
 		tb.ForEach(func(key, value lua.LValue) {
@@ -127,7 +127,7 @@ func registerHostByTable(L *lua.LState, tb *lua.LTable) {
 				return
 			}
 
-			registerHost(L, string(name), config)
+			registerHost(L, string(name), config, private)
 		})
 	} else { // array
 		for i := 1; i <= maxn; i++ {
@@ -136,7 +136,7 @@ func registerHostByTable(L *lua.LState, tb *lua.LTable) {
 			if !ok {
 				return
 			}
-			registerHostByTable(L, valueTb)
+			registerHostByTable(L, valueTb, private)
 		}
 	}
 }
@@ -304,39 +304,7 @@ func registerDriver(L *lua.LState, name string, config *lua.LTable) {
 	Drivers[driver.Name] = driver
 }
 
-func registerPrivateHost(L *lua.LState, name string, config *lua.LTable) {
-	h := registerHost(L, name, config)
-	h.Private = true
-}
-
-func registerPrivateHostByTable(L *lua.LState, tb *lua.LTable) {
-	maxn := tb.MaxN()
-	if maxn == 0 { // table
-		tb.ForEach(func(key, value lua.LValue) {
-			config, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			name, ok := key.(lua.LString)
-			if !ok {
-				return
-			}
-
-			registerPrivateHost(L, string(name), config)
-		})
-	} else { // array
-		for i := 1; i <= maxn; i++ {
-			value := tb.RawGetInt(i)
-			valueTb, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			registerPrivateHostByTable(L, valueTb)
-		}
-	}
-}
-
-func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
+func registerHost(L *lua.LState, name string, config *lua.LTable, defaultPrivate bool) *Host {
 	if debugFlag {
 		fmt.Printf("[essh debug] register host: %s\n", name)
 	}
@@ -360,6 +328,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
 		Props:   map[string]string{},
 		Hooks:   map[string][]interface{}{},
 		Tags:    []string{},
+		Private: defaultPrivate,
 		Context: CurrentContext,
 	}
 
