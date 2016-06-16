@@ -178,7 +178,7 @@ func Tags() []string {
 	return tags
 }
 
-func FindHosts(names []string, contextType int) []*Host {
+func FindHostsInContext(names []string, contextType int) []*Host {
 	var hosts = []*Host{}
 
 	for _, host := range SortedHosts() {
@@ -195,6 +195,32 @@ func FindHosts(names []string, contextType int) []*Host {
 		}
 
 	B2:
+		for _, tag := range host.Tags {
+			for _, name := range names {
+				if tag == name {
+					hosts = append(hosts, host)
+					break B2
+				}
+			}
+		}
+	}
+
+	return hosts
+}
+
+func FindPublicHosts(names []string) []*Host {
+	var hosts = []*Host{}
+
+	for _, host := range SortedPublicHosts() {
+		B1:
+		for _, name := range names {
+			if host.Name == name {
+				hosts = append(hosts, host)
+				break B1
+			}
+		}
+
+		B2:
 		for _, tag := range host.Tags {
 			for _, name := range names {
 				if tag == name {

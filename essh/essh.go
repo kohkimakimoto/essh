@@ -67,6 +67,8 @@ var (
 	filtersVar      []string = []string{}
 	onVar           []string = []string{}
 	foreachVar      []string = []string{}
+	targetVar              []string = []string{}
+	backendVar             string
 	prefixStringVar string
 	driverVar       string
 	// beta implementation
@@ -218,6 +220,22 @@ func start() error {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--driver=") {
 			driverVar = strings.Split(arg, "=")[1]
+		} else if arg == "--target" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--target reguires an argument.")
+			}
+			targetVar = append(targetVar, osArgs[1])
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--target=") {
+			targetVar = append(targetVar, strings.Split(arg, "=")[1])
+		} else if arg == "--backend" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--backend reguires an argument.")
+			}
+			backendVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--backend=") {
+			backendVar = strings.Split(arg, "=")[1]
 		} else if arg == "--file" {
 			fileFlag = true
 		} else if arg == "--pty" {
@@ -629,6 +647,11 @@ func start() error {
 				map[string]string{"code": command},
 			}
 		}
+		if backendVar != "" {
+			task.Backend = backendVar
+		}
+		task.Targets = targetVar
+
 		task.On = onVar
 		task.Foreach = foreachVar
 
@@ -778,10 +801,17 @@ func runTask(config string, task *Task, payload string) error {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
 	}
 
-	// re generate config (task u).
-	_, err := UpdateSSHConfig(config, SameContextHosts(task.Context.Type))
-	if err != nil {
-		return err
+	// re generate config (task).
+	if task.Context == nil {
+		_, err := UpdateSSHConfig(config, SortedPublicHosts())
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err := UpdateSSHConfig(config, SameContextHosts(task.Context.Type))
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := processTaskConfigure(task); err != nil {
@@ -813,7 +843,13 @@ func runTask(config string, task *Task, payload string) error {
 	// get target hosts.
 	if task.IsRemoteTask() {
 		// run remotely.
-		hosts := FindHosts(task.TargetsSlice(), task.Context.Type)
+		var hosts []*Host
+		if task.Context == nil {
+			hosts = FindPublicHosts(task.TargetsSlice())
+		} else {
+			hosts = FindHostsInContext(task.TargetsSlice(), task.Context.Type)
+		}
+
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 		for _, host := range hosts {
@@ -838,7 +874,13 @@ func runTask(config string, task *Task, payload string) error {
 		wg.Wait()
 	} else {
 		// run locally.
-		hosts := FindHosts(task.TargetsSlice(), task.Context.Type)
+		var hosts []*Host
+		if task.Context == nil {
+			hosts = FindPublicHosts(task.TargetsSlice())
+		} else {
+			hosts = FindHostsInContext(task.TargetsSlice(), task.Context.Type)
+		}
+
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 
