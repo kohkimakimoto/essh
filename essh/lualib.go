@@ -22,12 +22,9 @@ func InitLuaState(L *lua.LState) {
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
+	L.SetGlobal("private_host", L.NewFunction(esshPrivateHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
-	// L.SetGlobal("remote_task", L.NewFunction(esshRemoteTask))
-	// backend compatibility
-	L.SetGlobal("Host", L.NewFunction(esshHost))
-	L.SetGlobal("Task", L.NewFunction(esshTask))
 
 	// modules
 	L.PreloadModule("essh.json", gluajson.Loader)
@@ -43,11 +40,12 @@ func InitLuaState(L *lua.LState) {
 	lessh.RawSetString("ssh_config", lua.LNil)
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
-		"host":    esshHost,
-		"task":    esshTask,
-		"driver":  esshDriver,
-		"require": esshRequire,
-		"debug":   esshDebug,
+		"host":         esshHost,
+		"private_host": esshPrivateHost,
+		"task":         esshTask,
+		"driver":       esshDriver,
+		"require":      esshRequire,
+		"debug":        esshDebug,
 	})
 }
 
@@ -63,7 +61,7 @@ func esshDebug(L *lua.LState) int {
 func esshHost(L *lua.LState) int {
 	first := L.CheckAny(1)
 	if tb, ok := first.(*lua.LTable); ok {
-		registerHostByTable(L, tb)
+		registerHostByTable(L, tb, false)
 		return 0
 	}
 
@@ -72,7 +70,7 @@ func esshHost(L *lua.LState) int {
 	// procedural style
 	if L.GetTop() == 2 {
 		tb := L.CheckTable(2)
-		registerHost(L, name, tb)
+		registerHost(L, name, tb, false)
 
 		return 0
 	}
@@ -80,7 +78,7 @@ func esshHost(L *lua.LState) int {
 	// DSL style
 	L.Push(L.NewFunction(func(L *lua.LState) int {
 		tb := L.CheckTable(1)
-		registerHost(L, name, tb)
+		registerHost(L, name, tb, false)
 
 		return 0
 	}))
@@ -88,7 +86,35 @@ func esshHost(L *lua.LState) int {
 	return 1
 }
 
-func registerHostByTable(L *lua.LState, tb *lua.LTable) {
+func esshPrivateHost(L *lua.LState) int {
+	first := L.CheckAny(1)
+	if tb, ok := first.(*lua.LTable); ok {
+		registerHostByTable(L, tb, true)
+		return 0
+	}
+
+	name := L.CheckString(1)
+
+	// procedural style
+	if L.GetTop() == 2 {
+		tb := L.CheckTable(2)
+		registerHost(L, name, tb, true)
+
+		return 0
+	}
+
+	// DSL style
+	L.Push(L.NewFunction(func(L *lua.LState) int {
+		tb := L.CheckTable(1)
+		registerHost(L, name, tb, true)
+
+		return 0
+	}))
+
+	return 1
+}
+
+func registerHostByTable(L *lua.LState, tb *lua.LTable, private bool) {
 	maxn := tb.MaxN()
 	if maxn == 0 { // table
 		tb.ForEach(func(key, value lua.LValue) {
@@ -101,7 +127,7 @@ func registerHostByTable(L *lua.LState, tb *lua.LTable) {
 				return
 			}
 
-			registerHost(L, string(name), config)
+			registerHost(L, string(name), config, private)
 		})
 	} else { // array
 		for i := 1; i <= maxn; i++ {
@@ -110,7 +136,7 @@ func registerHostByTable(L *lua.LState, tb *lua.LTable) {
 			if !ok {
 				return
 			}
-			registerHostByTable(L, valueTb)
+			registerHostByTable(L, valueTb, private)
 		}
 	}
 }
@@ -278,7 +304,7 @@ func registerDriver(L *lua.LState, name string, config *lua.LTable) {
 	Drivers[driver.Name] = driver
 }
 
-func registerHost(L *lua.LState, name string, config *lua.LTable) {
+func registerHost(L *lua.LState, name string, config *lua.LTable, defaultPrivate bool) *Host {
 	if debugFlag {
 		fmt.Printf("[essh debug] register host: %s\n", name)
 	}
@@ -297,11 +323,13 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 	})
 
 	h := &Host{
-		Name:   name,
-		Config: newConfig,
-		Props:  map[string]string{},
-		Hooks:  map[string][]interface{}{},
-		Tags:   []string{},
+		Name:    name,
+		Config:  newConfig,
+		Props:   map[string]string{},
+		Hooks:   map[string][]interface{}{},
+		Tags:    []string{},
+		Private: defaultPrivate,
+		Context: CurrentContext,
 	}
 
 	props := config.RawGetString("props")
@@ -343,14 +371,14 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		h.Description = descStr
 	}
 
-	extend := config.RawGetString("extend")
-	if extendStr, ok := toString(extend); ok {
-		h.Extend = extendStr
-	}
-
 	hidden := config.RawGetString("hidden")
 	if hiddenBool, ok := toBool(hidden); ok {
 		h.Hidden = hiddenBool
+	}
+
+	private := config.RawGetString("private")
+	if privateBool, ok := toBool(private); ok {
+		h.Private = privateBool
 	}
 
 	tags := config.RawGetString("tags")
@@ -364,7 +392,17 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) {
 		})
 	}
 
-	Hosts = append(Hosts, h)
+	if h.Context.Type == ContextTypeLocal {
+		LocalHosts[h.Name] = h
+	} else if h.Context.Type == ContextTypeGlobal {
+		GlobalHosts[h.Name] = h
+	}
+
+	if !h.Private {
+		PublicHosts[h.Name] = h
+	}
+
+	return h
 }
 
 func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
@@ -396,10 +434,29 @@ func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) 
 	return nil
 }
 
-func registerTask(L *lua.LState, name string, config *lua.LTable) {
+func registerTask(L *lua.LState, name string, config *lua.LTable) *Task {
 	task := NewTask()
 	task.Name = name
 	task.Context = CurrentContext
+
+	backend := config.RawGetString("backend")
+	if backendStr, ok := toString(backend); ok {
+		task.Backend = backendStr
+		if backendStr != TASK_BACKEND_LOCAL && backendStr != TASK_BACKEND_REMOTE {
+			L.RaiseError("backend must be '%s' or '%s'.", TASK_BACKEND_LOCAL, TASK_BACKEND_REMOTE)
+		}
+	}
+
+	targets := config.RawGetString("targets")
+	if targetsStr, ok := toString(targets); ok {
+		task.Targets = []string{targetsStr}
+	} else if targetsSlice, ok := toSlice(targets); ok {
+		for _, target := range targetsSlice {
+			if targetStr, ok := target.(string); ok {
+				task.Targets = append(task.Targets, targetStr)
+			}
+		}
+	}
 
 	description := config.RawGetString("description")
 	if descStr, ok := toString(description); ok {
@@ -550,7 +607,9 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) {
 		}
 	}
 
-	Tasks = append(Tasks, task)
+	Tasks[task.Name] = task
+
+	return task
 }
 
 func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
@@ -632,7 +691,7 @@ func esshRequire(L *lua.LState) int {
 		module = NewModule(name)
 
 		update := updateFlag
-		if CurrentContext.Type == ContextTypeUserData && noGlobalFlag {
+		if CurrentContext.Type == ContextTypeGlobal && noGlobalFlag {
 			update = false
 		}
 

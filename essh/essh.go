@@ -67,6 +67,8 @@ var (
 	filtersVar      []string = []string{}
 	onVar           []string = []string{}
 	foreachVar      []string = []string{}
+	targetVar              []string = []string{}
+	backendVar             string
 	prefixStringVar string
 	driverVar       string
 	// beta implementation
@@ -218,6 +220,22 @@ func start() error {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--driver=") {
 			driverVar = strings.Split(arg, "=")[1]
+		} else if arg == "--target" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--target reguires an argument.")
+			}
+			targetVar = append(targetVar, osArgs[1])
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--target=") {
+			targetVar = append(targetVar, strings.Split(arg, "=")[1])
+		} else if arg == "--backend" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--backend reguires an argument.")
+			}
+			backendVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--backend=") {
+			backendVar = strings.Split(arg, "=")[1]
 		} else if arg == "--file" {
 			fileFlag = true
 		} else if arg == "--pty" {
@@ -349,7 +367,7 @@ func start() error {
 	lessh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
 
 	// user context
-	CurrentContext = NewContext(UserDataDir, ContextTypeUserData)
+	CurrentContext = NewContext(UserDataDir, ContextTypeGlobal)
 	ContextMap[CurrentContext.Key] = CurrentContext
 
 	if err := CurrentContext.MkDirs(); err != nil {
@@ -395,7 +413,7 @@ func start() error {
 			}
 
 			// change context to working dir context
-			CurrentContext = NewContext(WorkingDataDir, ContextTypeWorkingData)
+			CurrentContext = NewContext(WorkingDataDir, ContextTypeLocal)
 			ContextMap[CurrentContext.Key] = CurrentContext
 
 			if err := CurrentContext.MkDirs(); err != nil {
@@ -444,7 +462,7 @@ func start() error {
 
 			taskConfigureTask := os.Getenv("ESSH_TASK_CONFIGURE_TASK")
 			if taskConfigureTask != "" {
-				task := GetTask(taskConfigureTask)
+				task := GetEnabledTask(taskConfigureTask)
 				if task == nil {
 					return fmt.Errorf("load configuration by using ESSH_TASK_CONFIGURE_TASK. but used unknown task '%s'", taskConfigureTask)
 				}
@@ -459,11 +477,6 @@ func start() error {
 		}
 	}
 
-	// update hosts that use extend property.
-	if err := processHostsExtend(); err != nil {
-		return err
-	}
-
 	// validate config
 	if err := validateConfig(); err != nil {
 		return err
@@ -471,7 +484,7 @@ func start() error {
 
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
-		for _, host := range Hosts {
+		for _, host := range SortedPublicHosts() {
 			if !host.Hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.DescriptionOrDefault()))
 			}
@@ -503,18 +516,37 @@ func start() error {
 		if len(filtersVar) > 0 {
 			hosts = HostsByNames(filtersVar)
 		} else {
-			hosts = Hosts
+			hosts = SortedHosts()
 		}
-		tb := helper.NewPlainTable(os.Stdout)
+		tb := helper.NewPlainTable(color.StdoutWriter)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN", "SCOPE"})
 		}
 		for _, host := range hosts {
-			if !host.Hidden || allFlag {
+			if (!host.Hidden && !host.Private) || allFlag {
 				if quietFlag {
 					tb.Append([]string{host.Name})
 				} else {
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ",")})
+					//
+					hidden := ""
+					if host.Hidden {
+						hidden = "true"
+					}
+					scope := ""
+					if host.Private {
+						scope = "private"
+					}
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
+
+					//if host.Private {
+					//	green := color.FgG
+					//	tb.Append([]string{green(host.Name), green(host.Description), green(strings.Join(host.Tags, ",")), green(host.Context.TypeString()), green(hidden), green(scope)})
+					//} else if host.Hidden {
+					//	yellow := color.FgY
+					//	tb.Append([]string{yellow(host.Name), yellow(host.Description), yellow(strings.Join(host.Tags, ",")), yellow(host.Context.TypeString()), yellow(hidden), yellow(scope)})
+					//} else {
+					//	tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
+					//}
 				}
 			}
 		}
@@ -537,18 +569,26 @@ func start() error {
 		return nil
 	}
 
+	// only print tasks list
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "DISABLED", "HIDDEN"})
 		}
-		for _, t := range Tasks {
-			if !t.Disabled {
-				if !t.Hidden || allFlag {
-					if quietFlag {
-						tb.Append([]string{t.Name})
+		for _, t := range SortedTasks() {
+			if (!t.Hidden && !t.Disabled) || allFlag {
+				if quietFlag {
+					tb.Append([]string{t.Name})
+				} else {
+					//
+					if t.Disabled {
+						red := color.FgR
+						tb.Append([]string{red(t.Name), red(t.Description), red(fmt.Sprintf("%v", t.Disabled)), red(fmt.Sprintf("%v", t.Hidden))})
+					} else if t.Hidden {
+						yellow := color.FgY
+						tb.Append([]string{yellow(t.Name), yellow(t.Description), yellow(fmt.Sprintf("%v", t.Disabled)), yellow(fmt.Sprintf("%v", t.Hidden))})
 					} else {
-						tb.Append([]string{t.Name, t.Description})
+						tb.Append([]string{t.Name, t.Description, fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
 					}
 				}
 			}
@@ -564,7 +604,7 @@ func start() error {
 	}
 
 	// generate ssh hosts config
-	content, err := UpdateSSHConfig(outputConfig)
+	content, err := UpdateSSHConfig(outputConfig, SortedPublicHosts())
 	if err != nil {
 		return err
 	}
@@ -573,12 +613,6 @@ func start() error {
 	if printFlag {
 		fmt.Println(string(content))
 		return nil
-	}
-
-	// update temporary ssh config file
-	err = ioutil.WriteFile(outputConfig, content, 0644)
-	if err != nil {
-		return err
 	}
 
 	// only generating contents
@@ -613,6 +647,11 @@ func start() error {
 				map[string]string{"code": command},
 			}
 		}
+		if backendVar != "" {
+			task.Backend = backendVar
+		}
+		task.Targets = targetVar
+
 		task.On = onVar
 		task.Foreach = foreachVar
 
@@ -641,7 +680,7 @@ func start() error {
 		// try to get a task.
 		if len(args) > 0 {
 			taskName := args[0]
-			task := GetTask(taskName)
+			task := GetEnabledTask(taskName)
 			if task != nil {
 				if len(args) > 2 {
 					return fmt.Errorf("too many arguments.")
@@ -670,13 +709,13 @@ func start() error {
 	return err
 }
 
-func UpdateSSHConfig(outputConfig string) ([]byte, error) {
+func UpdateSSHConfig(outputConfig string, enabledHosts []*Host) ([]byte, error) {
 	if debugFlag {
 		fmt.Printf("[essh debug] output ssh_config contents to the file: %s \n", outputConfig)
 	}
 
 	// generate ssh hosts config
-	content, err := GenHostsConfig()
+	content, err := GenHostsConfig(enabledHosts)
 	if err != nil {
 		return nil, err
 	}
@@ -762,57 +801,30 @@ func runTask(config string, task *Task, payload string) error {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
 	}
 
+	// re generate config (task).
+	if task.Context == nil {
+		_, err := UpdateSSHConfig(config, SortedPublicHosts())
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err := UpdateSSHConfig(config, SameContextHosts(task.Context.Type))
+		if err != nil {
+			return err
+		}
+	}
+
 	if err := processTaskConfigure(task); err != nil {
 		return err
 	}
 
 	if task.Configure != nil {
 		// re generate config.
-		_, err := UpdateSSHConfig(config)
+		_, err := UpdateSSHConfig(config, SortedHosts())
 		if err != nil {
 			return err
 		}
 	}
-
-	// deprecated.
-	//if task.Context != nil && task.Lock {
-	//	// lock
-	//	context := task.Context
-	//
-	//	// create lock directory, if it doesn't exist.
-	//	if _, err := os.Stat(context.LockDir()); os.IsNotExist(err) {
-	//		err = os.MkdirAll(context.LockDir(), os.FileMode(0755))
-	//		if err != nil {
-	//			return err
-	//		}
-	//	}
-	//
-	//	taskLockFile, err := lock.Lock(filepath.Join(context.LockDir(), "task-"+task.Name+".lock"), true, 1)
-	//	if err != nil {
-	//		return fmt.Errorf("'%v'. could not get exclusive lock. please wait!", err)
-	//	}
-	//	if debugFlag {
-	//		fmt.Printf("[essh debug] created lockfile: %s\n", taskLockFile.Path())
-	//	}
-	//
-	//	defer func() {
-	//		err := taskLockFile.UnLock()
-	//		if err != nil {
-	//			fmt.Fprintf(color.StderrWriter, "Did not unlock lockfile! %v\n", err)
-	//			return
-	//		}
-	//
-	//		if debugFlag {
-	//			fmt.Printf("[essh debug] unlocked: %s\n", taskLockFile.Path())
-	//		}
-	//
-	//		err = taskLockFile.Remove()
-	//		if err != nil {
-	//			fmt.Fprintf(color.StderrWriter, "Did not remove lockfile! %v\n", err)
-	//			return
-	//		}
-	//	}()
-	//}
 
 	if task.Prepare != nil {
 		if debugFlag {
@@ -831,7 +843,13 @@ func runTask(config string, task *Task, payload string) error {
 	// get target hosts.
 	if task.IsRemoteTask() {
 		// run remotely.
-		hosts := HostsByNames(task.On)
+		var hosts []*Host
+		if task.Context == nil {
+			hosts = FindPublicHosts(task.TargetsSlice())
+		} else {
+			hosts = FindHostsInContext(task.TargetsSlice(), task.Context.Type)
+		}
+
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 		for _, host := range hosts {
@@ -856,7 +874,13 @@ func runTask(config string, task *Task, payload string) error {
 		wg.Wait()
 	} else {
 		// run locally.
-		hosts := HostsByNames(task.Foreach)
+		var hosts []*Host
+		if task.Context == nil {
+			hosts = FindPublicHosts(task.TargetsSlice())
+		} else {
+			hosts = FindHostsInContext(task.TargetsSlice(), task.Context.Type)
+		}
+
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 
@@ -1085,7 +1109,7 @@ func runSSH(L *lua.LState, config string, args []string) error {
 	// hooks fires only when the hostname is just specified.
 	if len(args) == 1 {
 		hostname := args[0]
-		if host := GetHost(hostname); host != nil {
+		if host := GetPublicHost(hostname); host != nil {
 			hooks = host.Hooks
 		}
 	}
@@ -1284,36 +1308,10 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
-func processHostsExtend() error {
-
-	// TODO
-
-	//for _, host := range Hosts {
-	//	if host.Extend != "" {
-	//		superHost := GetHost(host.Extend)
-	//		if superHost == nil {
-	//			return fmt.Errorf("%s is not defined.", host.Extend)
-	//		}
-	//
-	//		childConfig := host.Config
-	//		childProps := host.Props
-	//		childHooks := host.Hooks
-	//		childDescription := host.Description
-	//		childHidden := host.Hidden
-	//
-	//
-	//		host.Config = superHost.Config
-	//		host.Description = superHost.Description
-	//	}
-	//}
-
-	return nil
-}
-
 func validateConfig() error {
 	// check duplication of the host, task and tag names
 	names := map[string]bool{}
-	for _, host := range Hosts {
+	for _, host := range SortedPublicHosts() {
 		if _, ok := names[host.Name]; ok {
 			return fmt.Errorf("'%s' is duplicated", host.Name)
 		}
@@ -1350,7 +1348,7 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 
 func removeModules() error {
 	if !noGlobalFlag {
-		c := NewContext(UserDataDir, ContextTypeUserData)
+		c := NewContext(UserDataDir, ContextTypeGlobal)
 		if _, err := os.Stat(c.ModulesDir()); err == nil {
 			err = os.RemoveAll(c.ModulesDir())
 			if err != nil {
@@ -1366,7 +1364,7 @@ func removeModules() error {
 		}
 	}
 
-	c := NewContext(WorkingDataDir, ContextTypeWorkingData)
+	c := NewContext(WorkingDataDir, ContextTypeLocal)
 	if _, err := os.Stat(c.ModulesDir()); err == nil {
 		err = os.RemoveAll(c.ModulesDir())
 		if err != nil {
