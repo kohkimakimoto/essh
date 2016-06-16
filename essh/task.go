@@ -11,15 +11,20 @@ type Task struct {
 	Pty         bool
 	Script      []map[string]string
 	File        string
+
+	// On and Foreach are deprecated. use "Backend" and "Targets"
 	On          []string
 	Foreach     []string
+	Backend     string
+	Targets     []string
+
 	Parallel    bool
 	Privileged  bool
 	// Lock is deprecated. use "bash.lock" in `modules/bash/index.lua`
 	Lock     bool
 	Disabled bool
 	Hidden   bool
-	Backend  string
+
 	Prefix   string
 	Context  *Context
 }
@@ -40,6 +45,7 @@ func NewTask() *Task {
 	return &Task{
 		On:      []string{},
 		Foreach: []string{},
+		Targets: []string{},
 		Backend: TASK_BACKEND_LOCAL,
 		Script:  []map[string]string{},
 	}
@@ -73,11 +79,31 @@ func GetEnabledTask(name string) *Task {
 }
 
 func (t *Task) IsRemoteTask() bool {
+	// for backward compatibility
 	if len(t.On) >= 1 {
 		return true
 	} else {
-		return false
+		if t.Backend == TASK_BACKEND_REMOTE {
+			return true
+		} else {
+			return false
+		}
 	}
+}
+
+func (t *Task) TargetsSlice() []string {
+	if len(t.Targets) >= 1 {
+		return t.Targets
+	}
+
+	// for backward compatibility
+	if len(t.On) >= 1 {
+		return t.On
+	} else if len(t.Foreach) >= 1 {
+		return t.Foreach
+	}
+
+	panic("couldn't load target configuration.")
 }
 
 func (t *Task) DescriptionOrDefault() string {

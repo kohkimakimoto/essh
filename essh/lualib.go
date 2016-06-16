@@ -588,6 +588,25 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) *Task {
 		}
 	}
 
+	backend := config.RawGetString("backend")
+	if backendStr, ok := toString(backend); ok {
+		task.Backend = backendStr
+		if backendStr != TASK_BACKEND_LOCAL && backendStr != TASK_BACKEND_REMOTE {
+			L.RaiseError("backend must be '%s' or '%s'.", TASK_BACKEND_LOCAL, TASK_BACKEND_REMOTE)
+		}
+	}
+
+	targets := config.RawGetString("targets")
+	if targetsStr, ok := toString(targets); ok {
+		task.Targets = []string{targetsStr}
+	} else if targetsSlice, ok := toSlice(targets); ok {
+		for _, target := range targetsSlice {
+			if targetStr, ok := target.(string); ok {
+				task.Targets = append(task.Targets, targetStr)
+			}
+		}
+	}
+
 	Tasks[task.Name] = task
 
 	return task

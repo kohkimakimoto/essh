@@ -813,7 +813,7 @@ func runTask(config string, task *Task, payload string) error {
 	// get target hosts.
 	if task.IsRemoteTask() {
 		// run remotely.
-		hosts := FindHosts(task.On, task.Context.Type)
+		hosts := FindHosts(task.TargetsSlice(), task.Context.Type)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 		for _, host := range hosts {
@@ -838,7 +838,7 @@ func runTask(config string, task *Task, payload string) error {
 		wg.Wait()
 	} else {
 		// run locally.
-		hosts := FindHosts(task.Foreach, task.Context.Type)
+		hosts := FindHosts(task.TargetsSlice(), task.Context.Type)
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
 

@@ -21,7 +21,6 @@ type Host struct {
 
 var GlobalHosts map[string]*Host = map[string]*Host{}
 var LocalHosts map[string]*Host = map[string]*Host{}
-
 var PublicHosts map[string]*Host = map[string]*Host{}
 
 func (h *Host) SSHConfig() []map[string]string {
@@ -238,5 +237,6 @@ func HostsByNames(names []string) []*Host {
 func ResetHosts() {
 	LocalHosts = map[string]*Host{}
 	GlobalHosts = map[string]*Host{}
+	PublicHosts = map[string]*Host{}
 
 }
