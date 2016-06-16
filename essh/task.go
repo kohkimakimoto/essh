@@ -13,20 +13,20 @@ type Task struct {
 	File        string
 
 	// On and Foreach are deprecated. use "Backend" and "Targets"
-	On          []string
-	Foreach     []string
-	Backend     string
-	Targets     []string
+	On      []string
+	Foreach []string
+	Backend string
+	Targets []string
 
-	Parallel    bool
-	Privileged  bool
+	Parallel   bool
+	Privileged bool
 	// Lock is deprecated. use "bash.lock" in `modules/bash/index.lua`
 	Lock     bool
 	Disabled bool
 	Hidden   bool
 
-	Prefix   string
-	Context  *Context
+	Prefix  string
+	Context *Context
 }
 
 var Tasks map[string]*Task = map[string]*Task{}

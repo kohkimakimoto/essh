@@ -67,8 +67,8 @@ var (
 	filtersVar      []string = []string{}
 	onVar           []string = []string{}
 	foreachVar      []string = []string{}
-	targetVar              []string = []string{}
-	backendVar             string
+	targetVar       []string = []string{}
+	backendVar      string
 	prefixStringVar string
 	driverVar       string
 	// beta implementation

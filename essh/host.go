@@ -212,7 +212,7 @@ func FindPublicHosts(names []string) []*Host {
 	var hosts = []*Host{}
 
 	for _, host := range SortedPublicHosts() {
-		B1:
+	B1:
 		for _, name := range names {
 			if host.Name == name {
 				hosts = append(hosts, host)
@@ -220,7 +220,7 @@ func FindPublicHosts(names []string) []*Host {
 			}
 		}
 
-		B2:
+	B2:
 		for _, tag := range host.Tags {
 			for _, name := range names {
 				if tag == name {
