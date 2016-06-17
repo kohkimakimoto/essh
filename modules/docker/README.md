@@ -8,14 +8,13 @@ It allows you to run a Essh task in a docker container.
 ```lua
 local docker = essh.require "github.com/kohkimakimoto/essh/modules/docker"
 
+driver "docker" {
+    engine = docker.driver,
+    image = "centos:centos6",
+}
+
 task "example" {
     description = "example",
-    configure = function()
-        driver "docker" {
-            engine = docker.driver,
-            image = "centos:centos6",
-        }
-    end,
     driver = "docker",
     script = {
         [=[
