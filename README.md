@@ -18,10 +18,6 @@ Essh is an extended ssh client command. The features are the following:
 
 ![optimized](essh-demo01.gif)
 
-**Demo2: Listing and filtering hosts. Running a command on the selected hosts.**
-
-![optimized](essh-demo02.gif)
-
 **Simple Configuration Example: `host` and `task`**
 
 ```lua
