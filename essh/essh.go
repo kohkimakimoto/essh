@@ -64,7 +64,7 @@ var (
 	scpFlag                bool
 
 	workindDirVar   string
-	selectVar      []string = []string{}
+	selectVar       []string = []string{}
 	targetVar       []string = []string{}
 	backendVar      string
 	prefixStringVar string
@@ -72,9 +72,9 @@ var (
 	// beta implementation
 	formatVar string
 	// deprecated
-	onVar           []string = []string{}
+	onVar []string = []string{}
 	// deprecated
-	foreachVar      []string = []string{}
+	foreachVar []string = []string{}
 )
 
 func Start() (err error) {
@@ -133,7 +133,6 @@ func start() error {
 		} else if arg == "--tasks" {
 			tasksFlag = true
 
-
 		} else if arg == "--filter" {
 			// filter is deprecated. use select instead of it.
 			if len(osArgs) < 2 {
@@ -143,8 +142,6 @@ func start() error {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--filter=") {
 			selectVar = append(selectVar, strings.Split(arg, "=")[1])
-
-
 
 		} else if arg == "--select" {
 			if len(osArgs) < 2 {
