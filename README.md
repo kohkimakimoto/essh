@@ -96,8 +96,8 @@ After installing Essh, run the `essh` without any options in your terminal to ch
 $ essh
 Usage: essh [<options>] [<ssh options and args...>]
 
-  essh is an extended ssh command.
-  version 0.29.0 (01b0ee302d8ac207c05b03affbc118e415ac4b81)
+  Essh is an extended ssh command.
+  version 0.36.0 (a16744408632097a23bf69e4fa88779d3ab387c4)
 
   Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
   The MIT License (MIT)
