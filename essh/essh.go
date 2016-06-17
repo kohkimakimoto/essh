@@ -64,15 +64,17 @@ var (
 	scpFlag                bool
 
 	workindDirVar   string
-	filtersVar      []string = []string{}
-	onVar           []string = []string{}
-	foreachVar      []string = []string{}
+	selectVar      []string = []string{}
 	targetVar       []string = []string{}
 	backendVar      string
 	prefixStringVar string
 	driverVar       string
 	// beta implementation
 	formatVar string
+	// deprecated
+	onVar           []string = []string{}
+	// deprecated
+	foreachVar      []string = []string{}
 )
 
 func Start() (err error) {
@@ -130,14 +132,28 @@ func start() error {
 			allFlag = true
 		} else if arg == "--tasks" {
 			tasksFlag = true
+
+
 		} else if arg == "--filter" {
+			// filter is deprecated. use select instead of it.
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--filter reguires an argument.")
 			}
-			filtersVar = append(filtersVar, osArgs[1])
+			selectVar = append(selectVar, osArgs[1])
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--filter=") {
-			filtersVar = append(filtersVar, strings.Split(arg, "=")[1])
+			selectVar = append(selectVar, strings.Split(arg, "=")[1])
+
+
+
+		} else if arg == "--select" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--select reguires an argument.")
+			}
+			selectVar = append(selectVar, osArgs[1])
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--select=") {
+			selectVar = append(selectVar, strings.Split(arg, "=")[1])
 		} else if arg == "--format" {
 			if len(osArgs) < 2 {
 				return fmt.Errorf("--format reguires an argument.")
@@ -513,8 +529,8 @@ func start() error {
 	// only print hosts list
 	if hostsFlag {
 		var hosts []*Host
-		if len(filtersVar) > 0 {
-			hosts = HostsByNames(filtersVar)
+		if len(selectVar) > 0 {
+			hosts = HostsByNames(selectVar)
 		} else {
 			hosts = SortedHosts()
 		}
@@ -537,16 +553,6 @@ func start() error {
 						scope = "private"
 					}
 					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
-
-					//if host.Private {
-					//	green := color.FgG
-					//	tb.Append([]string{green(host.Name), green(host.Description), green(strings.Join(host.Tags, ",")), green(host.Context.TypeString()), green(hidden), green(scope)})
-					//} else if host.Hidden {
-					//	yellow := color.FgY
-					//	tb.Append([]string{yellow(host.Name), yellow(host.Description), yellow(strings.Join(host.Tags, ",")), yellow(host.Context.TypeString()), yellow(hidden), yellow(scope)})
-					//} else {
-					//	tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
-					//}
 				}
 			}
 		}
@@ -848,6 +854,10 @@ func runTask(config string, task *Task, payload string) error {
 			hosts = FindPublicHosts(task.TargetsSlice())
 		} else {
 			hosts = FindHostsInContext(task.TargetsSlice(), task.Context.Type)
+		}
+
+		if len(hosts) == 0 {
+			return fmt.Errorf("There are not hosts to run the command. you must specify the valid remote hosts.")
 		}
 
 		wg := &sync.WaitGroup{}
@@ -1427,9 +1437,9 @@ manage hosts, tags and tasks.
   --hosts                       List hosts.
   --tags                        List tags.
   --tasks                       List tasks.
+  --select <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
+  --all                         (Using with --hosts, --tasks or --tags option) Show all that includs hidden objects.
   --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
-  --filter <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
-  --all                         (Using with --hosts or --tasks option) Show all that includs hidden objects.
 
 manage modules.
   --update                      Update modules.
@@ -1438,8 +1448,8 @@ manage modules.
 
 execute commands using hosts configuration.
   --exec                        Execute commands with the hosts.
-  --on <tag|host>               (Using with --exec option) Run commands on remote hosts.
-  --foreach <tag|host>          (Using with --exec option) Run commands locally for each hosts.
+  --target <tag|host>           (Using with --exec option) Target hosts to run the commands.
+  --backend <remote|local>      (Using with --exec option) Run the commands on local or remote hosts.
   --prefix                      (Using with --exec option) Enable outputing prefix.
   --prefix-string [<prefix>]    (Using with --exec option) Custom string of the prefix.
   --privileged                  (Using with --exec option) Run by the privileged user.
@@ -1556,7 +1566,17 @@ _essh_hosts_options() {
         '--debug:Output debug log.'
         '--quiet:Show only names.'
         '--all:Show all that includs hidden objects.'
-        '--filter:Use only the hosts filtered with a tag or a host'
+        '--select:Use only the hosts filtered with a tag or a host.'
+     )
+    _describe -t option "option" __essh_options
+}
+
+_essh_tasks_options() {
+    local -a __essh_options
+    __essh_options=(
+        '--debug:Output debug log.'
+        '--quiet:Show only names.'
+        '--all:Show all that includs hidden objects.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1566,6 +1586,7 @@ _essh_tags_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
+        '--all:Show all that includs hidden objects.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1574,8 +1595,8 @@ _essh_exec_options() {
     local -a __essh_options
     __essh_options=(
         '--debug:Output debug log.'
-        '--on:Run commands on remote hosts.'
-        '--foreach:Run commands locally for each hosts.'
+        '--backend:Run the commands on local or remote hosts.'
+        '--target:Target hosts to run the commands.'
         '--prefix:Disable outputing prefix.'
         '--prefix-string:Custom string of the prefix.'
         '--privileged:Run by the privileged user.'
@@ -1583,6 +1604,15 @@ _essh_exec_options() {
         '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
         '--file:Load commands from a file.'
         '--driver:Specify a driver.'
+     )
+    _describe -t option "option" __essh_options
+}
+
+_essh_backends() {
+    local -a __essh_options
+    __essh_options=(
+        'local'
+        'remote'
      )
     _describe -t option "option" __essh_options
 }
@@ -1638,9 +1668,12 @@ _essh () {
                 --file|--config-file)
                     _files
                     ;;
-                --filter|--on|--foreach)
+                --select|--target)
                     _essh_hosts
                     _essh_tags
+                    ;;
+                --backend)
+                    _essh_backends
                     ;;
                 *)
                     if [ "$execMode" = "on" ]; then
@@ -1648,7 +1681,7 @@ _essh () {
                     elif [ "$hostsMode" = "on" ]; then
                         _essh_hosts_options
                     elif [ "$tasksMode" = "on" ]; then
-                        _essh_hosts_options
+                        _essh_tasks_options
                     elif [ "$tagsMode" = "on" ]; then
                         _essh_tags_options
                     else

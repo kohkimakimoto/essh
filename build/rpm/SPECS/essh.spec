@@ -1,5 +1,5 @@
 Name:           essh
-Version:        0.35.0
+Version:        0.36.0
 Release:        1.el%{rhel}
 Summary:        Essh is an extended ssh command.
 

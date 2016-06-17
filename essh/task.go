@@ -103,7 +103,7 @@ func (t *Task) TargetsSlice() []string {
 		return t.Foreach
 	}
 
-	panic("couldn't load target configuration.")
+	return []string{}
 }
 
 func (t *Task) DescriptionOrDefault() string {
