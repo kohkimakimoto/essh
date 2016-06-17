@@ -38,7 +38,7 @@ task "deploy" {
     description = "deploy new application.",
     prefix = true,
     parallel= true,
-    on = "web",
+    targets = "web",
     script = [=[
         cd /path/to/dir
         git clone git@github.com:path/to/app.git
@@ -302,30 +302,30 @@ Run `essh` with `--hosts` option.
 
 ```
 $ essh --hosts
-NAME                 DESCRIPTION                 TAGS         
-web01.localhost      web01 development server    web          
-web02.localhost      web02 development server    web          
-db01.localhost       db01 server                 db,backend   
-cache01.localhost    cache01 server              cache,backend
+NAME                 DESCRIPTION                 TAGS             REGISTRY    HIDDEN    SCOPE
+cache01.localhost    cache01 server              cache,backend    local                      
+db01.localhost       db01 server                 db,backend       local                      
+web01.localhost      web01 development server    web              local                      
+web02.localhost      web02 development server    web              local                      
 ```
 
-You can see the all hosts. Next, try to run it with `--filter` option.
+You can see the all hosts. Next, try to run it with `--select` option.
 
 ```
-$ essh --hosts --filter=web
-NAME               DESCRIPTION                 TAGS
-web01.localhost    web01 development server    web
-web02.localhost    web02 development server    web
+$ essh --hosts --select=web
+NAME               DESCRIPTION                 TAGS    REGISTRY    HIDDEN    SCOPE
+web01.localhost    web01 development server    web     local                      
+web02.localhost    web02 development server    web     local                      
 ```
 
-You will get filtered hosts by `web` tag. `--filter` can be specified multiple times. Each filters are used in OR condition.
+You will get filtered hosts by `web` tag. `--select` can be specified multiple times. Each filters are used in OR condition.
 
 ```
-$ essh --hosts --filter=web --filter=db
-NAME               DESCRIPTION                 TAGS      
-web01.localhost    web01 development server    web       
-web02.localhost    web02 development server    web       
-db01.localhost     db01 server                 db,backend
+$ essh --hosts --select=web --select=db
+NAME               DESCRIPTION                 TAGS          REGISTRY    HIDDEN    SCOPE
+db01.localhost     db01 server                 db,backend    local                      
+web01.localhost    web01 development server    web           local                      
+web02.localhost    web02 development server    web           local                      
 ```
 
 For more information on hosts, see the [Hosts](#hosts) section.
@@ -335,7 +335,7 @@ For more information on hosts, see the [Hosts](#hosts) section.
 Essh allow you to run commands on the selected remote hosts by using `--exec` and `--on` options.
 
 ```
-$ essh --exec --on=web uptime
+$ essh --exec --backend=remote --target=web uptime
  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
 ```
@@ -343,7 +343,7 @@ $ essh --exec --on=web uptime
 Use `--prefix` option, Essh outputs result of command with hostname prefix.
 
 ```
-$ essh --exec --on=web --prefix uptime
+$ essh --exec --backend=remote --target=web --prefix uptime
 [web01.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
 [web02.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
 ```
@@ -359,7 +359,8 @@ For example, edit your `essh.lua`.
 task "hello" {
     description = "say hello",
     prefix = true,
-    on = "web",
+    backend = "remote",
+    target = "web",
     script = [=[
         echo "hello on $(hostname)"
     ]=],
@@ -374,12 +375,13 @@ $ essh hello
 [web02.localhost] hello on web02.localhost
 ```
 
-If you don't specify `on` property, Essh runs a task locally.
+If you don't specify `local` to `backend` property, Essh runs a task locally.
 
 ```lua
 task "hello" {
     description = "say hello",
     prefix = true,
+    backend = "local",
     script = [=[
         echo "hello on $(hostname)"
     ]=],
@@ -504,7 +506,8 @@ host "web02.localhost" {
 }
 
 task "uptime" {
-    on = "web",
+    backend = "remote",
+    targets = "web",
     script = "uptime",
 }
 ```
@@ -532,6 +535,7 @@ host "web01.localhost" {
     -- Special purpose properties.
     description = "web01 development server",
     hidden = false,
+    private = false,
     props = {},
     tags = {},
     hooks = {
@@ -559,6 +563,8 @@ All the properties of this type are listed below.
 * `description` (string): Description is a description of the host.
 
 * `hidden` (boolean): If you set it true, zsh completion doesn't show the host.
+
+* `private` (boolean): If you set it true, This host only can be used to the tasks.
 
 * `hooks` (table): Hooks is a table that defines `before_connect`(string or function), `after_connect`(string or function) and `after_disconnect`(string or function).
 
@@ -595,9 +601,10 @@ Example:
 ```lua
 task "example" {
     description = "example task",
-    on = {
+    targets = {
         "web"
     },
+    backend = "local",
     parallel = true,
     prefix = true,
     script = {
@@ -643,9 +650,9 @@ task "example" {
 
 * `hidden` (boolean): If it is true, this task is not displayed in tasks list.
 
-* `on` (string|table): Host names and tags that the task's scripts is executed on. If you set this, the task is executed on the remote hosts. `on` couldn't be used with `foreach`.
+* `targets` (string|table): Host names and tags that the task's scripts is executed for.
 
-* `foreach` (string|table): Host names and tags that the task's scripts is executed for. If you set this, the task is executed on the local hosts. `foreach` couldn't be used with `on`.
+* `backend` (string): You can set value only `remote` or `local`.
 
 * `prefix` (boolean|string): If it is true, Essh displays task's output with hostname prefix. If it is string, Essh displays task's output with custom prefix. This string can be used with text/template format like `{{.Host.Name}}`.
 
@@ -699,28 +706,6 @@ task "example" {
   * `ESSH_HOST_TAGS_{TAG}`: tag.
 
   * `ESSH_HOST_PROPS_{KEY}`: property that is set by host's props. See Hosts [Special Purpose Properties](#special-purpose-properties).
-
-* `configure` (function):
-
-  Configure is a function that overrides Essh config when the task runs. This allows you to define **private config** in the task. Especially It is useful for hosts config. See the below example:
-
-  ```lua
-  task "example" {
-      configure = function()
-          host "server1" {
-              HostName = "192.168.0.1",
-              User = "kohkimakimoto",
-          }
-      end,
-      on = "server1",
-      script = {
-          "echo hello",
-      },
-  }
-  ```
-
-  If you use `configure`, before the task running, Essh cleans any hosts config. And update hosts config in the configure function process.
-  Therefore, this task runs on "server1 (192.168.0.1)", and ignores other hosts config that are defined in other places.
 
 ## Lua VM
 
