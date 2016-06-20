@@ -51,7 +51,7 @@ Table of contents
 
 * [Getting Started](#getting-started)
   * [Installation](#installation)
-  * [Using As SSH](#using-as-ssh-client)
+  * [Using As SSH Client](#using-as-ssh-client)
   * [Zsh Completion](#zsh-completion)
   * [Using Hooks](#using-hooks)
   * [Managing Hosts](#managing-hosts)
