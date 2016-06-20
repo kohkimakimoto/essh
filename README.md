@@ -51,7 +51,7 @@ Table of contents
 
 * [Getting Started](#getting-started)
   * [Installation](#installation)
-  * [Using As SSH](#using-as-ssh)
+  * [Using As SSH](#using-as-ssh-client)
   * [Zsh Completion](#zsh-completion)
   * [Using Hooks](#using-hooks)
   * [Managing Hosts](#managing-hosts)
@@ -107,7 +107,7 @@ See also:
 
 ```
 
-### Using As SSH
+### Using As SSH Client
 
 Essh is implemented as a wrapper of `ssh` command. That means you can completely use Essh in the same way as `ssh`. Try to connect a remote server by using Essh like `ssh` command.
 
