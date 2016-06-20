@@ -27,13 +27,21 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 
 	// modules
+	L.PreloadModule("glua.json", gluajson.Loader)
+	L.PreloadModule("glua.fs", gluafs.Loader)
+	L.PreloadModule("glua.yaml", gluayaml.Loader)
+	L.PreloadModule("glua.template", gluatemplate.Loader)
+	L.PreloadModule("glua.question", gluaquestion.Loader)
+	L.PreloadModule("glua.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
+
+	// deprecated. this is for backforward compalibilty
 	L.PreloadModule("essh.json", gluajson.Loader)
 	L.PreloadModule("essh.fs", gluafs.Loader)
 	L.PreloadModule("essh.yaml", gluayaml.Loader)
 	L.PreloadModule("essh.template", gluatemplate.Loader)
 	L.PreloadModule("essh.question", gluaquestion.Loader)
 	L.PreloadModule("essh.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
-
+	
 	// global variables
 	lessh := L.NewTable()
 	L.SetGlobal("essh", lessh)
