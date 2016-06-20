@@ -65,6 +65,7 @@ Table of contents
 * [Hosts](#hosts)
   * [SSH Config Properties](#ssh-config-properties)
   * [Special Purpose Properties](#special-purpose-properties)
+  * [Private Hosts](#private-hosts)
 * [Tasks](#tasks)
   * [Properties](#properties)
 * [Lua VM](#lua-vm)
@@ -586,6 +587,29 @@ All the properties of this type are listed below.
     -- ESSH_HOST_PROPS_FOO=bar
     ```
 
+### Private Hosts
+
+You can use `private_host` function as an alias to define a private host. See the below example:
+
+```lua
+private_host "example" {
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+}
+```
+
+This is same the following:
+
+```lua
+host "example" {
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+    private = true,
+}
+```
+
 ## Tasks
 
 Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
@@ -644,7 +668,7 @@ task "example" {
 
 * `hidden` (boolean): If it is true, this task is not displayed in tasks list.
 
-* `targets` (string|table): Host names and tags that the task's scripts is executed for.
+* `targets` (string|table): Host names and tags that the task's scripts is executed for. You can use only hosts and tags which defined by same configuration registry of the task. If you defines a task in `/var/tmp/example.lua`, This task can not use hosts defined in `~/.essh/config.lua`. The first configuration file is **local** registry. But the second configuration file is **global** registry.
 
 * `backend` (string): You can set value only `remote` or `local`.
 
