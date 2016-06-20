@@ -41,7 +41,7 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("essh.template", gluatemplate.Loader)
 	L.PreloadModule("essh.question", gluaquestion.Loader)
 	L.PreloadModule("essh.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
-	
+
 	// global variables
 	lessh := L.NewTable()
 	L.SetGlobal("essh", lessh)

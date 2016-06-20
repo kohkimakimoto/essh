@@ -78,6 +78,7 @@ Table of contents
 * [Command Line Options](#command-line-options)
   * [Custom Drivers](#custom-drivers)
 * [Integrating Other SSH Related Commands](#integrating-other-ssh-related-commands)
+* [Developing](#developing)
 * [Author](#author)
 * [License](#license)
 
@@ -995,6 +996,32 @@ Essh can be used with `scp`, `rsync` and `git`.
   ```
   $ ersync <rsync command args...>
   ```
+
+## Developing
+
+Building dev binary.
+
+```
+$ make
+```
+
+Building distributed binaries.
+
+```
+$ make dist
+```
+
+Packaging RPM.
+
+```
+$ make dist
+$ make packaging
+```
+
+If you want to bump up version. check and modify the version number in the following files
+
+* [essh/version.go](essh/version.go)
+* [build/rpm/SPEC/essh.spec](build/rpm/SPEC/essh.spec)
 
 ## Author
 
