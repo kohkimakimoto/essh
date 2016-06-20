@@ -1021,7 +1021,7 @@ $ make packaging
 If you want to bump up version. check and modify the version number in the following files
 
 * [essh/version.go](essh/version.go)
-* [build/rpm/SPEC/essh.spec](build/rpm/SPEC/essh.spec)
+* [build/rpm/SPECS/essh.spec](build/rpm/SPECS/essh.spec)
 
 ## Author
 
