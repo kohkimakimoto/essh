@@ -999,6 +999,18 @@ Essh can be used with `scp`, `rsync` and `git`.
 
 ## Developing
 
+Requirements
+
+* Go 1.6 or later
+* [Gom](https://github.com/mattn/gom)
+* [direnv](https://github.com/direnv/direnv)
+
+Installing dependences
+
+```
+$ make deps
+```
+
 Building dev binary.
 
 ```
@@ -1007,21 +1019,17 @@ $ make
 
 Building distributed binaries.
 
-```
-$ make dist
-```
-
-Packaging RPM.
 
 ```
 $ make dist
-$ make packaging
 ```
 
-If you want to bump up version, check and modify the version number in the following files:
+Building packages (now support only RPM)
 
-* [essh/version.go](essh/version.go)
-* [build/rpm/SPECS/essh.spec](build/rpm/SPECS/essh.spec)
+```
+$ make dist
+$ make package
+```
 
 ## Author
 
