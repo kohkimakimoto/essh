@@ -1,32 +1,26 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-name = "essh"
+product_name = "#{ENV['PRODUCT_NAME']}"
+product_version = "#{ENV['PRODUCT_VERSION']}"
 
 Vagrant.configure(2) do |config|
 
   %w{
-    centos-6.5
-    centos-7.0
+    centos-6
+    centos-7
   }.each_with_index do |platform, index|
-
-    config.vbguest.auto_update = false
     config.vm.define platform do |c|
-
-      c.vm.box = "opscode-#{platform}"
-      c.vm.box_url = "http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_#{platform}_chef-provisionerless.box"
-      c.vm.hostname = "#{name}-packaging-#{platform}"
+      c.vm.box = "kohkimakimoto/#{platform}"
+      c.vm.hostname = "go-packaging-machine-#{platform}"
       c.vm.network :private_network, type: "dhcp"
-      c.vm.synced_folder __dir__ + "/../dist", "/var/dist"
+      c.vm.synced_folder __dir__ + "/../../dist", "/var/dist"
 
       case platform
-        when 'centos-5.10'
-          epel = "sudo rpm -Uvh http://ftp-srv2.kddilabs.jp/Linux/distributions/fedora/epel/5/x86_64/epel-release-5-4.noarch.rpm"
-          extra = "gcc44 gcc44-c++"
-        when 'centos-6.5'
+        when 'centos-6'
           epel = "sudo yum -y install http://ftp.riken.jp/Linux/fedora/epel/6/x86_64/epel-release-6-8.noarch.rpm"
           extra = ""
-        when 'centos-7.0'
+        when 'centos-7'
           epel = "sudo yum -y install epel-release"
           extra = ""
         else
@@ -54,11 +48,14 @@ Vagrant.configure(2) do |config|
         echo "Copying files..."
         cp -pr /vagrant/SPECS $HOME/rpmbuild/
         cp -pr /vagrant/SOURCES $HOME/rpmbuild/
-        cp -p /var/dist/#{name}_linux_amd64.zip $HOME/rpmbuild/SOURCES/#{name}_linux_amd64.zip
+        cp -p  /var/dist/#{product_name}_linux_amd64.zip $HOME/rpmbuild/SOURCES/#{product_name}_linux_amd64.zip
 
         echo "Building rpm..."
         cd $HOME
-        rpmbuild -ba rpmbuild/SPECS/#{name}.spec
+        rpmbuild \
+            --define "_product_name #{product_name}" \
+            --define "_product_version #{product_version}" \
+            -ba rpmbuild/SPECS/#{product_name}.spec
 
         echo "Copying rpms back to shared folder..."
         mkdir -p /var/dist/#{platform}

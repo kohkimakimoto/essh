@@ -1,34 +1,30 @@
-.PHONY: default dev dist packaging fmt test testv deps updatedeps
+.PHONY: default dev dist packaging packaging_destroy fmt test testv deps updatedeps
 
 default: dev
 
-# dev creates your platform binary.
 dev:
-	@sh -c "$(CURDIR)/build/build.sh dev"
+	@bash -c $(CURDIR)/_build/dev.sh
 
-# dist creates all platform binaries.
 dist:
-	@sh -c "$(CURDIR)/build/build.sh dist"
+	@bash -c $(CURDIR)/_build/dist.sh
 
-# packaging creates all platform binaries and rpm packages.
 packaging:
-	@sh -c "$(CURDIR)/build/build.sh packaging"
+	@bash -c $(CURDIR)/_build/packaging.sh
 
-# destroy remove all vagrant vm used to create packages.
-destroy:
-	@sh -c "$(CURDIR)/build/build.sh destroy"
+packaging_destroy:
+	@sh -c "cd $(CURDIR)/_build/packaging/rpm && vagrant destroy -f"
 
 fmt:
 	go fmt ./...
 
 test:
-	gom test ./... -cover
+	go test ./... -cover
 
 testv:
-	gom test ./... -v
+	go test ./... -v
 
 deps:
 	gom install
 
-updatedeps:
+deps_update:
 	rm Gomfile.lock; rm -rf _vendor; gom install && gom lock
