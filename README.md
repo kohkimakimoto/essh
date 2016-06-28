@@ -1028,7 +1028,7 @@ Building packages (now support only RPM)
 
 ```
 $ make dist
-$ make package
+$ make packaging
 ```
 
 ## Author
