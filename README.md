@@ -749,6 +749,7 @@ The following are the built-in libraries that are included in Essh.
 * `glua.yaml`: Yaml parser. It is implemented by [gluayaml](https://github.com/kohkimakimoto/gluayaml).
 * `glua.template`: Text template. It is implemented by [gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
 * `glua.question`: A library to prompt the user for input. It is implemented by [gluaquestion](https://github.com/kohkimakimoto/gluaquestion).
+* `glua.env`: Utility package for manipulating environment variables. It is implemented by [gluaenv](https://github.com/kohkimakimoto/gluaenv).
 * `glua.http`: Http module. It is implemented by [gluahttp](https://github.com/cjoudrey/gluahttp).
 
 Of course, You can also use another Lua libraries by using `require`. See the Lua's [manual](http://www.lua.org/manual/5.1/manual.html#pdf-require).

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cjoudrey/gluahttp"
 	"github.com/kohkimakimoto/essh/gluamapper"
+	"github.com/kohkimakimoto/gluaenv"
 	"github.com/kohkimakimoto/gluafs"
 	"github.com/kohkimakimoto/gluajson"
 	"github.com/kohkimakimoto/gluaquestion"
@@ -32,6 +33,7 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("glua.yaml", gluayaml.Loader)
 	L.PreloadModule("glua.template", gluatemplate.Loader)
 	L.PreloadModule("glua.question", gluaquestion.Loader)
+	L.PreloadModule("glua.env", gluaenv.Loader)
 	L.PreloadModule("glua.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 
 	// deprecated. this is for backforward compalibilty
