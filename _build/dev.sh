@@ -23,7 +23,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
 cd "$DIR"
 source ./_build/config
 
-PRODUCT_VERSION="dev"
+PRODUCT_VERSION="dev-${PRODUCT_VERSION}"
 
 echo "--> Building dev binary..."
 echo "    PRODUCT_NAME: $PRODUCT_NAME"

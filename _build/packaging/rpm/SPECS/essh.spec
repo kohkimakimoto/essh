@@ -1,6 +1,12 @@
 Name:           %{_product_name}
 Version:        %{_product_version}
-Release:        1.el%{rhel}
+
+%if 0%{?rhel} >= 5
+Release:        1.el%{?rhel}
+%else
+Release:        1%{?dist}
+%endif
+
 Summary:        Essh is an extended ssh command.
 Group:          Development/Tools
 License:        MIT
@@ -28,6 +34,7 @@ cp %{SOURCE1} %{buildroot}/%{_sysconfdir}/essh/config.lua
 
 %clean
 rm -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root,-)
