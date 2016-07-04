@@ -21,6 +21,14 @@ while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
 DIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
 
 cd "$DIR"
+
+# Checks if it has loaded .envrc by direnv.
+if [ -z ${DIRENV_DIR+x} ]; then
+    if [ -e "./.envrc" ]; then
+        source ./.envrc
+    fi
+fi
+
 source ./_build/config
 
 echo "--> Building packages..."
