@@ -24,7 +24,7 @@ var (
 	SystemWideConfigFile string
 	UserConfigFile       string
 	UserDataDir          string
-	WorkingDirConfigFile string
+	WorkingDirConfigFiles []string
 	WorkingDataDir       string
 	WorkingDir           string
 )
@@ -34,9 +34,6 @@ var (
 	versionFlag            bool
 	helpFlag               bool
 	printFlag              bool
-	configFlag             bool
-	userConfigFlag         bool
-	systemConfigFlag       bool
 	debugFlag              bool
 	hostsFlag              bool
 	quietFlag              bool
@@ -69,8 +66,6 @@ var (
 	backendVar      string
 	prefixStringVar string
 	driverVar       string
-	// beta implementation
-	formatVar string
 	// deprecated
 	onVar []string = []string{}
 	// deprecated
@@ -116,12 +111,6 @@ func start() error {
 			versionFlag = true
 		} else if arg == "--help" {
 			helpFlag = true
-		} else if arg == "--config" {
-			configFlag = true
-		} else if arg == "--user-config" {
-			userConfigFlag = true
-		} else if arg == "--system-config" {
-			systemConfigFlag = true
 		} else if arg == "--debug" {
 			debugFlag = true
 		} else if arg == "--hosts" {
@@ -151,14 +140,6 @@ func start() error {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--select=") {
 			selectVar = append(selectVar, strings.Split(arg, "=")[1])
-		} else if arg == "--format" {
-			if len(osArgs) < 2 {
-				return fmt.Errorf("--format reguires an argument.")
-			}
-			formatVar = osArgs[1]
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--format=") {
-			formatVar = strings.Split(arg, "=")[1]
 		} else if arg == "--tags" {
 			tagsFlag = true
 		} else if arg == "--gen" {
@@ -293,7 +274,17 @@ func start() error {
 	}
 	WorkingDir = wd
 	WorkingDataDir = filepath.Join(wd, ".essh")
-	WorkingDirConfigFile = filepath.Join(wd, "essh.lua")
+	WorkingDirConfigFiles = []string{
+		filepath.Join(wd, "esshconfig.lua"),
+		filepath.Join(wd, ".esshconfig.lua"),
+	}
+
+	if _, err := os.Stat(filepath.Join(wd, "esshconfig.lua")); err != nil {
+		// // deprecated. this is for the backend compatibility..
+		WorkingDirConfigFiles = []string{
+			filepath.Join(wd, "essh.lua"),
+		}
+	}
 
 	if helpFlag {
 		printHelp()
@@ -325,21 +316,6 @@ func start() error {
 
 	if bashCompletionFlag {
 		fmt.Print(BASH_COMPLETION)
-		return nil
-	}
-
-	if configFlag {
-		runCommand(getEditor() + " " + WorkingDirConfigFile)
-		return nil
-	}
-
-	if userConfigFlag {
-		runCommand(getEditor() + " " + UserConfigFile)
-		return nil
-	}
-
-	if systemConfigFlag {
-		runCommand(getEditor() + " " + SystemWideConfigFile)
 		return nil
 	}
 
@@ -418,49 +394,28 @@ func start() error {
 	}
 
 	// load current dir config
-	if WorkingDirConfigFile != "" {
-		if _, err := os.Stat(WorkingDirConfigFile); err == nil {
+	// change context to working dir context
+	CurrentContext = NewContext(WorkingDataDir, ContextTypeLocal)
+	ContextMap[CurrentContext.Key] = CurrentContext
 
-			if debugFlag {
-				fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirConfigFile)
-			}
-
-			// change context to working dir context
-			CurrentContext = NewContext(WorkingDataDir, ContextTypeLocal)
-			ContextMap[CurrentContext.Key] = CurrentContext
-
-			if err := CurrentContext.MkDirs(); err != nil {
-				return err
-			}
-
-			if err := L.DoFile(WorkingDirConfigFile); err != nil {
-				return err
-			}
-
-			if debugFlag {
-				fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirConfigFile)
-			}
+	for _, file := range WorkingDirConfigFiles {
+		if _, err := os.Stat(file); err != nil {
+			continue
 		}
 
-		// load additional config files.
-		files, err := filepath.Glob(filepath.Join(WorkingDir, "essh.*.lua"))
-		if err != nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s\n", file)
+		}
+
+		if err := L.DoFile(file); err != nil {
 			return err
 		}
-		for _, file := range files {
-			if debugFlag {
-				fmt.Printf("[essh debug] loading config file: %s\n", file)
-			}
 
-			if err := L.DoFile(file); err != nil {
-				return err
-			}
-
-			if debugFlag {
-				fmt.Printf("[essh debug] loaded config file: %s\n", file)
-			}
+		if debugFlag {
+			fmt.Printf("[essh debug] loaded config file: %s\n", file)
 		}
 	}
+
 
 	// basic configuration loading is completed.
 
@@ -1540,9 +1495,6 @@ _essh_options() {
         '--update:Update modules.'
         '--clean:Clean the downloaded modules.'
         '--no-global:Update or clean only the modules about per-project config.'
-        '--config:Edit config file in the current directory.'
-        '--user-config:Edit per-user config file.'
-        '--system-config:Edit system wide config file.'
         '--working-dir:Change working directory.'
         '--hosts:List hosts.'
         '--tags:List tags.'
@@ -1660,9 +1612,9 @@ _essh () {
             done
 
             case $last_arg in
-                --print|--help|--version|--gen|--config|--system-config)
+                --print|--help|--version|--gen)
                     ;;
-                --file|--config-file)
+                --file)
                     _files
                     ;;
                 --select|--target)

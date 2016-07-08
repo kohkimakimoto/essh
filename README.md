@@ -99,7 +99,7 @@ $ essh
 Usage: essh [<options>] [<ssh options and args...>]
 
   Essh is an extended ssh command.
-  version 0.36.0 (a16744408632097a23bf69e4fa88779d3ab387c4)
+  version 0.41.0 (961a5172da6e806e3842a5507f92e76489504a4a)
 
   Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
   The MIT License (MIT)
@@ -113,7 +113,7 @@ See also:
 
 Essh is implemented as a wrapper of `ssh` command. That means you can completely use Essh in the same way as `ssh`. Try to connect a remote server by using Essh like `ssh` command.
 
-Create `essh.lua` in your current directory. This is a configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language. Now edit this file as the following.
+Create `esshconfig.lua` in your current directory. This is a configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language. Now edit this file as the following.
 
 > Replace the `HostName` and some parameters for your environment.
 
@@ -173,7 +173,7 @@ Essh supports zsh completion that lists SSH hosts. If you want to use it, add th
 eval "$(essh --zsh-completion)"
 ```
 
-And then, edit your `essh.lua`. Try to add the `description` property as the following.
+And then, edit your `esshconfig.lua`. Try to add the `description` property as the following.
 
 ```lua
 host "web01.localhost" {
@@ -256,7 +256,7 @@ host "web01.localhost" {
 
 ### Managing Hosts
 
-Tags allow you to classify hosts. For instance, edit `essh.lua` to add some hosts and set tags.
+Tags allow you to classify hosts. For instance, edit `esshconfig.lua` to add some hosts and set tags.
 
 ```lua
 host "web01.localhost" {
@@ -349,7 +349,7 @@ For more information, see the [Command Line Options](#command-line-options) sect
 ### Running Tasks
 
 You can define tasks that are executed on remote and local servers.
-For example, edit your `essh.lua`.
+For example, edit your `esshconfig.lua`.
 
 ```lua
 task "hello" {
@@ -512,8 +512,8 @@ Essh loads configuration files from several different places.
 
 * At first, loads `/etc/essh/config.lua` that is the system-wide configuration.
 * At second, loads `~/.essh/config.lua` that is the per-user configuration.
-* At third, loads `essh.lua` in the current directory for the per-project configuration.
-* At last, loads `essh.*.lua` like `essh.dev.lua`, `essh.test.lua` in the current directory for the per-project configuration.
+* At third, loads `esshconfig.lua` in the current directory for the per-project configuration.
+* At last, loads `.esshconfig.lua` in the current directory for the per-project configuration.
 
 ## Hosts
 
