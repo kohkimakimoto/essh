@@ -1379,9 +1379,6 @@ general options.
   --help                        Print help.
   --print                       Print generated ssh config.
   --gen                         Only generate ssh config.
-  --config                      Edit config file in the current directory.
-  --user-config                 Edit per-user config file.
-  --system-config               Edit system wide config file.
   --working-dir <dir>           Change working directory.
   --debug                       Output debug log.
 
