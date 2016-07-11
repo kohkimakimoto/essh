@@ -513,8 +513,7 @@ Essh loads configuration files from several different places.
 
 * At first, loads `/etc/essh/config.lua` that is the system-wide configuration.
 * At second, loads `~/.essh/config.lua` that is the per-user configuration.
-* At third, loads `esshconfig.lua` in the current directory for the per-project configuration.
-* At last, loads `.esshconfig.lua` in the current directory for the per-project configuration.
+* At third, loads `esshconfig.lua` in the current directory for the per-project configuration or loads a file specified by `--config` command line option.
 
 ## Hosts
 

@@ -24,7 +24,7 @@ var (
 	SystemWideConfigFile string
 	UserConfigFile       string
 	UserDataDir          string
-	WorkingDirConfigFiles []string
+	WorkingDirConfigFile string
 	WorkingDataDir       string
 	WorkingDir           string
 )
@@ -61,6 +61,7 @@ var (
 	scpFlag                bool
 
 	workindDirVar   string
+	configVar       string
 	selectVar       []string = []string{}
 	targetVar       []string = []string{}
 	backendVar      string
@@ -174,6 +175,14 @@ func start() error {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--working-dir=") {
 			workindDirVar = strings.Split(arg, "=")[1]
+		} else if arg == "--config" {
+			if len(osArgs) < 2 {
+				return fmt.Errorf("--config reguires an argument.")
+			}
+			configVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--config=") {
+			configVar = strings.Split(arg, "=")[1]
 		} else if arg == "--exec" {
 			execFlag = true
 		} else if arg == "--on" {
@@ -274,15 +283,19 @@ func start() error {
 	}
 	WorkingDir = wd
 	WorkingDataDir = filepath.Join(wd, ".essh")
-	WorkingDirConfigFiles = []string{
-		filepath.Join(wd, "esshconfig.lua"),
-		filepath.Join(wd, ".esshconfig.lua"),
-	}
+	WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
 
 	if _, err := os.Stat(filepath.Join(wd, "esshconfig.lua")); err != nil {
-		// // deprecated. this is for the backend compatibility..
-		WorkingDirConfigFiles = []string{
-			filepath.Join(wd, "essh.lua"),
+		// // deprecated. this is for the backend compatibility...
+		WorkingDirConfigFile = filepath.Join(wd, "essh.lua")
+	}
+
+	// overwrite config file path by --config option.
+	if configVar != "" {
+		if filepath.IsAbs(configVar) {
+			WorkingDirConfigFile = configVar
+		} else {
+			WorkingDirConfigFile = filepath.Join(wd, configVar)
 		}
 	}
 
@@ -398,21 +411,17 @@ func start() error {
 	CurrentContext = NewContext(WorkingDataDir, ContextTypeLocal)
 	ContextMap[CurrentContext.Key] = CurrentContext
 
-	for _, file := range WorkingDirConfigFiles {
-		if _, err := os.Stat(file); err != nil {
-			continue
-		}
-
+	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
 		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s\n", file)
+			fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirConfigFile)
 		}
 
-		if err := L.DoFile(file); err != nil {
+		if err := L.DoFile(WorkingDirConfigFile); err != nil {
 			return err
 		}
 
 		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s\n", file)
+			fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirConfigFile)
 		}
 	}
 
@@ -1380,6 +1389,7 @@ general options.
   --print                       Print generated ssh config.
   --gen                         Only generate ssh config.
   --working-dir <dir>           Change working directory.
+  --config <file>               Load per-project configuration from the file.
   --debug                       Output debug log.
 
 manage hosts, tags and tasks.
@@ -1493,6 +1503,7 @@ _essh_options() {
         '--clean:Clean the downloaded modules.'
         '--no-global:Update or clean only the modules about per-project config.'
         '--working-dir:Change working directory.'
+        '--config:Load per-project configuration from the file.'
         '--hosts:List hosts.'
         '--tags:List tags.'
         '--tasks:List tasks.'
@@ -1611,7 +1622,7 @@ _essh () {
             case $last_arg in
                 --print|--help|--version|--gen)
                     ;;
-                --file)
+                --file|--config)
                     _files
                     ;;
                 --select|--target)
