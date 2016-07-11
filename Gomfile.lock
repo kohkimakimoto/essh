@@ -6,6 +6,7 @@ gom 'github.com/kohkimakimoto/gluafs', :commit => '550a2108241abf5395604a06a93f1
 gom 'github.com/kohkimakimoto/gluaquestion', :commit => '311437c29ba54d027ad2af383661725ae2bfdcdc'
 gom 'github.com/kohkimakimoto/gluaenv', :commit => 'c40e178fa526ce797ba85e4960b266d6f2eda198'
 gom 'github.com/cjoudrey/gluahttp', :commit => '9597a1d57575a0121726a2c50ad54fb74493a296'
+gom 'github.com/otm/gluash', :commit => 'e145c563986f0b91f740a758a84bca46c163aec7'
 gom 'github.com/fatih/color', :commit => '87d4004f2ab62d0d255e0a38f1680aa534549fe3'
 gom 'github.com/hashicorp/go-getter', :commit => '3d6040e1c4b972f6634c5aafb08901f916c5ee3c'
 gom 'github.com/mitchellh/gox', :commit => '6e9ee79eab7bb1b84155379b3f94ff9a87b344e4'

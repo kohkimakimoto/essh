@@ -10,6 +10,7 @@ import (
 	"github.com/kohkimakimoto/gluaquestion"
 	"github.com/kohkimakimoto/gluatemplate"
 	"github.com/kohkimakimoto/gluayaml"
+	"github.com/otm/gluash"
 	"github.com/yuin/gopher-lua"
 	"net/http"
 	"os"
@@ -35,6 +36,7 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("glua.question", gluaquestion.Loader)
 	L.PreloadModule("glua.env", gluaenv.Loader)
 	L.PreloadModule("glua.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
+	L.PreloadModule("glua.sh", gluash.Loader)
 
 	// deprecated. this is for backforward compalibilty
 	L.PreloadModule("essh.json", gluajson.Loader)
@@ -43,6 +45,7 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("essh.template", gluatemplate.Loader)
 	L.PreloadModule("essh.question", gluaquestion.Loader)
 	L.PreloadModule("essh.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
+	L.PreloadModule("essh.sh", gluash.Loader)
 
 	// global variables
 	lessh := L.NewTable()
