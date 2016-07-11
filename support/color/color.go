@@ -2,12 +2,7 @@ package color
 
 import (
 	"github.com/fatih/color"
-	"github.com/shiena/ansicolor"
-	"os"
 )
-
-var StderrWriter = ansicolor.NewAnsiColorWriter(os.Stderr)
-var StdoutWriter = ansicolor.NewAnsiColorWriter(os.Stdout)
 
 var FgBold = color.New(color.Bold).SprintfFunc()
 var FgG = color.New(color.FgGreen).SprintfFunc()

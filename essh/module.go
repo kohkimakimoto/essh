@@ -3,7 +3,7 @@ package essh
 import (
 	"fmt"
 	"github.com/hashicorp/go-getter"
-	"github.com/kohkimakimoto/essh/color"
+	"github.com/kohkimakimoto/essh/support/color"
 	"github.com/yuin/gopher-lua"
 	"os"
 	"path"
@@ -58,7 +58,7 @@ func (m *Module) Load(update bool) error {
 		fmt.Printf("[essh debug] module src '%s'\n", src)
 	}
 
-	fmt.Fprintf(color.StdoutWriter, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentContext.DataDir))
+	fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentContext.DataDir))
 
 	pwd, err := os.Getwd()
 	if err != nil {

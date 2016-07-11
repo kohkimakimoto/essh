@@ -3,7 +3,7 @@ package essh
 import (
 	"fmt"
 	"github.com/cjoudrey/gluahttp"
-	"github.com/kohkimakimoto/essh/gluamapper"
+	"github.com/kohkimakimoto/essh/support/gluamapper"
 	"github.com/kohkimakimoto/gluaenv"
 	"github.com/kohkimakimoto/gluafs"
 	"github.com/kohkimakimoto/gluajson"

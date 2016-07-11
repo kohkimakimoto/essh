@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/kohkimakimoto/essh/color"
-	"github.com/kohkimakimoto/essh/helper"
+	"github.com/kohkimakimoto/essh/support/color"
+	"github.com/kohkimakimoto/essh/support/helper"
 	"github.com/yuin/gopher-lua"
 	"io"
 	"io/ioutil"
@@ -486,7 +486,7 @@ func start() error {
 		} else {
 			hosts = SortedHosts()
 		}
-		tb := helper.NewPlainTable(color.StdoutWriter)
+		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
 			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN", "SCOPE"})
 		}
@@ -820,7 +820,7 @@ func runTask(config string, task *Task, payload string) error {
 				go func(host *Host) {
 					err := runRemoteTaskScript(config, task, payload, host, m)
 					if err != nil {
-						fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
+						fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
 						panic(err)
 					}
 
@@ -860,7 +860,7 @@ func runTask(config string, task *Task, payload string) error {
 				go func(host *Host) {
 					err := runLocalTaskScript(task, payload, host, m)
 					if err != nil {
-						fmt.Fprintf(color.StderrWriter, color.FgRB("[essh error] %v\n", err))
+						fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
 						panic(err)
 					}
 
@@ -956,8 +956,8 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 	}
 
 	// inspired by https://github.com/fujiwara/nssh/blob/master/nssh.go
-	go scanLines(stdout, color.StdoutWriter, prefix, m)
-	go scanLines(stderr, color.StderrWriter, prefix, m)
+	go scanLines(stdout, os.Stdout, prefix, m)
+	go scanLines(stderr, os.Stderr, prefix, m)
 
 	return cmd.Wait()
 }
@@ -1042,8 +1042,8 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 	}
 
 	// inspired by https://github.com/fujiwara/nssh/blob/master/nssh.go
-	go scanLines(stdout, color.StdoutWriter, prefix, m)
-	go scanLines(stderr, color.StderrWriter, prefix, m)
+	go scanLines(stdout, os.Stdout, prefix, m)
+	go scanLines(stderr, os.Stderr, prefix, m)
 
 	return cmd.Wait()
 }
