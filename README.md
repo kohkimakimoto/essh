@@ -1,6 +1,6 @@
 # Essh
 
-Essh is an extended ssh client command. The features are the following:
+Essh is an extended `ssh` command. The features are the following:
 
 * **Simple**: A single binary CLI tool. Essh simply wraps `ssh` command. You can use it in the same way as `ssh`.
 * **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in Lua code. So your ssh_config can become more dynamic.
