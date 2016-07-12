@@ -497,7 +497,7 @@ func start() error {
 		}
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN", "SCOPE"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "SCOPE", "HIDDEN"})
 		}
 		for _, host := range hosts {
 			if (!host.Hidden && !host.Private) || allFlag {
@@ -505,15 +505,15 @@ func start() error {
 					tb.Append([]string{host.Name})
 				} else {
 					//
-					hidden := ""
+					hidden := "false"
 					if host.Hidden {
 						hidden = "true"
 					}
-					scope := ""
+					scope := "public"
 					if host.Private {
 						scope = "private"
 					}
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), scope, hidden})
 				}
 			}
 		}
@@ -540,23 +540,14 @@ func start() error {
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "DISABLED", "HIDDEN"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "DISABLED", "HIDDEN"})
 		}
 		for _, t := range SortedTasks() {
 			if (!t.Hidden && !t.Disabled) || allFlag {
 				if quietFlag {
 					tb.Append([]string{t.Name})
 				} else {
-					//
-					if t.Disabled {
-						red := color.FgR
-						tb.Append([]string{red(t.Name), red(t.Description), red(fmt.Sprintf("%v", t.Disabled)), red(fmt.Sprintf("%v", t.Hidden))})
-					} else if t.Hidden {
-						yellow := color.FgY
-						tb.Append([]string{yellow(t.Name), yellow(t.Description), yellow(fmt.Sprintf("%v", t.Disabled)), yellow(fmt.Sprintf("%v", t.Hidden))})
-					} else {
-						tb.Append([]string{t.Name, t.Description, fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
-					}
+					tb.Append([]string{t.Name, t.Description, t.Context.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
 				}
 			}
 		}

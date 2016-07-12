@@ -115,7 +115,7 @@ func NewPlainTable(writer io.Writer) *Table {
 	t.SetRowSeparator("")
 	t.SetNoHeaderLine(true)
 	t.SetCenterSeparator("")
-	t.SetColumnSeparator("    ")
+	t.SetColumnSeparator("        ")
 
 	return t
 }
