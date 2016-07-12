@@ -384,6 +384,27 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
 	return h
 }
 
+func overrideHost(L *lua.LState, h *Host, config *lua.LTable) *Host {
+	if debugFlag {
+		fmt.Printf("[essh debug] override host: %s\n", h.Name)
+	}
+
+	updatedConfig := h.lconfig
+
+	if config.RawGetString("private") != lua.LNil {
+		L.RaiseError("couldn't override private config.")
+	}
+
+	// override
+	config.ForEach(func(k, v lua.LValue){
+		updatedConfig.RawSet(k, v)
+	})
+
+	updateHost(L, h, updatedConfig)
+
+	return h
+}
+
 
 func updateHost(L *lua.LState, h *Host, config *lua.LTable) {
 	h.lconfig = config
@@ -461,15 +482,6 @@ func updateHost(L *lua.LState, h *Host, config *lua.LTable) {
 			}
 		})
 	}
-}
-
-func overrideHost(L *lua.LState, host *Host, config *lua.LTable) *Host {
-	if debugFlag {
-		fmt.Printf("[essh debug] override host: %s\n", host.Name)
-	}
-
-
-	return nil
 }
 
 func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
