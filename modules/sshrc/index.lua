@@ -1,7 +1,7 @@
 local template = require "essh.template"
 
 local sshrc = function(override_config)
-    config = {
+    local config = {
         sshhome = "~",
     }
     if override_config ~= nil then
