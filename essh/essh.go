@@ -755,7 +755,7 @@ func printJson(hosts []*Host, indent string) {
 		h := map[string]map[string]interface{}{}
 
 		hv := map[string]interface{}{}
-		for _, pair := range host.SSHConfig() {
+		for _, pair := range host.SortedSSHConfig() {
 			for k, v := range pair {
 				hv[k] = v
 			}

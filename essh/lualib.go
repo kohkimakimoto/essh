@@ -19,8 +19,8 @@ import (
 
 func InitLuaState(L *lua.LState) {
 	// custom type.
-	// registerContextClass(L)
 	registerTaskContextClass(L)
+	registerHostClass(L)
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
@@ -53,12 +53,15 @@ func InitLuaState(L *lua.LState) {
 	lessh.RawSetString("ssh_config", lua.LNil)
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
+		// aliases global function.
 		"host":         esshHost,
 		"private_host": esshPrivateHost,
 		"task":         esshTask,
 		"driver":       esshDriver,
+		// utilities.
 		"require":      esshRequire,
 		"debug":        esshDebug,
+
 	})
 }
 
@@ -322,7 +325,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable, defaultPrivate
 		fmt.Printf("[essh debug] register host: %s\n", name)
 	}
 
-	newConfig := L.NewTable()
+	sshConfig := L.NewTable()
 	config.ForEach(func(k lua.LValue, v lua.LValue) {
 		var firstChar rune
 		for _, c := range k.String() {
@@ -331,13 +334,13 @@ func registerHost(L *lua.LState, name string, config *lua.LTable, defaultPrivate
 		}
 
 		if unicode.IsUpper(firstChar) {
-			newConfig.RawSet(k, v)
+			sshConfig.RawSet(k, v)
 		}
 	})
 
 	h := &Host{
 		Name:    name,
-		Config:  newConfig,
+		SSHConfig:  sshConfig,
 		Props:   map[string]string{},
 		Hooks:   map[string][]interface{}{},
 		Tags:    []string{},
@@ -826,11 +829,9 @@ func newLTaskContext(L *lua.LState, ctx *TaskContext) *lua.LUserData {
 
 func registerTaskContextClass(L *lua.LState) {
 	mt := L.NewTypeMetatable(LTaskContextClass)
-	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), taskContextMethods))
-}
-
-var taskContextMethods = map[string]lua.LGFunction{
-	"payload": taskContextPayload,
+	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
+		"payload": taskContextPayload,
+	}))
 }
 
 func taskContextPayload(L *lua.LState) int {
@@ -850,4 +851,30 @@ func checkTaskContext(L *lua.LState) *TaskContext {
 	}
 	L.ArgError(1, "TaskContext expected")
 	return nil
+}
+
+
+const LHostClass = "Host*"
+
+func newLHostC(L *lua.LState, host *Host) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = host
+	L.SetMetatable(ud, L.GetTypeMetatable(LHostClass))
+	return ud
+}
+
+func checkHost(L *lua.LState) *Host {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Host); ok {
+		return v
+	}
+	L.ArgError(1, "Host expected")
+	return nil
+}
+
+func registerHostClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LHostClass)
+	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
+
+	}))
 }
