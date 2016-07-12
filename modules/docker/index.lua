@@ -72,7 +72,7 @@ if [ -z $(docker images -q $__essh_var_docker_image) ]; then
 fi
 
 # create temporary directory
-__essh_var_docker_tmp_dir=$(mktemp -d {{.Task.Context.DataDir}}/.essh_docker.XXXXXXXX)
+__essh_var_docker_tmp_dir=$(mktemp -d {{.Task.Context.TmpDir}}/.essh_docker.XXXXXXXX)
 trap "rm -rf $__essh_var_docker_tmp_dir; exit" 0
 chmod 777 $__essh_var_docker_tmp_dir
 

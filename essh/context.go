@@ -37,8 +37,8 @@ func (ctx *Context) ModulesDir() string {
 	return filepath.Join(ctx.DataDir, "modules")
 }
 
-func (ctx *Context) DataDir() string {
-	return filepath.Join(ctx.DataDir, "data")
+func (ctx *Context) TmpDir() string {
+	return filepath.Join(ctx.DataDir, "tmp")
 }
 
 func (ctx *Context) MkDirs() error {
@@ -49,8 +49,8 @@ func (ctx *Context) MkDirs() error {
 		}
 	}
 
-	if _, err := os.Stat(ctx.DataDir()); os.IsNotExist(err) {
-		err = os.MkdirAll(ctx.DataDir(), os.FileMode(0755))
+	if _, err := os.Stat(ctx.TmpDir()); os.IsNotExist(err) {
+		err = os.MkdirAll(ctx.TmpDir(), os.FileMode(0755))
 		if err != nil {
 			return err
 		}
