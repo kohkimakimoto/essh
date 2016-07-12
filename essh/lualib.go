@@ -392,7 +392,7 @@ func overrideHost(L *lua.LState, h *Host, config *lua.LTable) *Host {
 	updatedConfig := h.lconfig
 
 	if config.RawGetString("private") != lua.LNil {
-		L.RaiseError("couldn't override private config.")
+		L.RaiseError("couldn't override 'private' configuration.")
 	}
 
 	// override
@@ -400,6 +400,7 @@ func overrideHost(L *lua.LState, h *Host, config *lua.LTable) *Host {
 		updatedConfig.RawSet(k, v)
 	})
 
+	// fmt.Println(updatedConfig)
 	updateHost(L, h, updatedConfig)
 
 	return h
@@ -425,6 +426,9 @@ func updateHost(L *lua.LState, h *Host, config *lua.LTable) {
 
 	props := config.RawGetString("props")
 	if propsTb, ok := toLTable(props); ok {
+		// initialize
+		h.Props = map[string]string{}
+
 		propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
 			propsKeyStr, ok := toString(propsKey)
 			if !ok {
@@ -441,6 +445,9 @@ func updateHost(L *lua.LState, h *Host, config *lua.LTable) {
 
 	hooks := config.RawGetString("hooks")
 	if hookTb, ok := toLTable(hooks); ok {
+		// initialize
+		h.Hooks = map[string][]interface{}{}
+
 		err := registerHook(L, h, "before_connect", hookTb.RawGetString("before_connect"))
 		if err != nil {
 			panic(err)
@@ -474,6 +481,9 @@ func updateHost(L *lua.LState, h *Host, config *lua.LTable) {
 
 	tags := config.RawGetString("tags")
 	if tagsTb, ok := tags.(*lua.LTable); ok {
+		// initialize
+		h.Tags = []string{}
+
 		tagsTb.ForEach(func(_ lua.LValue, v lua.LValue) {
 			if vs, ok := toString(v); ok {
 				h.Tags = append(h.Tags, vs)
