@@ -90,7 +90,7 @@ export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
 {{if .Host -}}
 export ESSH_HOSTNAME={{.Host.Name | ShellEscape}}
 export ESSH_HOST_HOSTNAME={{.Host.Name | ShellEscape}}
-{{range $i, $kvpair := .Host.SSHConfig -}}
+{{range $i, $kvpair := .Host.SortedSSHConfig -}}
 {{range $key, $value := $kvpair -}}
 export ESSH_HOST_SSH_{{$key | ToUpper}}={{$value | ShellEscape }}
 {{end -}}

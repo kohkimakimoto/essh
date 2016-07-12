@@ -9,7 +9,6 @@ import (
 
 type Host struct {
 	Name        string
-	SSHConfig   *lua.LTable
 	Props       map[string]string
 	Hooks       map[string][]interface{}
 	Description string
@@ -17,10 +16,34 @@ type Host struct {
 	Tags        []string
 	Context     *Context
 	Private     bool
+
+	sshConfig   *lua.LTable
+	lconfig     *lua.LTable
 }
+
+//
+// Spec note about Hosts (it is a little complicated!):
+//   Hosts are stored into a space: "global" or "local" which are called as 'registry' (and 'context').
+//   The registry is determined by a place of the configuration file that hosts are defined in.
+//
+//   Example:
+//     /etc/essh/config.lua              -> "global"
+//     ~/.esh/config.lua                 -> "global"
+//     /path/to/project/esshconfig.lua   -> "local"
+//
+//   Hosts also have configuration "scope". There are two types of scope: "public" and "private".
+//
+//   There are some rules about operating hosts.
+//     * Each public hosts must be unique. (You can NOT define public hosts by the same name in the local and global registry.)
+//     * Any hosts must be unique in a same registry. (You can NOT define hosts by the same name in the same registry.)
+//     * Hosts used by task must be defined in a same registry. (Tasks can refer to only hosts defined in the same registry.)
+//     * Private hosts is only used by tasks.
+//     * There can be duplicated hosts in the entire registries. (You can define private hosts even if you define same name public hosts.)
+//
 
 var GlobalHosts map[string]*Host = map[string]*Host{}
 var LocalHosts map[string]*Host = map[string]*Host{}
+
 var PublicHosts map[string]*Host = map[string]*Host{}
 
 func (h *Host) SortedSSHConfig() []map[string]string {
@@ -28,7 +51,7 @@ func (h *Host) SortedSSHConfig() []map[string]string {
 
 	var names []string
 
-	h.SSHConfig.ForEach(func(k lua.LValue, v lua.LValue) {
+	h.sshConfig.ForEach(func(k lua.LValue, v lua.LValue) {
 		if keystr, ok := toString(k); ok {
 			names = append(names, keystr)
 		}
@@ -37,7 +60,7 @@ func (h *Host) SortedSSHConfig() []map[string]string {
 	sort.Strings(names)
 
 	for _, name := range names {
-		lvalue := h.SSHConfig.RawGetString(name)
+		lvalue := h.sshConfig.RawGetString(name)
 		if svalue, ok := toString(lvalue); ok {
 			// can use only string value.
 			value := map[string]string{name: svalue}
@@ -286,5 +309,4 @@ func ResetHosts() {
 	LocalHosts = map[string]*Host{}
 	GlobalHosts = map[string]*Host{}
 	PublicHosts = map[string]*Host{}
-
 }

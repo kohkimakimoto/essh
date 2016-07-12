@@ -25,6 +25,7 @@ func InitLuaState(L *lua.LState) {
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("private_host", L.NewFunction(esshPrivateHost))
+	L.SetGlobal("override_host", L.NewFunction(esshOverrideHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 
@@ -56,12 +57,13 @@ func InitLuaState(L *lua.LState) {
 		// aliases global function.
 		"host":         esshHost,
 		"private_host": esshPrivateHost,
+		"override_host": esshOverrideHost,
 		"task":         esshTask,
 		"driver":       esshDriver,
 		// utilities.
-		"require":      esshRequire,
-		"debug":        esshDebug,
-
+		"require": esshRequire,
+		"debug":   esshDebug,
+		"gethosts": esshGethosts,
 	})
 }
 
@@ -86,7 +88,7 @@ func esshHost(L *lua.LState) int {
 	// procedural style
 	if L.GetTop() == 2 {
 		tb := L.CheckTable(2)
-		registerHost(L, name, tb, false)
+		registerHost(L, name, tb)
 
 		return 0
 	}
@@ -94,7 +96,7 @@ func esshHost(L *lua.LState) int {
 	// DSL style
 	L.Push(L.NewFunction(func(L *lua.LState) int {
 		tb := L.CheckTable(1)
-		registerHost(L, name, tb, false)
+		registerHost(L, name, tb)
 
 		return 0
 	}))
@@ -114,7 +116,9 @@ func esshPrivateHost(L *lua.LState) int {
 	// procedural style
 	if L.GetTop() == 2 {
 		tb := L.CheckTable(2)
-		registerHost(L, name, tb, true)
+
+		tb.RawSetString("private", lua.LBool(true))
+		registerHost(L, name, tb)
 
 		return 0
 	}
@@ -122,7 +126,35 @@ func esshPrivateHost(L *lua.LState) int {
 	// DSL style
 	L.Push(L.NewFunction(func(L *lua.LState) int {
 		tb := L.CheckTable(1)
-		registerHost(L, name, tb, true)
+
+		tb.RawSetString("private", lua.LBool(true))
+		registerHost(L, name, tb)
+
+		return 0
+	}))
+
+	return 1
+}
+
+func esshOverrideHost(L *lua.LState) int {
+	ud := L.CheckUserData(1)
+	host, ok := ud.Value.(*Host)
+	if !ok {
+		L.ArgError(1, "Host object expected")
+	}
+
+	// procedural style
+	if L.GetTop() == 2 {
+		tb := L.CheckTable(2)
+		overrideHost(L, host, tb)
+
+		return 0
+	}
+
+	// DSL style
+	L.Push(L.NewFunction(func(L *lua.LState) int {
+		tb := L.CheckTable(1)
+		overrideHost(L, host, tb)
 
 		return 0
 	}))
@@ -143,7 +175,11 @@ func registerHostByTable(L *lua.LState, tb *lua.LTable, private bool) {
 				return
 			}
 
-			registerHost(L, string(name), config, private)
+			if private {
+				config.RawSetString("private", lua.LBool(true))
+			}
+
+			registerHost(L, string(name), config)
 		})
 	} else { // array
 		for i := 1; i <= maxn; i++ {
@@ -320,10 +356,37 @@ func registerDriver(L *lua.LState, name string, config *lua.LTable) {
 	Drivers[driver.Name] = driver
 }
 
-func registerHost(L *lua.LState, name string, config *lua.LTable, defaultPrivate bool) *Host {
+func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
 	if debugFlag {
 		fmt.Printf("[essh debug] register host: %s\n", name)
 	}
+
+	h := &Host{
+		Name:      name,
+		Props:     map[string]string{},
+		Hooks:     map[string][]interface{}{},
+		Tags:      []string{},
+		Context:   CurrentContext,
+	}
+
+	updateHost(L, h, config)
+
+	if h.Context.Type == ContextTypeLocal {
+		LocalHosts[h.Name] = h
+	} else if h.Context.Type == ContextTypeGlobal {
+		GlobalHosts[h.Name] = h
+	}
+
+	if !h.Private {
+		PublicHosts[h.Name] = h
+	}
+
+	return h
+}
+
+
+func updateHost(L *lua.LState, h *Host, config *lua.LTable) {
+	h.lconfig = config
 
 	sshConfig := L.NewTable()
 	config.ForEach(func(k lua.LValue, v lua.LValue) {
@@ -337,16 +400,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable, defaultPrivate
 			sshConfig.RawSet(k, v)
 		}
 	})
-
-	h := &Host{
-		Name:    name,
-		SSHConfig:  sshConfig,
-		Props:   map[string]string{},
-		Hooks:   map[string][]interface{}{},
-		Tags:    []string{},
-		Private: defaultPrivate,
-		Context: CurrentContext,
-	}
+	h.sshConfig = sshConfig
 
 	props := config.RawGetString("props")
 	if propsTb, ok := toLTable(props); ok {
@@ -407,18 +461,15 @@ func registerHost(L *lua.LState, name string, config *lua.LTable, defaultPrivate
 			}
 		})
 	}
+}
 
-	if h.Context.Type == ContextTypeLocal {
-		LocalHosts[h.Name] = h
-	} else if h.Context.Type == ContextTypeGlobal {
-		GlobalHosts[h.Name] = h
+func overrideHost(L *lua.LState, host *Host, config *lua.LTable) *Host {
+	if debugFlag {
+		fmt.Printf("[essh debug] override host: %s\n", host.Name)
 	}
 
-	if !h.Private {
-		PublicHosts[h.Name] = h
-	}
 
-	return h
+	return nil
 }
 
 func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
@@ -738,6 +789,18 @@ func esshRequire(L *lua.LState) int {
 	return 1
 }
 
+func esshGethosts(L *lua.LState) int {
+	lhosts := L.NewTable()
+
+	for _, host := range SortedHosts() {
+		lhost := newLHostC(L, host)
+		lhosts.Append(lhost)
+	}
+
+	L.Push(lhosts)
+	return 1
+}
+
 // This code inspired by https://github.com/yuin/gluamapper/blob/master/gluamapper.go
 func toGoValue(lv lua.LValue) interface{} {
 	switch v := lv.(type) {
@@ -849,10 +912,9 @@ func checkTaskContext(L *lua.LState) *TaskContext {
 	if v, ok := ud.Value.(*TaskContext); ok {
 		return v
 	}
-	L.ArgError(1, "TaskContext expected")
+	L.ArgError(1, "TaskContext object expected")
 	return nil
 }
-
 
 const LHostClass = "Host*"
 
@@ -868,13 +930,26 @@ func checkHost(L *lua.LState) *Host {
 	if v, ok := ud.Value.(*Host); ok {
 		return v
 	}
-	L.ArgError(1, "Host expected")
+	L.ArgError(1, "Host object expected")
 	return nil
 }
 
 func registerHostClass(L *lua.LState) {
 	mt := L.NewTypeMetatable(LHostClass)
 	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
-
+		"name": hostName,
+		"config": hostConfig,
 	}))
+}
+
+func hostName(L *lua.LState) int {
+	host := checkHost(L)
+	L.Push(lua.LString(host.Name))
+	return 1
+}
+
+func hostConfig(L *lua.LState) int {
+	host := checkHost(L)
+	L.Push(host.lconfig)
+	return 1
 }

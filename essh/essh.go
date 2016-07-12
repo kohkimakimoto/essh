@@ -296,9 +296,9 @@ func start() error {
 	workingDirConfigFileBasename := filepath.Base(WorkingDirConfigFile)
 	workingDirConfigFileDir := filepath.Dir(WorkingDirConfigFile)
 	workingDirConfigFileBasenameExtension := filepath.Ext(workingDirConfigFileBasename)
-	workingDirConfigFileName := workingDirConfigFileBasename[0:len(workingDirConfigFileBasename)-len(workingDirConfigFileBasenameExtension)]
+	workingDirConfigFileName := workingDirConfigFileBasename[0 : len(workingDirConfigFileBasename)-len(workingDirConfigFileBasenameExtension)]
 
-	WorkingDirOverrideConfigFile = filepath.Join(workingDirConfigFileDir, workingDirConfigFileName + "_override" + workingDirConfigFileBasenameExtension)
+	WorkingDirOverrideConfigFile = filepath.Join(workingDirConfigFileDir, workingDirConfigFileName+"_override"+workingDirConfigFileBasenameExtension)
 
 	// overwrite config file path by --config option.
 	if configVar != "" {
@@ -436,7 +436,6 @@ func start() error {
 			fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirConfigFile)
 		}
 	}
-
 
 	// load override config
 	if _, err := os.Stat(WorkingDirOverrideConfigFile); err == nil {
@@ -1336,21 +1335,21 @@ func validateConfig() error {
 	names := map[string]bool{}
 	for _, host := range SortedPublicHosts() {
 		if _, ok := names[host.Name]; ok {
-			return fmt.Errorf("'%s' is duplicated", host.Name)
+			return fmt.Errorf("Host '%s' is duplicated", host.Name)
 		}
 		names[host.Name] = true
 	}
 
 	for _, task := range Tasks {
 		if _, ok := names[task.Name]; ok {
-			return fmt.Errorf("'%s' is duplicated", task.Name)
+			return fmt.Errorf("Task '%s' is duplicated", task.Name)
 		}
 		names[task.Name] = true
 	}
 
 	for _, tag := range Tags() {
 		if _, ok := names[tag]; ok {
-			return fmt.Errorf("'%s' is duplicated", tag)
+			return fmt.Errorf("Tag '%s' is duplicated", tag)
 		}
 		names[tag] = true
 	}
