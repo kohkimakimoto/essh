@@ -264,7 +264,7 @@ func HostsByTag(name string, isOnlyPublic bool) []*Host {
 	var hosts = []*Host{}
 
 	for _, host := range SortedHosts() {
-		B1:
+	B1:
 		for _, tag := range host.Tags {
 			if tag == name {
 				if isOnlyPublic {
@@ -281,7 +281,6 @@ func HostsByTag(name string, isOnlyPublic bool) []*Host {
 
 	return hosts
 }
-
 
 func ResetHosts() {
 	LocalHosts = map[string]*Host{}

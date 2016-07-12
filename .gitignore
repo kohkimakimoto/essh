@@ -10,5 +10,6 @@ Thumbs.db
 /_build/dist/*
 .essh
 esshconfig.lua
+esshconfig_override.lua
 
 !.gitkeep

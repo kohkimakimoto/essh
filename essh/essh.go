@@ -21,12 +21,15 @@ import (
 
 // system configurations.
 var (
-	SystemWideConfigFile string
-	UserConfigFile       string
-	UserDataDir          string
-	WorkingDirConfigFile string
-	WorkingDataDir       string
-	WorkingDir           string
+	SystemWideConfigFile         string
+	SystemWideOverrideConfigFile string
+	UserConfigFile               string
+	UserOverrideConfigFile       string
+	UserDataDir                  string
+	WorkingDirConfigFile         string
+	WorkingDirOverrideConfigFile string
+	WorkingDataDir               string
+	WorkingDir                   string
 )
 
 // flags
@@ -290,6 +293,13 @@ func start() error {
 		WorkingDirConfigFile = filepath.Join(wd, "essh.lua")
 	}
 
+	workingDirConfigFileBasename := filepath.Base(WorkingDirConfigFile)
+	workingDirConfigFileDir := filepath.Dir(WorkingDirConfigFile)
+	workingDirConfigFileBasenameExtension := filepath.Ext(workingDirConfigFileBasename)
+	workingDirConfigFileName := workingDirConfigFileBasename[0:len(workingDirConfigFileBasename)-len(workingDirConfigFileBasenameExtension)]
+
+	WorkingDirOverrideConfigFile = filepath.Join(workingDirConfigFileDir, workingDirConfigFileName + "_override" + workingDirConfigFileBasenameExtension)
+
 	// overwrite config file path by --config option.
 	if configVar != "" {
 		if filepath.IsAbs(configVar) {
@@ -370,6 +380,7 @@ func start() error {
 
 	// user context
 	CurrentContext = NewContext(UserDataDir, ContextTypeGlobal)
+	GlobalContext = CurrentContext
 	ContextMap[CurrentContext.Key] = CurrentContext
 
 	if err := CurrentContext.MkDirs(); err != nil {
@@ -409,6 +420,7 @@ func start() error {
 	// load current dir config
 	// change context to working dir context
 	CurrentContext = NewContext(WorkingDataDir, ContextTypeLocal)
+	LocalContext = CurrentContext
 	ContextMap[CurrentContext.Key] = CurrentContext
 
 	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
@@ -426,8 +438,53 @@ func start() error {
 	}
 
 
-	// basic configuration loading is completed.
+	// load override config
+	if _, err := os.Stat(WorkingDirOverrideConfigFile); err == nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirOverrideConfigFile)
+		}
 
+		if err := L.DoFile(WorkingDirOverrideConfigFile); err != nil {
+			return err
+		}
+
+		if debugFlag {
+			fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirOverrideConfigFile)
+		}
+	}
+
+	CurrentContext = GlobalContext
+	// load override user config
+	if _, err := os.Stat(UserOverrideConfigFile); err == nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
+		}
+
+		if err := L.DoFile(UserOverrideConfigFile); err != nil {
+			return err
+		}
+
+		if debugFlag {
+			fmt.Printf("[essh debug] loaded config file: %s\n", UserOverrideConfigFile)
+		}
+	}
+
+	// load override global config
+	if _, err := os.Stat(SystemWideOverrideConfigFile); err == nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s\n", SystemWideOverrideConfigFile)
+		}
+
+		if err := L.DoFile(SystemWideOverrideConfigFile); err != nil {
+			return err
+		}
+
+		if debugFlag {
+			fmt.Printf("[essh debug] loaded config file: %s\n", SystemWideOverrideConfigFile)
+		}
+	}
+
+	// deprecated configure logic... I will remove the logic in future.
 	// override config using task configuration?
 	taskConfigureContextKey := os.Getenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY")
 	if taskConfigureContextKey != "" {
@@ -1426,18 +1483,10 @@ Github:
 `)
 }
 
-func getEditor() string {
-	editor := os.Getenv("ESSH_EDITOR")
-	if editor != "" {
-		return editor
-	}
-
-	return os.Getenv("EDITOR")
-}
-
 func init() {
 	// set SystemWideConfigFile
 	SystemWideConfigFile = "/etc/essh/config.lua"
+	SystemWideOverrideConfigFile = "/etc/essh/config_override.lua"
 
 	// set UserDataDir
 	home := userHomeDir()
@@ -1452,6 +1501,7 @@ func init() {
 	}
 
 	UserConfigFile = filepath.Join(UserDataDir, "config.lua")
+	UserOverrideConfigFile = filepath.Join(UserDataDir, "config_override.lua")
 }
 
 var ZSH_COMPLETION = `# This is zsh completion code.
