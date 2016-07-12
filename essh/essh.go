@@ -1322,8 +1322,8 @@ func removeModules() error {
 			}
 		}
 
-		if _, err := os.Stat(c.TmpDir()); err == nil {
-			err = os.RemoveAll(c.TmpDir())
+		if _, err := os.Stat(c.DataDir()); err == nil {
+			err = os.RemoveAll(c.DataDir())
 			if err != nil {
 				return err
 			}
@@ -1338,8 +1338,8 @@ func removeModules() error {
 		}
 	}
 
-	if _, err := os.Stat(c.TmpDir()); err == nil {
-		err = os.RemoveAll(c.TmpDir())
+	if _, err := os.Stat(c.DataDir()); err == nil {
+		err = os.RemoveAll(c.DataDir())
 		if err != nil {
 			return err
 		}
