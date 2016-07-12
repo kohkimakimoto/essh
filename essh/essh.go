@@ -526,10 +526,14 @@ func start() error {
 	if tagsFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME"})
+			tb.SetHeader([]string{"NAME", "PUBLIC_HOSTS", "HOSTS"})
 		}
 		for _, tag := range Tags() {
-			tb.Append([]string{tag})
+			if quietFlag {
+				tb.Append([]string{tag})
+			} else {
+				tb.Append([]string{tag, fmt.Sprintf("%d", len(HostsByTag(tag, true))), fmt.Sprintf("%d", len(HostsByTag(tag, false)))})
+			}
 		}
 		tb.Render()
 
