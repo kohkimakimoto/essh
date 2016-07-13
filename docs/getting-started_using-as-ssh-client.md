@@ -54,4 +54,4 @@ Therefore you can connect with a ssh server using Lua config.
 
 Essh also automatically removes the temporary file when the process finishes. So you don't have to be conscious of the real ssh configuration in the normal operations.
 
-Let's read next section: 
+Let's read next section: [Zsh Completion](getting-started_zsh-completion.md).
