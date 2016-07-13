@@ -1004,10 +1004,17 @@ func checkRegistry(L *lua.LState) *Registry {
 func registerRegistryClass(L *lua.LState) {
 	mt := L.NewTypeMetatable(LRegistryClass)
 	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
+		"data_dir":    registryDataDir,
 		"tmp_dir":     registryTmpDir,
 		"modules_dir": registryModulesDir,
 		"type":        registryType,
 	}))
+}
+
+func registryDataDir(L *lua.LState) int {
+	reg := checkRegistry(L)
+	L.Push(lua.LString(reg.DataDir))
+	return 1
 }
 
 func registryTmpDir(L *lua.LState) int {

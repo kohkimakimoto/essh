@@ -1,4 +1,6 @@
-# vagrant
+# Essh vagrant module
+
+Loading vagrant hosts as Essh hosts.
 
 ## Usage
 
