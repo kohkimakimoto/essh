@@ -30,7 +30,7 @@ Essh is provided as a single binary. You can download it and drop it in your $PA
 
 ## Documentation
 
-See [Documentation](./docs/README.md)
+[Documentation](./docs/README.md)
 
 ## Developing
 
