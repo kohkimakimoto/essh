@@ -1006,6 +1006,7 @@ func registerRegistryClass(L *lua.LState) {
 	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
 		"tmp_dir":     registryTmpDir,
 		"modules_dir": registryModulesDir,
+		"type":        registryType,
 	}))
 }
 
@@ -1018,5 +1019,11 @@ func registryTmpDir(L *lua.LState) int {
 func registryModulesDir(L *lua.LState) int {
 	reg := checkRegistry(L)
 	L.Push(lua.LString(reg.ModulesDir()))
+	return 1
+}
+
+func registryType(L *lua.LState) int {
+	reg := checkRegistry(L)
+	L.Push(lua.LString(reg.TypeString()))
 	return 1
 }
