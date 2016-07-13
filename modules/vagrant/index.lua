@@ -2,13 +2,16 @@ local sh = require "glua.sh"
 local fs = require "glua.fs"
 
 local vagrant = {}
-vagrant.cachne = ".vagrant-ssh-config.cache"
+local cache_filename = "vagrant-ssh-config.cache"
 
 vagrant.hosts = function()
     local vagrant_hosts = {}
+    local registry = essh.registry()
+    local tmp_dir = registry:tmp_dir()
+    local cache_file = tmp_dir .. "/" .. cache_filename
 
-    if fs.exists(vagrant.cachne) == false then
-        sh.vagrant("ssh-config"):combinedOutput(vagrant.cachne)
+    if fs.exists(cache_file) == false then
+        sh.vagrant("ssh-config"):combinedOutput(cache_file)
     end
 
     local current_hostname = nil

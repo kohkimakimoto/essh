@@ -293,7 +293,7 @@ func start() error {
 	WorkingDir = wd
 	WorkingDataDir = filepath.Join(wd, ".essh")
 	WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
-	
+
 	workingDirConfigFileBasename := filepath.Base(WorkingDirConfigFile)
 	workingDirConfigFileDir := filepath.Dir(WorkingDirConfigFile)
 	workingDirConfigFileBasenameExtension := filepath.Ext(workingDirConfigFileBasename)
