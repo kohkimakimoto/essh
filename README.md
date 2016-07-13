@@ -13,10 +13,6 @@ Essh is an extended `ssh` command. The features are the following:
 * **Task Runner**: Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
 * **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
 
-**Demo1: Completing a hostname and changing terminal color by using hook.**
-
-![optimized](essh-demo01.gif)
-
 ## Installation
 
 Essh is provided as a single binary. You can download it and drop it in your $PATH.
