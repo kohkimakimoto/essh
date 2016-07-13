@@ -5,7 +5,8 @@ local vagrant = {}
 vagrant.cachne = ".vagrant-ssh-config.cache"
 
 vagrant.hosts = function()
-    vagrant_hosts = {}
+    local vagrant_hosts = {}
+
     if fs.exists(vagrant.cachne) == false then
         sh.vagrant("ssh-config"):combinedOutput(vagrant.cachne)
     end
