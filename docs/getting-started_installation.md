@@ -21,4 +21,4 @@ See also:
 
 ```
 
-Let's read next section [Using As SSH Client](#getting-started_using-as-ssh-client.md).
+Let's read next section: [Using As SSH Client](getting-started_using-as-ssh-client.md).
