@@ -8,7 +8,7 @@ The key features of Essh are the following:
 
 * **Simple**: Essh is a single binary CLI tool and simply wraps `ssh` command. You can use it in the same way as `ssh`.
 
-* **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in Lua code. So your ssh_config can become more dynamic.
+* **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in [Lua](https://www.lua.org/) code. So your ssh_config can become more dynamic.
 
 * **Hooks**: Essh supports hooks that execute commands when it connects a remote server.
 
