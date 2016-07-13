@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/kohkimakimoto/essh/support/color"
 	"github.com/kohkimakimoto/essh/essh"
+	"github.com/kohkimakimoto/essh/support/color"
 	"os"
 )
 

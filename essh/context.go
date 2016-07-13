@@ -20,6 +20,9 @@ const (
 )
 
 var CurrentContext *Context
+var GlobalContext *Context
+var LocalContext *Context
+
 var ContextMap map[string]*Context = map[string]*Context{}
 
 func NewContext(dataDir string, contextType int) *Context {

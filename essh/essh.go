@@ -21,12 +21,15 @@ import (
 
 // system configurations.
 var (
-	SystemWideConfigFile string
-	UserConfigFile       string
-	UserDataDir          string
-	WorkingDirConfigFile string
-	WorkingDataDir       string
-	WorkingDir           string
+	SystemWideConfigFile         string
+	SystemWideOverrideConfigFile string
+	UserConfigFile               string
+	UserOverrideConfigFile       string
+	UserDataDir                  string
+	WorkingDirConfigFile         string
+	WorkingDirOverrideConfigFile string
+	WorkingDataDir               string
+	WorkingDir                   string
 )
 
 // flags
@@ -42,7 +45,7 @@ var (
 	tasksFlag              bool
 	genFlag                bool
 	updateFlag             bool
-	noGlobalFlag           bool
+	withGlobalFlag bool
 	cleanFlag              bool
 	zshCompletionModeFlag  bool
 	zshCompletionFlag      bool
@@ -149,8 +152,8 @@ func start() error {
 			updateFlag = true
 		} else if arg == "--clean" {
 			cleanFlag = true
-		} else if arg == "--no-global" {
-			noGlobalFlag = true
+		} else if arg == "--with-global" {
+			withGlobalFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletionFlag = true
 			zshCompletionModeFlag = true
@@ -290,6 +293,13 @@ func start() error {
 		WorkingDirConfigFile = filepath.Join(wd, "essh.lua")
 	}
 
+	workingDirConfigFileBasename := filepath.Base(WorkingDirConfigFile)
+	workingDirConfigFileDir := filepath.Dir(WorkingDirConfigFile)
+	workingDirConfigFileBasenameExtension := filepath.Ext(workingDirConfigFileBasename)
+	workingDirConfigFileName := workingDirConfigFileBasename[0 : len(workingDirConfigFileBasename)-len(workingDirConfigFileBasenameExtension)]
+
+	WorkingDirOverrideConfigFile = filepath.Join(workingDirConfigFileDir, workingDirConfigFileName+"_override"+workingDirConfigFileBasenameExtension)
+
 	// overwrite config file path by --config option.
 	if configVar != "" {
 		if filepath.IsAbs(configVar) {
@@ -370,6 +380,7 @@ func start() error {
 
 	// user context
 	CurrentContext = NewContext(UserDataDir, ContextTypeGlobal)
+	GlobalContext = CurrentContext
 	ContextMap[CurrentContext.Key] = CurrentContext
 
 	if err := CurrentContext.MkDirs(); err != nil {
@@ -409,6 +420,7 @@ func start() error {
 	// load current dir config
 	// change context to working dir context
 	CurrentContext = NewContext(WorkingDataDir, ContextTypeLocal)
+	LocalContext = CurrentContext
 	ContextMap[CurrentContext.Key] = CurrentContext
 
 	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
@@ -425,9 +437,53 @@ func start() error {
 		}
 	}
 
+	// load override config
+	if _, err := os.Stat(WorkingDirOverrideConfigFile); err == nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirOverrideConfigFile)
+		}
 
-	// basic configuration loading is completed.
+		if err := L.DoFile(WorkingDirOverrideConfigFile); err != nil {
+			return err
+		}
 
+		if debugFlag {
+			fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirOverrideConfigFile)
+		}
+	}
+
+	CurrentContext = GlobalContext
+	// load override user config
+	if _, err := os.Stat(UserOverrideConfigFile); err == nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
+		}
+
+		if err := L.DoFile(UserOverrideConfigFile); err != nil {
+			return err
+		}
+
+		if debugFlag {
+			fmt.Printf("[essh debug] loaded config file: %s\n", UserOverrideConfigFile)
+		}
+	}
+
+	// load override global config
+	if _, err := os.Stat(SystemWideOverrideConfigFile); err == nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s\n", SystemWideOverrideConfigFile)
+		}
+
+		if err := L.DoFile(SystemWideOverrideConfigFile); err != nil {
+			return err
+		}
+
+		if debugFlag {
+			fmt.Printf("[essh debug] loaded config file: %s\n", SystemWideOverrideConfigFile)
+		}
+	}
+
+	// deprecated configure logic... I will remove the logic in future.
 	// override config using task configuration?
 	taskConfigureContextKey := os.Getenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY")
 	if taskConfigureContextKey != "" {
@@ -497,7 +553,7 @@ func start() error {
 		}
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN", "SCOPE"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "SCOPE", "HIDDEN"})
 		}
 		for _, host := range hosts {
 			if (!host.Hidden && !host.Private) || allFlag {
@@ -505,15 +561,15 @@ func start() error {
 					tb.Append([]string{host.Name})
 				} else {
 					//
-					hidden := ""
+					hidden := "false"
 					if host.Hidden {
 						hidden = "true"
 					}
-					scope := ""
+					scope := "public"
 					if host.Private {
 						scope = "private"
 					}
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), hidden, scope})
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), scope, hidden})
 				}
 			}
 		}
@@ -526,10 +582,14 @@ func start() error {
 	if tagsFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME"})
+			tb.SetHeader([]string{"NAME", "PUBLIC_HOSTS", "HOSTS"})
 		}
 		for _, tag := range Tags() {
-			tb.Append([]string{tag})
+			if quietFlag {
+				tb.Append([]string{tag})
+			} else {
+				tb.Append([]string{tag, fmt.Sprintf("%d", len(HostsByTag(tag, true))), fmt.Sprintf("%d", len(HostsByTag(tag, false)))})
+			}
 		}
 		tb.Render()
 
@@ -540,23 +600,14 @@ func start() error {
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "DISABLED", "HIDDEN"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "DISABLED", "HIDDEN"})
 		}
 		for _, t := range SortedTasks() {
 			if (!t.Hidden && !t.Disabled) || allFlag {
 				if quietFlag {
 					tb.Append([]string{t.Name})
 				} else {
-					//
-					if t.Disabled {
-						red := color.FgR
-						tb.Append([]string{red(t.Name), red(t.Description), red(fmt.Sprintf("%v", t.Disabled)), red(fmt.Sprintf("%v", t.Hidden))})
-					} else if t.Hidden {
-						yellow := color.FgY
-						tb.Append([]string{yellow(t.Name), yellow(t.Description), yellow(fmt.Sprintf("%v", t.Disabled)), yellow(fmt.Sprintf("%v", t.Hidden))})
-					} else {
-						tb.Append([]string{t.Name, t.Description, fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
-					}
+					tb.Append([]string{t.Name, t.Description, t.Context.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
 				}
 			}
 		}
@@ -703,7 +754,7 @@ func printJson(hosts []*Host, indent string) {
 		h := map[string]map[string]interface{}{}
 
 		hv := map[string]interface{}{}
-		for _, pair := range host.SSHConfig() {
+		for _, pair := range host.SortedSSHConfig() {
 			for k, v := range pair {
 				hv[k] = v
 			}
@@ -1284,21 +1335,21 @@ func validateConfig() error {
 	names := map[string]bool{}
 	for _, host := range SortedPublicHosts() {
 		if _, ok := names[host.Name]; ok {
-			return fmt.Errorf("'%s' is duplicated", host.Name)
+			return fmt.Errorf("Host '%s' is duplicated", host.Name)
 		}
 		names[host.Name] = true
 	}
 
 	for _, task := range Tasks {
 		if _, ok := names[task.Name]; ok {
-			return fmt.Errorf("'%s' is duplicated", task.Name)
+			return fmt.Errorf("Task '%s' is duplicated", task.Name)
 		}
 		names[task.Name] = true
 	}
 
 	for _, tag := range Tags() {
 		if _, ok := names[tag]; ok {
-			return fmt.Errorf("'%s' is duplicated", tag)
+			return fmt.Errorf("Tag '%s' is duplicated", tag)
 		}
 		names[tag] = true
 	}
@@ -1318,7 +1369,7 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 }
 
 func removeModules() error {
-	if !noGlobalFlag {
+	if withGlobalFlag {
 		c := NewContext(UserDataDir, ContextTypeGlobal)
 		if _, err := os.Stat(c.ModulesDir()); err == nil {
 			err = os.RemoveAll(c.ModulesDir())
@@ -1403,7 +1454,7 @@ manage hosts, tags and tasks.
 manage modules.
   --update                      Update modules.
   --clean                       Clean the downloaded modules.
-  --no-global                   (Using with --update or --clean option) Update or clean only the modules about per-project config.
+  --with-global                 (Using with --update or --clean option) Update or clean modules in the local, global both registry.
 
 execute commands using hosts configuration.
   --exec                        Execute commands with the hosts.
@@ -1431,18 +1482,10 @@ Github:
 `)
 }
 
-func getEditor() string {
-	editor := os.Getenv("ESSH_EDITOR")
-	if editor != "" {
-		return editor
-	}
-
-	return os.Getenv("EDITOR")
-}
-
 func init() {
 	// set SystemWideConfigFile
 	SystemWideConfigFile = "/etc/essh/config.lua"
+	SystemWideOverrideConfigFile = "/etc/essh/config_override.lua"
 
 	// set UserDataDir
 	home := userHomeDir()
@@ -1457,6 +1500,7 @@ func init() {
 	}
 
 	UserConfigFile = filepath.Join(UserDataDir, "config.lua")
+	UserOverrideConfigFile = filepath.Join(UserDataDir, "config_override.lua")
 }
 
 var ZSH_COMPLETION = `# This is zsh completion code.
@@ -1501,7 +1545,7 @@ _essh_options() {
         '--gen:Only generate ssh config.'
         '--update:Update modules.'
         '--clean:Clean the downloaded modules.'
-        '--no-global:Update or clean only the modules about per-project config.'
+        '--with-global:Update or clean modules in the local, global both registry.'
         '--working-dir:Change working directory.'
         '--config:Load per-project configuration from the file.'
         '--hosts:List hosts.'

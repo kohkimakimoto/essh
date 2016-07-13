@@ -115,7 +115,7 @@ func NewPlainTable(writer io.Writer) *Table {
 	t.SetRowSeparator("")
 	t.SetNoHeaderLine(true)
 	t.SetCenterSeparator("")
-	t.SetColumnSeparator("    ")
+	t.SetColumnSeparator("        ")
 
 	return t
 }
@@ -437,10 +437,10 @@ func ConditionString(cond bool, valid, inValid string) string {
 }
 
 // Format Table Header
-// Replace _ , . and spaces
+// Replace spaces
 func Title(name string) string {
-	name = strings.Replace(name, "_", " ", -1)
-	name = strings.Replace(name, ".", " ", -1)
+	//name = strings.Replace(name, "_", " ", -1)
+	//name = strings.Replace(name, ".", " ", -1)
 	name = strings.TrimSpace(name)
 	return strings.ToUpper(name)
 }
