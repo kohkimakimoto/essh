@@ -16,7 +16,7 @@ vagrant.hosts = function()
 
     local current_hostname = nil
 
-    for line in sh.cat(vagrant.cachne):lines() do
+    for line in sh.cat(cache_file):lines() do
         local _, hostname = string.match(line, "^(Host )(.-)$")
 
         if hostname ~= nil then
