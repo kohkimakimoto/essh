@@ -780,7 +780,7 @@ func esshRequire(L *lua.LState) int {
 		module = NewModule(name)
 
 		update := updateFlag
-		if CurrentContext.Type == ContextTypeGlobal && noGlobalFlag {
+		if CurrentContext.Type == ContextTypeGlobal && !withGlobalFlag {
 			update = false
 		}
 

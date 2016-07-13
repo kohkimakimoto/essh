@@ -45,7 +45,7 @@ var (
 	tasksFlag              bool
 	genFlag                bool
 	updateFlag             bool
-	noGlobalFlag           bool
+	withGlobalFlag bool
 	cleanFlag              bool
 	zshCompletionModeFlag  bool
 	zshCompletionFlag      bool
@@ -152,8 +152,8 @@ func start() error {
 			updateFlag = true
 		} else if arg == "--clean" {
 			cleanFlag = true
-		} else if arg == "--no-global" {
-			noGlobalFlag = true
+		} else if arg == "--with-global" {
+			withGlobalFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletionFlag = true
 			zshCompletionModeFlag = true
@@ -1369,7 +1369,7 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 }
 
 func removeModules() error {
-	if !noGlobalFlag {
+	if withGlobalFlag {
 		c := NewContext(UserDataDir, ContextTypeGlobal)
 		if _, err := os.Stat(c.ModulesDir()); err == nil {
 			err = os.RemoveAll(c.ModulesDir())
@@ -1454,7 +1454,7 @@ manage hosts, tags and tasks.
 manage modules.
   --update                      Update modules.
   --clean                       Clean the downloaded modules.
-  --no-global                   (Using with --update or --clean option) Update or clean only the modules about per-project config.
+  --with-global                 (Using with --update or --clean option) Update or clean modules in the local, global both registry.
 
 execute commands using hosts configuration.
   --exec                        Execute commands with the hosts.
@@ -1545,7 +1545,7 @@ _essh_options() {
         '--gen:Only generate ssh config.'
         '--update:Update modules.'
         '--clean:Clean the downloaded modules.'
-        '--no-global:Update or clean only the modules about per-project config.'
+        '--with-global:Update or clean modules in the local, global both registry.'
         '--working-dir:Change working directory.'
         '--config:Load per-project configuration from the file.'
         '--hosts:List hosts.'
