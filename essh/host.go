@@ -14,11 +14,11 @@ type Host struct {
 	Description string
 	Hidden      bool
 	Tags        []string
-	Context     *Context
+	Context     *Registry
 	Private     bool
 
-	sshConfig   *lua.LTable
-	lconfig     *lua.LTable
+	sshConfig *lua.LTable
+	lconfig   *lua.LTable
 }
 
 //

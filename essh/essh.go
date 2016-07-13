@@ -45,8 +45,10 @@ var (
 	tasksFlag              bool
 	genFlag                bool
 	updateFlag             bool
-	withGlobalFlag bool
-	cleanFlag              bool
+	withGlobalFlag         bool
+	cleanAllFlag           bool
+	cleanModulesFlag       bool
+	cleanTmpFlag           bool
 	zshCompletionModeFlag  bool
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
@@ -150,8 +152,12 @@ func start() error {
 			genFlag = true
 		} else if arg == "--update" {
 			updateFlag = true
-		} else if arg == "--clean" {
-			cleanFlag = true
+		} else if arg == "--clean-modules" {
+			cleanModulesFlag = true
+		} else if arg == "--clean-tmp" {
+			cleanTmpFlag = true
+		} else if arg == "--clean-all" {
+			cleanAllFlag = true
 		} else if arg == "--with-global" {
 			withGlobalFlag = true
 		} else if arg == "--zsh-completion" {
@@ -314,8 +320,8 @@ func start() error {
 		return nil
 	}
 
-	if cleanFlag {
-		err := removeModules()
+	if cleanAllFlag || cleanModulesFlag || cleanTmpFlag {
+		err := removeRegistryData()
 		if err != nil {
 			return err
 		}
@@ -379,11 +385,11 @@ func start() error {
 	lessh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
 
 	// user context
-	CurrentContext = NewContext(UserDataDir, ContextTypeGlobal)
-	GlobalContext = CurrentContext
-	ContextMap[CurrentContext.Key] = CurrentContext
+	CurrentRegistry = NewRegistry(UserDataDir, RegistryTypeGlobal)
+	GlobalRegistry = CurrentRegistry
+	RegistryMap[CurrentRegistry.Key] = CurrentRegistry
 
-	if err := CurrentContext.MkDirs(); err != nil {
+	if err := CurrentRegistry.MkDirs(); err != nil {
 		return err
 	}
 
@@ -391,6 +397,10 @@ func start() error {
 	if _, err := os.Stat(SystemWideConfigFile); err == nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] loading config file: %s\n", SystemWideConfigFile)
+		}
+
+		if err := CurrentRegistry.MkDirs(); err != nil {
+			return err
 		}
 
 		if err := L.DoFile(SystemWideConfigFile); err != nil {
@@ -408,6 +418,10 @@ func start() error {
 			fmt.Printf("[essh debug] loading config file: %s\n", UserConfigFile)
 		}
 
+		if err := CurrentRegistry.MkDirs(); err != nil {
+			return err
+		}
+
 		if err := L.DoFile(UserConfigFile); err != nil {
 			return err
 		}
@@ -419,13 +433,17 @@ func start() error {
 
 	// load current dir config
 	// change context to working dir context
-	CurrentContext = NewContext(WorkingDataDir, ContextTypeLocal)
-	LocalContext = CurrentContext
-	ContextMap[CurrentContext.Key] = CurrentContext
+	CurrentRegistry = NewRegistry(WorkingDataDir, RegistryTypeLocal)
+	LocalRegistry = CurrentRegistry
+	RegistryMap[CurrentRegistry.Key] = CurrentRegistry
 
 	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirConfigFile)
+		}
+
+		if err := CurrentRegistry.MkDirs(); err != nil {
+			return err
 		}
 
 		if err := L.DoFile(WorkingDirConfigFile); err != nil {
@@ -452,11 +470,15 @@ func start() error {
 		}
 	}
 
-	CurrentContext = GlobalContext
+	CurrentRegistry = GlobalRegistry
 	// load override user config
 	if _, err := os.Stat(UserOverrideConfigFile); err == nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
+		}
+
+		if err := CurrentRegistry.MkDirs(); err != nil {
+			return err
 		}
 
 		if err := L.DoFile(UserOverrideConfigFile); err != nil {
@@ -474,6 +496,10 @@ func start() error {
 			fmt.Printf("[essh debug] loading config file: %s\n", SystemWideOverrideConfigFile)
 		}
 
+		if err := CurrentRegistry.MkDirs(); err != nil {
+			return err
+		}
+
 		if err := L.DoFile(SystemWideOverrideConfigFile); err != nil {
 			return err
 		}
@@ -485,30 +511,30 @@ func start() error {
 
 	// deprecated configure logic... I will remove the logic in future.
 	// override config using task configuration?
-	taskConfigureContextKey := os.Getenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY")
-	if taskConfigureContextKey != "" {
-		// check context
-		if ctx, ok := ContextMap[taskConfigureContextKey]; ok {
-			if debugFlag {
-				fmt.Printf("[essh debug] got a context for configuring '%s' (%s) \n", ctx.Key, ctx.DataDir)
-			}
-
-			taskConfigureTask := os.Getenv("ESSH_TASK_CONFIGURE_TASK")
-			if taskConfigureTask != "" {
-				task := GetEnabledTask(taskConfigureTask)
-				if task == nil {
-					return fmt.Errorf("load configuration by using ESSH_TASK_CONFIGURE_TASK. but used unknown task '%s'", taskConfigureTask)
-				}
-				if err := processTaskConfigure(task); err != nil {
-					return err
-				}
-			}
-		} else {
-			if debugFlag {
-				fmt.Printf("[essh debug] a context for configuring is '%s'. but is not included in now context map.\n", taskConfigureContextKey)
-			}
-		}
-	}
+	//taskConfigureContextKey := os.Getenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY")
+	//if taskConfigureContextKey != "" {
+	//	// check context
+	//	if ctx, ok := RegistryMap[taskConfigureContextKey]; ok {
+	//		if debugFlag {
+	//			fmt.Printf("[essh debug] got a context for configuring '%s' (%s) \n", ctx.Key, ctx.DataDir)
+	//		}
+	//
+	//		taskConfigureTask := os.Getenv("ESSH_TASK_CONFIGURE_TASK")
+	//		if taskConfigureTask != "" {
+	//			task := GetEnabledTask(taskConfigureTask)
+	//			if task == nil {
+	//				return fmt.Errorf("load configuration by using ESSH_TASK_CONFIGURE_TASK. but used unknown task '%s'", taskConfigureTask)
+	//			}
+	//			if err := processTaskConfigure(task); err != nil {
+	//				return err
+	//			}
+	//		}
+	//	} else {
+	//		if debugFlag {
+	//			fmt.Printf("[essh debug] a context for configuring is '%s'. but is not included in now context map.\n", taskConfigureContextKey)
+	//		}
+	//	}
+	//}
 
 	// validate config
 	if err := validateConfig(); err != nil {
@@ -607,7 +633,7 @@ func start() error {
 				if quietFlag {
 					tb.Append([]string{t.Name})
 				} else {
-					tb.Append([]string{t.Name, t.Description, t.Context.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
+					tb.Append([]string{t.Name, t.Description, t.Registry.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
 				}
 			}
 		}
@@ -801,7 +827,7 @@ func processTaskConfigure(task *Task) error {
 		return err
 	}
 
-	err = os.Setenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY", task.Context.Key)
+	err = os.Setenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY", task.Registry.Key)
 	if err != nil {
 		return err
 	}
@@ -819,30 +845,37 @@ func runTask(config string, task *Task, payload string) error {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
 	}
 
+	if task.Registry != nil {
+		// change current registry
+		CurrentRegistry = task.Registry
+	}
+
 	// re generate config (task).
-	if task.Context == nil {
+	if task.Registry == nil {
 		_, err := UpdateSSHConfig(config, SortedPublicHosts())
 		if err != nil {
 			return err
 		}
 	} else {
-		_, err := UpdateSSHConfig(config, SameContextHosts(task.Context.Type))
+		_, err := UpdateSSHConfig(config, SameContextHosts(task.Registry.Type))
 		if err != nil {
 			return err
 		}
 	}
 
-	if err := processTaskConfigure(task); err != nil {
-		return err
-	}
+	// task configure deprecated
+	//if err := processTaskConfigure(task); err != nil {
+	//	return err
+	//}
+	//
 
-	if task.Configure != nil {
-		// re generate config.
-		_, err := UpdateSSHConfig(config, SortedHosts())
-		if err != nil {
-			return err
-		}
-	}
+	//if task.Configure != nil {
+	//	// re generate config.
+	//	_, err := UpdateSSHConfig(config, SortedHosts())
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
 
 	if task.Prepare != nil {
 		if debugFlag {
@@ -862,10 +895,10 @@ func runTask(config string, task *Task, payload string) error {
 	if task.IsRemoteTask() {
 		// run remotely.
 		var hosts []*Host
-		if task.Context == nil {
+		if task.Registry == nil {
 			hosts = FindPublicHosts(task.TargetsSlice())
 		} else {
-			hosts = FindHostsInContext(task.TargetsSlice(), task.Context.Type)
+			hosts = FindHostsInContext(task.TargetsSlice(), task.Registry.Type)
 		}
 
 		if len(hosts) == 0 {
@@ -897,10 +930,10 @@ func runTask(config string, task *Task, payload string) error {
 	} else {
 		// run locally.
 		var hosts []*Host
-		if task.Context == nil {
+		if task.Registry == nil {
 			hosts = FindPublicHosts(task.TargetsSlice())
 		} else {
-			hosts = FindHostsInContext(task.TargetsSlice(), task.Context.Type)
+			hosts = FindHostsInContext(task.TargetsSlice(), task.Registry.Type)
 		}
 
 		wg := &sync.WaitGroup{}
@@ -1368,36 +1401,48 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-func removeModules() error {
+func removeRegistryData() error {
 	if withGlobalFlag {
-		c := NewContext(UserDataDir, ContextTypeGlobal)
+		c := NewRegistry(UserDataDir, RegistryTypeGlobal)
+		if cleanModulesFlag || cleanAllFlag {
+			if _, err := os.Stat(c.ModulesDir()); err == nil {
+				fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.ModulesDir()))
+				err = os.RemoveAll(c.ModulesDir())
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		if cleanTmpFlag || cleanAllFlag {
+			if _, err := os.Stat(c.TmpDir()); err == nil {
+				fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.TmpDir()))
+				err = os.RemoveAll(c.TmpDir())
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	c := NewRegistry(WorkingDataDir, RegistryTypeLocal)
+	if cleanModulesFlag || cleanAllFlag {
 		if _, err := os.Stat(c.ModulesDir()); err == nil {
+			fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.ModulesDir()))
 			err = os.RemoveAll(c.ModulesDir())
 			if err != nil {
 				return err
 			}
 		}
+	}
 
+	if cleanTmpFlag || cleanAllFlag {
 		if _, err := os.Stat(c.TmpDir()); err == nil {
+			fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.TmpDir()))
 			err = os.RemoveAll(c.TmpDir())
 			if err != nil {
 				return err
 			}
-		}
-	}
-
-	c := NewContext(WorkingDataDir, ContextTypeLocal)
-	if _, err := os.Stat(c.ModulesDir()); err == nil {
-		err = os.RemoveAll(c.ModulesDir())
-		if err != nil {
-			return err
-		}
-	}
-
-	if _, err := os.Stat(c.TmpDir()); err == nil {
-		err = os.RemoveAll(c.TmpDir())
-		if err != nil {
-			return err
 		}
 	}
 
@@ -1453,8 +1498,10 @@ manage hosts, tags and tasks.
 
 manage modules.
   --update                      Update modules.
-  --clean                       Clean the downloaded modules.
-  --with-global                 (Using with --update or --clean option) Update or clean modules in the local, global both registry.
+  --clean-modules               Clean downloaded modules.
+  --clean-tmp                   Clean temporary data.
+  --clean-all                   Clean all data.
+  --with-global                 (Using with --update, --clean-modules, --clean-tmp or --clean-all option) Update or clean modules in the local, global both registry.
 
 execute commands using hosts configuration.
   --exec                        Execute commands with the hosts.
@@ -1544,8 +1591,9 @@ _essh_options() {
         '--print:Print generated ssh config.'
         '--gen:Only generate ssh config.'
         '--update:Update modules.'
-        '--clean:Clean the downloaded modules.'
-        '--with-global:Update or clean modules in the local, global both registry.'
+        '--clean-modules:Clean downloaded modules.'
+        '--clean-tmp:Clean temporary data.'
+        '--clean-all:Clean all data.'
         '--working-dir:Change working directory.'
         '--config:Load per-project configuration from the file.'
         '--hosts:List hosts.'
@@ -1605,6 +1653,14 @@ _essh_exec_options() {
         '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
         '--file:Load commands from a file.'
         '--driver:Specify a driver.'
+     )
+    _describe -t option "option" __essh_options
+}
+
+_essh_registry_options() {
+    local -a __essh_options
+    __essh_options=(
+        '--with-global:Update or clean modules in the local, global both registry.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1675,6 +1731,9 @@ _essh () {
                     ;;
                 --backend)
                     _essh_backends
+                    ;;
+                --clean-modules|--clean-tmp|--clean-all|--update)
+                    _essh_registry_options
                     ;;
                 *)
                     if [ "$execMode" = "on" ]; then

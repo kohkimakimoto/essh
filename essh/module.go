@@ -58,14 +58,14 @@ func (m *Module) Load(update bool) error {
 		fmt.Printf("[essh debug] module src '%s'\n", src)
 	}
 
-	if update  {
+	if update {
 		if _, err := os.Stat(dst); err == nil {
-			fmt.Fprintf(os.Stdout, "Updating module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentContext.DataDir))
+			fmt.Fprintf(os.Stdout, "Updating module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 		} else {
-			fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentContext.DataDir))
+			fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 		}
 	} else {
-		fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentContext.DataDir))
+		fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 	}
 
 	pwd, err := os.Getwd()
@@ -91,7 +91,7 @@ func (m *Module) IndexFile() string {
 }
 
 func (m *Module) Dir() string {
-	return path.Join(CurrentContext.ModulesDir(), m.Key())
+	return path.Join(CurrentRegistry.ModulesDir(), m.Key())
 }
 
 func (m *Module) Key() string {

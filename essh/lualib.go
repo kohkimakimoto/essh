@@ -21,6 +21,7 @@ func InitLuaState(L *lua.LState) {
 	// custom type.
 	registerTaskContextClass(L)
 	registerHostClass(L)
+	registerRegistryClass(L)
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
@@ -55,15 +56,17 @@ func InitLuaState(L *lua.LState) {
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
-		"host":         esshHost,
-		"private_host": esshPrivateHost,
+		"host":          esshHost,
+		"private_host":  esshPrivateHost,
 		"override_host": esshOverrideHost,
-		"task":         esshTask,
-		"driver":       esshDriver,
+		"task":          esshTask,
+		"driver":        esshDriver,
 		// utilities.
-		"require": esshRequire,
-		"debug":   esshDebug,
+		"require":  esshRequire,
+		"debug":    esshDebug,
 		"gethosts": esshGethosts,
+		"hosts":    esshGethosts,
+		"registry": esshRegistry,
 	})
 }
 
@@ -362,18 +365,18 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
 	}
 
 	h := &Host{
-		Name:      name,
-		Props:     map[string]string{},
-		Hooks:     map[string][]interface{}{},
-		Tags:      []string{},
-		Context:   CurrentContext,
+		Name:    name,
+		Props:   map[string]string{},
+		Hooks:   map[string][]interface{}{},
+		Tags:    []string{},
+		Context: CurrentRegistry,
 	}
 
 	updateHost(L, h, config)
 
-	if h.Context.Type == ContextTypeLocal {
+	if h.Context.Type == RegistryTypeLocal {
 		LocalHosts[h.Name] = h
-	} else if h.Context.Type == ContextTypeGlobal {
+	} else if h.Context.Type == RegistryTypeGlobal {
 		GlobalHosts[h.Name] = h
 	}
 
@@ -396,7 +399,7 @@ func overrideHost(L *lua.LState, h *Host, config *lua.LTable) *Host {
 	}
 
 	// override
-	config.ForEach(func(k, v lua.LValue){
+	config.ForEach(func(k, v lua.LValue) {
 		updatedConfig.RawSet(k, v)
 	})
 
@@ -405,7 +408,6 @@ func overrideHost(L *lua.LState, h *Host, config *lua.LTable) *Host {
 
 	return h
 }
-
 
 func updateHost(L *lua.LState, h *Host, config *lua.LTable) {
 	h.lconfig = config
@@ -526,7 +528,7 @@ func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) 
 func registerTask(L *lua.LState, name string, config *lua.LTable) *Task {
 	task := NewTask()
 	task.Name = name
-	task.Context = CurrentContext
+	task.Registry = CurrentRegistry
 
 	backend := config.RawGetString("backend")
 	if backendStr, ok := toString(backend); ok {
@@ -775,12 +777,12 @@ func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 func esshRequire(L *lua.LState) int {
 	name := L.CheckString(1)
 
-	module := CurrentContext.LoadedModules[name]
+	module := CurrentRegistry.LoadedModules[name]
 	if module == nil {
 		module = NewModule(name)
 
 		update := updateFlag
-		if CurrentContext.Type == ContextTypeGlobal && !withGlobalFlag {
+		if CurrentRegistry.Type == RegistryTypeGlobal && !withGlobalFlag {
 			update = false
 		}
 
@@ -802,7 +804,7 @@ func esshRequire(L *lua.LState) int {
 		module.Value = ret
 
 		// register loaded module.
-		CurrentContext.LoadedModules[name] = module
+		CurrentRegistry.LoadedModules[name] = module
 
 		return 1
 	}
@@ -815,11 +817,16 @@ func esshGethosts(L *lua.LState) int {
 	lhosts := L.NewTable()
 
 	for _, host := range SortedHosts() {
-		lhost := newLHostC(L, host)
+		lhost := newLHost(L, host)
 		lhosts.Append(lhost)
 	}
 
 	L.Push(lhosts)
+	return 1
+}
+
+func esshRegistry(L *lua.LState) int {
+	L.Push(newLRegistry(L, CurrentRegistry))
 	return 1
 }
 
@@ -940,7 +947,7 @@ func checkTaskContext(L *lua.LState) *TaskContext {
 
 const LHostClass = "Host*"
 
-func newLHostC(L *lua.LState, host *Host) *lua.LUserData {
+func newLHost(L *lua.LState, host *Host) *lua.LUserData {
 	ud := L.NewUserData()
 	ud.Value = host
 	L.SetMetatable(ud, L.GetTypeMetatable(LHostClass))
@@ -959,7 +966,7 @@ func checkHost(L *lua.LState) *Host {
 func registerHostClass(L *lua.LState) {
 	mt := L.NewTypeMetatable(LHostClass)
 	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
-		"name": hostName,
+		"name":   hostName,
 		"config": hostConfig,
 	}))
 }
@@ -973,5 +980,43 @@ func hostName(L *lua.LState) int {
 func hostConfig(L *lua.LState) int {
 	host := checkHost(L)
 	L.Push(host.lconfig)
+	return 1
+}
+
+const LRegistryClass = "Registry*"
+
+func newLRegistry(L *lua.LState, ctx *Registry) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = ctx
+	L.SetMetatable(ud, L.GetTypeMetatable(LRegistryClass))
+	return ud
+}
+
+func checkRegistry(L *lua.LState) *Registry {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Registry); ok {
+		return v
+	}
+	L.ArgError(1, "Registry object expected")
+	return nil
+}
+
+func registerRegistryClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LRegistryClass)
+	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
+		"tmp_dir":     registryTmpDir,
+		"modules_dir": registryModulesDir,
+	}))
+}
+
+func registryTmpDir(L *lua.LState) int {
+	reg := checkRegistry(L)
+	L.Push(lua.LString(reg.TmpDir()))
+	return 1
+}
+
+func registryModulesDir(L *lua.LState) int {
+	reg := checkRegistry(L)
+	L.Push(lua.LString(reg.ModulesDir()))
 	return 1
 }

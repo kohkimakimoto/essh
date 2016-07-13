@@ -10,7 +10,7 @@ echo "[error] docker driver engine supports only running a local task."
 exit 1
 {{end}}
 
-{{if ne .Task.Context.TypeString "WorkingData"}}
+{{if ne .Task.Registry.TypeString "WorkingData"}}
 echo "[error] docker driver engine supports only running a task that is defined per-project configuration."
 exit 1
 {{end}}
@@ -72,7 +72,7 @@ if [ -z $(docker images -q $__essh_var_docker_image) ]; then
 fi
 
 # create temporary directory
-__essh_var_docker_tmp_dir=$(mktemp -d {{.Task.Context.TmpDir}}/.essh_docker.XXXXXXXX)
+__essh_var_docker_tmp_dir=$(mktemp -d {{.Task.Registry.TmpDir}}/.essh_docker.XXXXXXXX)
 trap "rm -rf $__essh_var_docker_tmp_dir; exit" 0
 chmod 777 $__essh_var_docker_tmp_dir
 

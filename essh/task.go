@@ -5,12 +5,13 @@ import "sort"
 type Task struct {
 	Name        string
 	Description string
-	Configure   func() error
-	Prepare     func(task *TaskContext) error
-	Driver      string
-	Pty         bool
-	Script      []map[string]string
-	File        string
+	// Configure deprecated.
+	Configure func() error
+	Prepare   func(task *TaskContext) error
+	Driver    string
+	Pty       bool
+	Script    []map[string]string
+	File      string
 
 	// On and Foreach are deprecated. use "Backend" and "Targets"
 	On      []string
@@ -25,8 +26,8 @@ type Task struct {
 	Disabled bool
 	Hidden   bool
 
-	Prefix  string
-	Context *Context
+	Prefix   string
+	Registry *Registry
 }
 
 var Tasks map[string]*Task = map[string]*Task{}
@@ -89,6 +90,10 @@ func (t *Task) IsRemoteTask() bool {
 			return false
 		}
 	}
+}
+
+func (t *Task) Context() *Registry {
+	return t.Registry
 }
 
 func (t *Task) TargetsSlice() []string {
