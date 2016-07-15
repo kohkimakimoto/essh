@@ -3,7 +3,7 @@
 Drivers in Essh are templates to construct script in tasks execution.
 Essh usually executes tasks by using built-in default driver. But you can also use your custom drivers.
 
-This is an advanced topic. For more information on Drivers, see the [Drivers](drivers.md) section.
+This is an advanced topic. For more information on drivers, see the [Drivers](drivers.md) section.
 
 ## Next Steps
 

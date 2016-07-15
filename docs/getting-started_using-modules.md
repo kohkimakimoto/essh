@@ -34,6 +34,6 @@ There is NO WARRANTY, to the extent permitted by law.
 foo
 ```
 
-For more information on Modules, see the [Modules](#modules) section.
+For more information on Modules, see the [Modules](modules.md) section.
 
 Let's read next section: [Using Drivers](getting-started_using-drivers.md)
