@@ -89,4 +89,10 @@ task "example" {
 `driver` configuration needs the required parameter `engine`. This is the template text.
 To use you custom driver, you need to set task's `driver` property.
 
-See more the example implementation:  [bash.driver](https://github.com/kohkimakimoto/essh/blob/master/modules%2Fbash%2Findex.lua).
+See more the example implementation:
+
+[bash.driver](https://github.com/kohkimakimoto/essh/blob/master/modules/bash/index.lua).
+
+or
+
+[docker.driver](https://github.com/kohkimakimoto/essh/blob/master/modules/docker/index.lua)
