@@ -7,3 +7,4 @@ This section covers the basic features of Essh. If you are begginer of Essh, I r
 * [Zsh Completion](getting-started_zsh-completion.md)
 * [Using Hooks](getting-started_using-hooks.md)
 * [Managing Hosts](getting-started_managing-hosts.md)
+* [Running Commands](getting-started_running-commands.md)
