@@ -9,4 +9,4 @@ Welcome to the Essh documentation. If you're just getting started with Essh, ple
 * [Lua VM](lua-vm.md)
 * [Modules](modules.md)
 * [Drivers](drivers.md)
-* [Integrating Other Tools](integrating-other-ssh-related-commands.md)
+* [Integrating Other Tools](integrating-other-tools.md)
