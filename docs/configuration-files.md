@@ -51,9 +51,9 @@ Essh provides two registries: **local** and **global**.
 
 If you define a host in the `/etc/essh/config.lua`, this host config is stored in the `global` registry.
 
-### Rules
+### Constraints
 
-Registries provides some rules about resources. For example (and most important rule) is the following:
+Registries provides some constraints about resources. For example (and the most important constraint) is the following:
 
 > hosts used by tasks must be defined in a same registry.
 

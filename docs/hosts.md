@@ -96,9 +96,9 @@ host "example" {
 }
 ```
 
-## Rules
+## Constraints
 
-There are rules about scopes and registries.
+There are constraints about scopes and registries.
 
 * Each public hosts must be unique. (You can NOT define public hosts by the same name in the local and global registry.)
 * Any hosts must be unique in a same registry. (You can NOT define hosts by the same name in the same registry.)
