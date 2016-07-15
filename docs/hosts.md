@@ -73,6 +73,8 @@ All the properties of this type are listed below.
 
 ## Private Hosts
 
+Hosts in Essh have scope: **private** or **public**.
+
 Private hosts can be only used to the tasks. The hosts of this type can't be used by ssh login, and does not suggest by zsh-completion. also they can't be used with `--exec` option.
 
 You can use `private_host` function as an alias to define a private host. See the below example:
