@@ -14,16 +14,16 @@ type Host struct {
 	Description string
 	Hidden      bool
 	Tags        []string
-	Context     *Registry
+	Registry    *Registry
 	Private     bool
 
-	sshConfig *lua.LTable
-	lconfig   *lua.LTable
+	sshConfig   *lua.LTable
+	lconfig     *lua.LTable
 }
 
 //
 // Spec note about Hosts (it is a little complicated!):
-//   Hosts are stored into a space: "global" or "local" which are called as 'registry' (and 'context').
+//   Hosts are stored into a space: "global" or "local" which are called as 'registry' (or 'context').
 //   The registry is determined by a place of the configuration file that hosts are defined in.
 //
 //   Example:
@@ -88,7 +88,7 @@ func (h *Host) Scope() string {
 }
 
 func (h *Host) Key() string {
-	return h.Context.TypeString() + ":" + h.Name
+	return h.Registry.TypeString() + ":" + h.Name
 }
 
 func GetPublicHost(hostname string) *Host {
@@ -148,11 +148,11 @@ func SortedPublicHosts() []*Host {
 
 }
 
-func SameContextHosts(contextType int) []*Host {
+func SameRegistryHosts(contextType int) []*Host {
 	hosts := []*Host{}
 
 	for _, host := range SortedHosts() {
-		if host.Context.Type == contextType {
+		if host.Registry.Type == contextType {
 			hosts = append(hosts, host)
 		}
 	}
@@ -201,11 +201,11 @@ func Tags() []string {
 	return tags
 }
 
-func FindHostsInContext(names []string, contextType int) []*Host {
+func FindHostsInRegistry(names []string, registryType int) []*Host {
 	var hosts = []*Host{}
 
 	for _, host := range SortedHosts() {
-		if host.Context.Type != contextType {
+		if host.Registry.Type != registryType {
 			continue
 		}
 

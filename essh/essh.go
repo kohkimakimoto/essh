@@ -590,7 +590,7 @@ func start() error {
 					if host.Private {
 						scope = "private"
 					}
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Context.TypeString(), scope, hidden})
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString(), scope, hidden})
 				}
 			}
 		}
@@ -852,7 +852,7 @@ func runTask(config string, task *Task, payload string) error {
 			return err
 		}
 	} else {
-		_, err := UpdateSSHConfig(config, SameContextHosts(task.Registry.Type))
+		_, err := UpdateSSHConfig(config, SameRegistryHosts(task.Registry.Type))
 		if err != nil {
 			return err
 		}
@@ -893,7 +893,7 @@ func runTask(config string, task *Task, payload string) error {
 		if task.Registry == nil {
 			hosts = FindPublicHosts(task.TargetsSlice())
 		} else {
-			hosts = FindHostsInContext(task.TargetsSlice(), task.Registry.Type)
+			hosts = FindHostsInRegistry(task.TargetsSlice(), task.Registry.Type)
 		}
 
 		if len(hosts) == 0 {
@@ -928,7 +928,7 @@ func runTask(config string, task *Task, payload string) error {
 		if task.Registry == nil {
 			hosts = FindPublicHosts(task.TargetsSlice())
 		} else {
-			hosts = FindHostsInContext(task.TargetsSlice(), task.Registry.Type)
+			hosts = FindHostsInRegistry(task.TargetsSlice(), task.Registry.Type)
 		}
 
 		wg := &sync.WaitGroup{}

@@ -369,14 +369,14 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
 		Props:   map[string]string{},
 		Hooks:   map[string][]interface{}{},
 		Tags:    []string{},
-		Context: CurrentRegistry,
+		Registry: CurrentRegistry,
 	}
 
 	updateHost(L, h, config)
 
-	if h.Context.Type == RegistryTypeLocal {
+	if h.Registry.Type == RegistryTypeLocal {
 		LocalHosts[h.Name] = h
-	} else if h.Context.Type == RegistryTypeGlobal {
+	} else if h.Registry.Type == RegistryTypeGlobal {
 		GlobalHosts[h.Name] = h
 	}
 
