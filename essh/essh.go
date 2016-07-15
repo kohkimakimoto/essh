@@ -504,33 +504,6 @@ func start() error {
 		}
 	}
 
-	// deprecated configure logic... I will remove the logic in future.
-	// override config using task configuration?
-	//taskConfigureContextKey := os.Getenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY")
-	//if taskConfigureContextKey != "" {
-	//	// check context
-	//	if ctx, ok := RegistryMap[taskConfigureContextKey]; ok {
-	//		if debugFlag {
-	//			fmt.Printf("[essh debug] got a context for configuring '%s' (%s) \n", ctx.Key, ctx.DataDir)
-	//		}
-	//
-	//		taskConfigureTask := os.Getenv("ESSH_TASK_CONFIGURE_TASK")
-	//		if taskConfigureTask != "" {
-	//			task := GetEnabledTask(taskConfigureTask)
-	//			if task == nil {
-	//				return fmt.Errorf("load configuration by using ESSH_TASK_CONFIGURE_TASK. but used unknown task '%s'", taskConfigureTask)
-	//			}
-	//			if err := processTaskConfigure(task); err != nil {
-	//				return err
-	//			}
-	//		}
-	//	} else {
-	//		if debugFlag {
-	//			fmt.Printf("[essh debug] a context for configuring is '%s'. but is not included in now context map.\n", taskConfigureContextKey)
-	//		}
-	//	}
-	//}
-
 	// validate config
 	if err := validateConfig(); err != nil {
 		return err
@@ -858,20 +831,6 @@ func runTask(config string, task *Task, payload string) error {
 		}
 	}
 
-	// task configure deprecated
-	//if err := processTaskConfigure(task); err != nil {
-	//	return err
-	//}
-	//
-
-	//if task.Configure != nil {
-	//	// re generate config.
-	//	_, err := UpdateSSHConfig(config, SortedHosts())
-	//	if err != nil {
-	//		return err
-	//	}
-	//}
-
 	if task.Prepare != nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] run prepare function.\n")
@@ -935,7 +894,7 @@ func runTask(config string, task *Task, payload string) error {
 		m := new(sync.Mutex)
 
 		if len(hosts) == 0 {
-			err := runLocalTaskScript(task, payload, nil, m)
+			err := runLocalTaskScript(config, task, payload, nil, m)
 			if err != nil {
 				return err
 			}
@@ -946,7 +905,7 @@ func runTask(config string, task *Task, payload string) error {
 			if task.Parallel {
 				wg.Add(1)
 				go func(host *Host) {
-					err := runLocalTaskScript(task, payload, host, m)
+					err := runLocalTaskScript(config, task, payload, host, m)
 					if err != nil {
 						fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
 						panic(err)
@@ -955,7 +914,7 @@ func runTask(config string, task *Task, payload string) error {
 					wg.Done()
 				}(host)
 			} else {
-				err := runLocalTaskScript(task, payload, host, m)
+				err := runLocalTaskScript(config, task, payload, host, m)
 				if err != nil {
 					return err
 				}
@@ -967,13 +926,13 @@ func runTask(config string, task *Task, payload string) error {
 	return nil
 }
 
-func runRemoteTaskScript(config string, task *Task, payload string, host *Host, m *sync.Mutex) error {
+func runRemoteTaskScript(sshConfigPath string, task *Task, payload string, host *Host, m *sync.Mutex) error {
 	// setup ssh command args
 	var sshCommandArgs []string
 	if task.Pty {
-		sshCommandArgs = []string{"-t", "-t", "-F", config, host.Name}
+		sshCommandArgs = []string{"-t", "-t", "-F", sshConfigPath, host.Name}
 	} else {
-		sshCommandArgs = []string{"-F", config, host.Name}
+		sshCommandArgs = []string{"-F", sshConfigPath, host.Name}
 	}
 
 	// generate commands by using driver
@@ -989,7 +948,7 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 	}
 
 	var script string
-	content, err := driver.GenerateRunnableContent(task, host)
+	content, err := driver.GenerateRunnableContent(sshConfigPath, task, host)
 	if err != nil {
 		return err
 	}
@@ -1050,7 +1009,7 @@ func runRemoteTaskScript(config string, task *Task, payload string, host *Host, 
 	return cmd.Wait()
 }
 
-func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) error {
+func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *Host, m *sync.Mutex) error {
 	var shell, flag string
 	if runtime.GOOS == "windows" {
 		shell = "cmd"
@@ -1073,7 +1032,7 @@ func runLocalTaskScript(task *Task, payload string, host *Host, m *sync.Mutex) e
 	}
 
 	var script string
-	content, err := driver.GenerateRunnableContent(task, host)
+	content, err := driver.GenerateRunnableContent(sshConfigPath, task, host)
 	if err != nil {
 		return err
 	}

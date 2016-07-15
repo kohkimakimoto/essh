@@ -27,7 +27,7 @@ func NewDriver() *Driver {
 	}
 }
 
-func (driver *Driver) GenerateRunnableContent(task *Task, host *Host) (string, error) {
+func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, host *Host) (string, error) {
 	templateText, err := driver.Engine(driver)
 	if err != nil {
 		return "", err
@@ -59,6 +59,7 @@ func (driver *Driver) GenerateRunnableContent(task *Task, host *Host) (string, e
 		"Task":    task,
 		"Host":    host,
 		"Scripts": scripts,
+		"SSHConfigPath": sshConfigPath,
 	}
 
 	baseTempl, err := template.New("base").Funcs(funcMap).Parse(templateText)
@@ -87,6 +88,7 @@ func init() {
 
 const EnvironmentTemplate = `{{define "environment" -}}
 export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
+export ESSH_SSH_CONFIG={{.SSHConfigPath}}
 {{if .Host -}}
 export ESSH_HOSTNAME={{.Host.Name | ShellEscape}}
 export ESSH_HOST_HOSTNAME={{.Host.Name | ShellEscape}}
