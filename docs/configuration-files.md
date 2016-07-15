@@ -60,3 +60,9 @@ Registries provides some rules about resources. For example (and most important 
 If you define a task in the `global` registry, this task can not use hosts which are defined in the `local` registry.
 
 For more information, see [Hosts](hosts.md).
+
+## Lua libraries
+
+Essh provides built-in Lua libraries that can be used in the configuration files.
+
+Please see [Lua VM](lua-vm.md).
