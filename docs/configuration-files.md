@@ -30,14 +30,9 @@ task "uptime" {
 }
 ```
 
-## Evaluating Orders And Registries
+## Evaluating Orders
 
-Essh loads configuration files from several different places. And each configuration files have a **registry**. The Registry is a logical space which contains resources as hosts and tasks that are defined by evaluating configuration.
-
-Essh provides two registries: **local** and **global**.
-For example: If you define a host in the `/etc/essh/config.lua`, this host config is stored in the `global` registry.
-
-All configuration files are not required. Essh loads these if they exist. Configuration are applied in the following order:
+Essh loads configuration files from several different places. All configuration files are not required. Essh loads these if they exist. Configuration are applied in the following order:
 
 1. Loads `/etc/essh/config.lua` (`global` registry).
 1. Loads `~/.essh/config.lua` (`global` registry).
@@ -45,3 +40,11 @@ All configuration files are not required. Essh loads these if they exist. Config
 1. Loads `esshconfig_override.lua` in the current directory or loads a file the name of which end in `_override`, that specified by `--config` command line option. ex) If you use `--config=myconfig.lua`, valid file name is `myconfig_override.lua` (`local` registry).
 1. Loads `~/.essh/config_override.lua` (`global` registry).
 1. Load `/etc/essh/config_override.lua` (`global` registry).
+
+# Registries
+
+Each configuration files have a **registry**. The Registry is a logical space which contains resources as hosts and tasks that are defined by evaluating configuration.
+
+Essh provides two registries: **local** and **global**.
+
+For example: If you define a host in the `/etc/essh/config.lua`, this host config is stored in the `global` registry.
