@@ -43,7 +43,7 @@ Essh loads configuration files from several different places. All configuration 
 
 ## Registries
 
-Each configuration files have a **registry**. The Registry is a logical space which contains resources as hosts and tasks that are defined by evaluating configuration.
+Each configuration files have a **registry**. The registry is a logical space which contains resources as hosts and tasks that are defined by evaluating configuration.
 
 Essh provides two registries: **local** and **global**.
 
