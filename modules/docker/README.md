@@ -11,16 +11,16 @@ local docker = essh.require "github.com/kohkimakimoto/essh/modules/docker"
 driver "docker" {
     engine = docker.driver,
     image = "centos:centos6",
+    privileged = true,
 }
 
 task "example" {
-    description = "example",
+    backend = "remote",
+    targets = "default",
     driver = "docker",
     script = {
-        [=[
-            cat /etc/redhat-release
-        ]=],
-    }
+        "echo hello",
+    },
 }
 ```
 
