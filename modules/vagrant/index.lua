@@ -36,8 +36,14 @@ vagrant.hosts = function()
     return vagrant_hosts
 end
 
-vagrant.load_hosts = function()
-    essh.host(vagrant.hosts())
+vagrant.load_hosts = function(override_config)
+    for name, config in pairs(vagrant.hosts()) do
+        if override_config then
+            -- merge
+            for k,v in pairs(override_config) do config[k] = v end
+        end
+        host(name, config)
+    end
 end
 
 return vagrant
