@@ -40,15 +40,6 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("glua.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 	L.PreloadModule("glua.sh", gluash.Loader)
 
-	// deprecated. this is for backforward compalibilty
-	L.PreloadModule("essh.json", gluajson.Loader)
-	L.PreloadModule("essh.fs", gluafs.Loader)
-	L.PreloadModule("essh.yaml", gluayaml.Loader)
-	L.PreloadModule("essh.template", gluatemplate.Loader)
-	L.PreloadModule("essh.question", gluaquestion.Loader)
-	L.PreloadModule("essh.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
-	L.PreloadModule("essh.sh", gluash.Loader)
-
 	// global variables
 	lessh := L.NewTable()
 	L.SetGlobal("essh", lessh)
@@ -604,32 +595,6 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) *Task {
 		L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
 	}
 
-	on := config.RawGetString("on")
-	if onStr, ok := toString(on); ok {
-		task.On = []string{onStr}
-	} else if onSlice, ok := toSlice(on); ok {
-		for _, target := range onSlice {
-			if targetStr, ok := target.(string); ok {
-				task.On = append(task.On, targetStr)
-			}
-		}
-	}
-
-	foreach := config.RawGetString("foreach")
-	if foreachStr, ok := toString(foreach); ok {
-		task.Foreach = []string{foreachStr}
-	} else if foreachSlice, ok := toSlice(foreach); ok {
-		for _, target := range foreachSlice {
-			if targetStr, ok := target.(string); ok {
-				task.Foreach = append(task.Foreach, targetStr)
-			}
-		}
-	}
-
-	if len(task.Foreach) >= 1 && len(task.On) >= 1 {
-		L.RaiseError("invalid task definition: can't use 'foreach' and 'on' at the same time.")
-	}
-
 	prefix := config.RawGetString("prefix")
 	if prefixBool, ok := toBool(prefix); ok {
 		if prefixBool {
@@ -641,27 +606,6 @@ func registerTask(L *lua.LState, name string, config *lua.LTable) *Task {
 		}
 	} else if prefixStr, ok := toString(prefix); ok {
 		task.Prefix = prefixStr
-	}
-
-	// configure is deprecated. this is a old version of override_config
-	configure := config.RawGetString("configure")
-	if configure != lua.LNil {
-		if configureFn, ok := configure.(*lua.LFunction); ok {
-			task.Configure = func() error {
-				err := L.CallByParam(lua.P{
-					Fn:      configureFn,
-					NRet:    0,
-					Protect: false,
-				})
-				if err != nil {
-					return err
-				}
-
-				return nil
-			}
-		} else {
-			L.RaiseError("configure have to be a function.")
-		}
 	}
 
 	prepare := config.RawGetString("prepare")

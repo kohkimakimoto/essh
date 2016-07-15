@@ -6,16 +6,12 @@ type Task struct {
 	Name        string
 	Description string
 	// Configure deprecated.
-	Configure func() error
 	Prepare   func(task *TaskContext) error
 	Driver    string
 	Pty       bool
 	Script    []map[string]string
 	File      string
 
-	// On and Foreach are deprecated. use "Backend" and "Targets"
-	On      []string
-	Foreach []string
 	Backend string
 	Targets []string
 
@@ -44,8 +40,6 @@ const (
 
 func NewTask() *Task {
 	return &Task{
-		On:      []string{},
-		Foreach: []string{},
 		Targets: []string{},
 		Backend: TASK_BACKEND_LOCAL,
 		Script:  []map[string]string{},
@@ -80,15 +74,10 @@ func GetEnabledTask(name string) *Task {
 }
 
 func (t *Task) IsRemoteTask() bool {
-	// for backward compatibility
-	if len(t.On) >= 1 {
+	if t.Backend == TASK_BACKEND_REMOTE {
 		return true
 	} else {
-		if t.Backend == TASK_BACKEND_REMOTE {
-			return true
-		} else {
-			return false
-		}
+		return false
 	}
 }
 
@@ -99,13 +88,6 @@ func (t *Task) Context() *Registry {
 func (t *Task) TargetsSlice() []string {
 	if len(t.Targets) >= 1 {
 		return t.Targets
-	}
-
-	// for backward compatibility
-	if len(t.On) >= 1 {
-		return t.On
-	} else if len(t.Foreach) >= 1 {
-		return t.Foreach
 	}
 
 	return []string{}

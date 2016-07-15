@@ -72,10 +72,6 @@ var (
 	backendVar      string
 	prefixStringVar string
 	driverVar       string
-	// deprecated
-	onVar []string = []string{}
-	// deprecated
-	foreachVar []string = []string{}
 )
 
 func Start() (err error) {
@@ -194,22 +190,6 @@ func start() error {
 			configVar = strings.Split(arg, "=")[1]
 		} else if arg == "--exec" {
 			execFlag = true
-		} else if arg == "--on" {
-			if len(osArgs) < 2 {
-				return fmt.Errorf("--on reguires an argument.")
-			}
-			onVar = append(onVar, osArgs[1])
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--on=") {
-			onVar = append(onVar, strings.Split(arg, "=")[1])
-		} else if arg == "--foreach" {
-			if len(osArgs) < 2 {
-				return fmt.Errorf("--foreach reguires an argument.")
-			}
-			foreachVar = append(foreachVar, osArgs[1])
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--foreach=") {
-			foreachVar = append(foreachVar, strings.Split(arg, "=")[1])
 		} else if arg == "--privileged" {
 			privilegedFlag = true
 		} else if arg == "--parallel" {
@@ -664,13 +644,6 @@ func start() error {
 		}
 		task.Targets = targetVar
 
-		task.On = onVar
-		task.Foreach = foreachVar
-
-		if len(task.Foreach) >= 1 && len(task.On) >= 1 {
-			return fmt.Errorf("invalid options: can't use '--foreach' and '--on' at the same time.")
-		}
-
 		if prefixStringVar == "" {
 			if prefixFlag {
 				if task.IsRemoteTask() {
@@ -775,37 +748,6 @@ func printJson(hosts []*Host, indent string) {
 		}
 		fmt.Println(string(b))
 	}
-}
-
-func processTaskConfigure(task *Task) error {
-	// configure function cleans global config and uses custom config that is defined in a task.
-	if task.Configure == nil {
-		return nil
-	}
-
-	if debugFlag {
-		fmt.Printf("[essh debug] run configure function.\n")
-	}
-
-	// clean hosts.
-	ResetHosts()
-
-	err := os.Setenv("ESSH_TASK_CONFIGURE_TASK", task.Name)
-	if err != nil {
-		return err
-	}
-
-	err = os.Setenv("ESSH_TASK_CONFIGURE_CONTEXT_KEY", task.Registry.Key)
-	if err != nil {
-		return err
-	}
-
-	err = task.Configure()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func runTask(config string, task *Task, payload string) error {
