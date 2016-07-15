@@ -8,7 +8,7 @@ It allows you to run a Essh task in a docker container.
 ```lua
 local docker = essh.require "github.com/kohkimakimoto/essh/modules/docker"
 
-driver "docker" {
+driver "docker-centos6" {
     engine = docker.driver,
     image = "centos:centos6",
     privileged = true,
@@ -17,14 +17,17 @@ driver "docker" {
 task "example" {
     backend = "remote",
     targets = "default",
-    driver = "docker",
+    driver = "docker-centos6",
     script = {
         "echo hello",
     },
 }
 ```
 
-Building docker image before running if it doesn't exist.
+Experimental:
+
+Building docker image before running if it doesn't exist (only local task).
+
 
 ```lua
 driver "docker" {
