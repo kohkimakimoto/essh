@@ -43,4 +43,4 @@ $ essh hello
 
 For more information on tasks, see the [Tasks](tasks.md) section.
 
-Let's read next section: [Using Lua Libraries](getting-started_running-tasks.md)
+Let's read next section: [Using Lua Libraries](getting-started_using-lua-libraries.md)
