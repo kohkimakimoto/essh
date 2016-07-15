@@ -48,3 +48,13 @@ Each configuration files have a **registry**. The Registry is a logical space wh
 Essh provides two registries: **local** and **global**.
 
 For example: If you define a host in the `/etc/essh/config.lua`, this host config is stored in the `global` registry.
+
+Registries provides some rules about resources.
+
+For example (and most important rule) is the following:
+
+> hosts used by tasks must be defined in a same registry.
+
+If you define a task in the `global` registry, this task can not use hosts which are defined in the `local` registry.
+
+For more information, see [Hosts](hosts.md).
