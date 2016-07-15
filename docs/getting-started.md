@@ -9,3 +9,6 @@ This section covers the basic features of Essh. If you are begginer of Essh, I r
 * [Managing Hosts](getting-started_managing-hosts.md)
 * [Running Commands](getting-started_running-commands.md)
 * [Running Tasks](getting-started_running-tasks.md)
+* [Using Lua Libraries](getting-started_using-lua-libraries.md)
+* [Using Modules](getting-started_using-modules.md)
+* [Using Drivers](getting-started_using-drivers.md)
