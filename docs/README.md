@@ -4,3 +4,9 @@ Welcome to the Essh documentation. If you're just getting started with Essh, ple
 
 * [Getting Started](getting-started.md)
 * [Configuration Files](configuration-files.md)  
+* [Hosts](hosts.md)  
+* [Tasks](tasks.md)
+* [Lua VM](lua-vm.md)
+* [Modules](modules.md)
+* [Drivers](drivers.md)
+* [Integrating Other Tools](integrating-other-ssh-related-commands.md)
