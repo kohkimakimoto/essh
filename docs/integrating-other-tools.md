@@ -2,32 +2,38 @@
 
 Essh can be used with `scp`, `rsync` and `git`.
 
-* `git`: To use Essh inside of the git command. Write the following line in your `~/.zshrc`.
+## git
 
-  ```
-  export GIT_SSH=essh
-  ```
+To use Essh inside of the git command. Write the following line in your `~/.zshrc`.
 
-* `scp`: Essh support to use with scp.
+```
+export GIT_SSH=essh
+```
 
-  ```
-  $ essh --scp <scp command args...>
-  ```
+## scp
 
-  For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+Essh support to use with scp.
 
-  ```
-  $ escp <scp command args...>
-  ```
+```
+$ essh --scp <scp command args...>
+```
 
-* `rsync`: Essh support to use with rsync.
+For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
 
-  ```
-  $ essh --rsync <rsync command args...>
-  ```
+```
+$ escp <scp command args...>
+```
 
-  For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+## rsync
 
-  ```
-  $ ersync <rsync command args...>
-  ```
+Essh support to use with rsync.
+
+```
+$ essh --rsync <rsync command args...>
+```
+
+For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+
+```
+$ ersync <rsync command args...>
+```
