@@ -91,7 +91,7 @@ To use you custom driver, you need to set task's `driver` property.
 
 See more the example implementation:
 
-[bash.driver](https://github.com/kohkimakimoto/essh/blob/master/modules/bash/index.lua).
+[bash.driver](https://github.com/kohkimakimoto/essh/blob/master/modules/bash/index.lua)
 
 or
 
