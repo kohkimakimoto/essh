@@ -41,7 +41,7 @@ Essh loads configuration files from several different places. All configuration 
 1. Loads `~/.essh/config_override.lua` (`global` registry).
 1. Load `/etc/essh/config_override.lua` (`global` registry).
 
-# Registries
+## Registries
 
 Each configuration files have a **registry**. The Registry is a logical space which contains resources as hosts and tasks that are defined by evaluating configuration.
 
