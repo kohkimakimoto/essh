@@ -70,6 +70,6 @@ web01.localhost        web01 development server        web               local  
 web02.localhost        web02 development server        web               local           public        false
 ```
 
-For more information on hosts, see the [Hosts](#hosts) section.
+For more information on hosts, see the [Hosts](hosts.md) section.
 
 Let's read next section: [Running Commands](getting-started_running-commands.md)
