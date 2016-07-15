@@ -20,11 +20,11 @@ host "web01.localhost" {
 
 Essh supports below type of hooks:
 
-* `before_connect` (string, table or function): fires on the localhost before you connect a server via SSH.
+* `before_connect` (string|table|function): fires on the localhost before you connect a server via SSH.
 
-* `after_connect` (string, table or function): fires on the remote host after you connect a server via SSH.
+* `after_connect` (string|table|function): fires on the remote host after you connect a server via SSH.
 
-* `after_disconnect` (string, table or function): fires on the local host after you disconnect from a SSH server.
+* `after_disconnect` (string|table|function): fires on the local host after you disconnect from a SSH server.
 
 > Note: I am using this functionality to change OSX terminal profile(color). See the below example.
 
