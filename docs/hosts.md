@@ -43,7 +43,7 @@ All the properties of this type are listed below.
 
 * `hidden` (boolean): If you set it true, zsh completion doesn't show the host.
 
-* `private` (boolean): If you set it true, This host only can be used to the tasks. See also [private hosts](#private-hosts)
+* `private` (boolean): If you set it true, This host can be only used to the tasks. See also [private hosts](#private-hosts)
 
 * `hooks` (table): Hooks is a table that defines `before_connect`(string, table or function), `after_connect`(string, table or function) and `after_disconnect`(string, table or function).
 
@@ -73,7 +73,7 @@ All the properties of this type are listed below.
 
 ## Private Hosts
 
-Private hosts can be used to the tasks.
+Private hosts can be only used to the tasks. The hosts of this type can't be used by ssh login, and does not suggest by zsh-completion. also they can't be used with `--exec` option.
 
 You can use `private_host` function as an alias to define a private host. See the below example:
 
