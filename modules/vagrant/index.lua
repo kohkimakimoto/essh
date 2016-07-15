@@ -36,4 +36,8 @@ vagrant.hosts = function()
     return vagrant_hosts
 end
 
+vagrant.load_hosts = function()
+    essh.host(vagrant.hosts())
+end
+
 return vagrant
