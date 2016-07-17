@@ -15,7 +15,7 @@ export GIT_SSH=essh
 Essh support to use with scp.
 
 ```
-$ essh --scp <scp command args...>
+$ essh --exec 'scp -F $ESSH_SSH_CONFIG <scp command args...>'
 ```
 
 For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
@@ -29,7 +29,7 @@ $ escp <scp command args...>
 Essh support to use with rsync.
 
 ```
-$ essh --rsync <rsync command args...>
+$ essh --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG" <rsync command args...>'
 ```
 
 For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.

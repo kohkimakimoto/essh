@@ -62,9 +62,6 @@ var (
 	parallelFlag           bool
 	privilegedFlag         bool
 	ptyFlag                bool
-	rsyncFlag              bool
-	scpFlag                bool
-
 	workindDirVar   string
 	configVar       string
 	selectVar       []string = []string{}
@@ -99,7 +96,7 @@ func start() error {
 
 	osArgs := os.Args[1:]
 	args := []string{}
-	osArgsIndex := 0
+	doesNotParseOption := false
 
 	for {
 		if len(osArgs) == 0 {
@@ -107,7 +104,11 @@ func start() error {
 		}
 
 		arg := osArgs[0]
-		if arg == "--print" {
+
+		if doesNotParseOption {
+			// restructure args to remove essh options.
+			args = append(args, arg)
+		} else if arg == "--print" {
 			printFlag = true
 		} else if arg == "--version" {
 			versionFlag = true
@@ -232,17 +233,9 @@ func start() error {
 			fileFlag = true
 		} else if arg == "--pty" {
 			ptyFlag = true
-		} else if arg == "--rsync" {
-			if osArgsIndex != 0 {
-				return fmt.Errorf("--rsync must be the first option.")
-			}
-			rsyncFlag = true
-		} else if arg == "--scp" {
-			if osArgsIndex != 0 {
-				return fmt.Errorf("--scp must be the first option.")
-			}
-			scpFlag = true
-		} else if !rsyncFlag && !scpFlag && strings.HasPrefix(arg, "--") {
+		} else if arg == "--" {
+			doesNotParseOption = true
+		} else if strings.HasPrefix(arg, "--") {
 			// rsync can have long options
 			return fmt.Errorf("invalid option '%s'.", arg)
 		} else {
@@ -250,7 +243,6 @@ func start() error {
 			args = append(args, arg)
 		}
 
-		osArgsIndex++
 		osArgs = osArgs[1:]
 	}
 
@@ -618,7 +610,7 @@ func start() error {
 			return fmt.Errorf("exec mode requires 1 parameter at latest.")
 		}
 
-		command := args[0]
+		command := strings.Join(args, " ")
 		payload := ""
 		if len(args) == 2 {
 			payload = args[1]
@@ -657,10 +649,6 @@ func start() error {
 		}
 
 		return runTask(outputConfig, task, payload)
-	} else if rsyncFlag {
-		err = runRsync(outputConfig, args)
-	} else if scpFlag {
-		err = runSCP(outputConfig, args)
 	} else {
 		// try to get a task.
 		if len(args) > 0 {
@@ -1411,10 +1399,6 @@ execute commands using hosts configuration.
   --file                        (Using with --exec option) Load commands from a file.
   --driver                      (Using with --exec option) Specify a driver.
 
-integrate other ssh related commands.
-  --rsync                       Run rsync with essh configuration.
-  --scp                         Run scp with essh configuration.
-
 utility for zsh.
   --zsh-completion              Output zsh completion code.
   --aliases                     Output aliases code.
@@ -1497,8 +1481,6 @@ _essh_options() {
         '--tasks:List tasks.'
         '--debug:Output debug log.'
         '--exec:Execute commands with the hosts.'
-        '--rsync:Run rsync with essh configuration.'
-        '--scp:Run scp with essh configuration.'
         '--zsh-completion:Output zsh completion code.'
         '--aliases:Output aliases code.'
      )
@@ -1659,8 +1641,12 @@ compdef _essh essh
 var ALIASES_CODE = `# This is aliaes code.
 # If you want to use it. write the following code in your '.zshrc'
 #   eval "$(essh --aliases)"
-alias escp='essh --scp'
-alias ersync='essh --rsync'
+function escp() {
+    essh --exec 'scp -F $ESSH_SSH_CONFIG' "$@"
+}
+function ersync() {
+    essh --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG"' "$@"
+}
 `
 
 var BASH_COMPLETION = `
