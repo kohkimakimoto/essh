@@ -1638,7 +1638,7 @@ _essh () {
 compdef _essh essh
 `
 
-var ALIASES_CODE = `# This is aliaes code.
+var ALIASES_CODE = `# This is aliases code.
 # If you want to use it. write the following code in your '.zshrc'
 #   eval "$(essh --aliases)"
 function escp() {
