@@ -14,6 +14,9 @@ gom "github.com/otm/gluash"
 # color package
 gom "github.com/fatih/color"
 
+# extensions to the "os" package.
+gom "github.com/kardianos/osext"
+
 # go getter
 gom "github.com/hashicorp/go-getter"
 

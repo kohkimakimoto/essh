@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/kardianos/osext"
 	"github.com/kohkimakimoto/essh/support/color"
 	"github.com/kohkimakimoto/essh/support/helper"
 	"github.com/yuin/gopher-lua"
@@ -30,6 +31,7 @@ var (
 	WorkingDirOverrideConfigFile string
 	WorkingDataDir               string
 	WorkingDir                   string
+	Executable                   string
 )
 
 // flags
@@ -306,7 +308,12 @@ func start() error {
 	}
 
 	if aliasesFlag {
-		fmt.Print(ALIASES_CODE)
+		s, err := sprintByTemplate(ALIASES_CODE)
+		if err != nil {
+			return err
+		}
+
+		fmt.Print(s)
 		return nil
 	}
 
@@ -1409,6 +1416,25 @@ Github:
 `)
 }
 
+func sprintByTemplate(tmplContent string) (string, error) {
+	tmpl, err := template.New("T").Parse(tmplContent)
+	if err != nil {
+		return "", err
+	}
+
+	dict := map[string]interface{}{
+		"Executable": Executable,
+	}
+
+	var b bytes.Buffer
+	err = tmpl.Execute(&b, dict)
+	if err != nil {
+		return "", err
+	}
+
+	return b.String(), nil
+}
+
 func init() {
 	// set SystemWideConfigFile
 	SystemWideConfigFile = "/etc/essh/config.lua"
@@ -1428,6 +1454,14 @@ func init() {
 
 	UserConfigFile = filepath.Join(UserDataDir, "config.lua")
 	UserOverrideConfigFile = filepath.Join(UserDataDir, "config_override.lua")
+
+
+	if _bin, err := osext.Executable(); err == nil {
+		Executable = _bin
+	} else {
+		Executable = "essh"
+	}
+
 }
 
 var ZSH_COMPLETION = `# This is zsh completion code.
@@ -1640,12 +1674,12 @@ compdef _essh essh
 
 var ALIASES_CODE = `# This is aliases code.
 # If you want to use it. write the following code in your '.zshrc'
-#   eval "$(essh --aliases)"
+#   eval "$({{.Executable}} --aliases)"
 function escp() {
-    essh --exec 'scp -F $ESSH_SSH_CONFIG' "$@"
+    {{.Executable}} --exec 'scp -F $ESSH_SSH_CONFIG' "$@"
 }
 function ersync() {
-    essh --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG"' "$@"
+    {{.Executable}} --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG"' "$@"
 }
 `
 

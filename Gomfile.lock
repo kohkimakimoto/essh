@@ -1,4 +1,4 @@
-gom 'github.com/yuin/gopher-lua', :commit => 'bf3808abd44b1e55143a2d7f08571aaa80db1808'
+gom 'github.com/yuin/gopher-lua', :commit => 'e57b64049898d04ad03d3cc75ffa770eb29aeae0'
 gom 'github.com/kohkimakimoto/gluayaml', :commit => '6d511cec9a0b98ff46b402d4cd49567a0a81ee50'
 gom 'github.com/kohkimakimoto/gluatemplate', :commit => '0fcac4b4dd6ecf6e7aa253f3a40755055a434237'
 gom 'github.com/kohkimakimoto/gluajson', :commit => '2c6acf0e9c93500aef548e7add4e4412fd5b9c52'
@@ -8,5 +8,6 @@ gom 'github.com/kohkimakimoto/gluaenv', :commit => 'c40e178fa526ce797ba85e4960b2
 gom 'github.com/cjoudrey/gluahttp', :commit => '9597a1d57575a0121726a2c50ad54fb74493a296'
 gom 'github.com/otm/gluash', :commit => 'e145c563986f0b91f740a758a84bca46c163aec7'
 gom 'github.com/fatih/color', :commit => '87d4004f2ab62d0d255e0a38f1680aa534549fe3'
+gom 'github.com/kardianos/osext', :commit => '29ae4ffbc9a6fe9fb2bc5029050ce6996ea1d3bc'
 gom 'github.com/hashicorp/go-getter', :commit => '3d6040e1c4b972f6634c5aafb08901f916c5ee3c'
 gom 'github.com/mitchellh/gox', :commit => '6e9ee79eab7bb1b84155379b3f94ff9a87b344e4'
