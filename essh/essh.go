@@ -238,7 +238,6 @@ func start() error {
 		} else if arg == "--" {
 			doesNotParseOption = true
 		} else if strings.HasPrefix(arg, "--") {
-			// rsync can have long options
 			return fmt.Errorf("invalid option '%s'.", arg)
 		} else {
 			// restructure args to remove essh options.
@@ -1676,10 +1675,10 @@ var ALIASES_CODE = `# This is aliases code.
 # If you want to use it. write the following code in your '.zshrc'
 #   eval "$({{.Executable}} --aliases)"
 function escp() {
-    {{.Executable}} --exec 'scp -F $ESSH_SSH_CONFIG' "$@"
+    {{.Executable}} --exec -- 'scp -F $ESSH_SSH_CONFIG ' "$@"
 }
 function ersync() {
-    {{.Executable}} --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG"' "$@"
+    {{.Executable}} --exec -- 'rsync -e "ssh -F $ESSH_SSH_CONFIG"' "$@"
 }
 `
 
