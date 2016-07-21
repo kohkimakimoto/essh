@@ -89,6 +89,8 @@ func init() {
 const EnvironmentTemplate = `{{define "environment" -}}
 export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
 export ESSH_SSH_CONFIG={{.SSHConfigPath}}
+export ESSH_DEBUG="{{if .Debug}}1{{end}}"
+
 {{if .Host -}}
 export ESSH_HOSTNAME={{.Host.Name | ShellEscape}}
 export ESSH_HOST_HOSTNAME={{.Host.Name | ShellEscape}}

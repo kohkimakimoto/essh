@@ -93,6 +93,10 @@ func Start() (exitStatus int) {
 		}
 	}()
 
+	if os.Getenv("ESSH_DEBUG") != "" {
+		debugFlag = true
+	}
+
 	if len(os.Args) == 1 {
 		printUsage()
 		return

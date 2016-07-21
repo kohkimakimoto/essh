@@ -107,6 +107,8 @@ task "example" {
 
   * `ESSH_SSH_CONFIG`: generated ssh_config file path.
 
+  * `ESSH_DEBUG`: If you set `--debug` option by CLI. this variable is set "1".
+
   * `ESSH_HOST_HOSTNAME`: host name.
 
   * `ESSH_HOST_SSH_{SSH_CONFIG_KEY}`: ssh_config key/value pare.
