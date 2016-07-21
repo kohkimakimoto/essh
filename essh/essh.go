@@ -100,6 +100,7 @@ func Start() (exitStatus int) {
 
 	osArgs := os.Args[1:]
 	args := []string{}
+	doesNotParseOption := false
 
 	for {
 		if len(osArgs) == 0 {
@@ -108,7 +109,10 @@ func Start() (exitStatus int) {
 
 		arg := osArgs[0]
 
-		if arg == "--print" {
+		if doesNotParseOption {
+			// restructure args to remove essh options.
+			args = append(args, arg)
+		} else if arg == "--print" {
 			printFlag = true
 		} else if arg == "--version" {
 			versionFlag = true
@@ -173,6 +177,7 @@ func Start() (exitStatus int) {
 			zshCompletionTasksFlag = true
 			zshCompletionModeFlag = true
 		} else if arg == "--bash-completion" {
+			// TODO
 			bashCompletionFlag = true
 		} else if arg == "--aliases" {
 			aliasesFlag = true
@@ -242,6 +247,10 @@ func Start() (exitStatus int) {
 			fileFlag = true
 		} else if arg == "--pty" {
 			ptyFlag = true
+		} else if arg == "--" {
+			doesNotParseOption = true
+			// to behave same ssh. pass the `--` to the ssh.
+			args = append(args, arg)
 		} else {
 			// restructure args to remove essh options.
 			args = append(args, arg)
@@ -309,7 +318,13 @@ func Start() (exitStatus int) {
 	}
 
 	if zshCompletionFlag {
-		fmt.Print(ZSH_COMPLETION)
+		s, err := sprintByTemplate(ZSH_COMPLETION)
+		if err != nil {
+			printError(err)
+			return ExitErr
+		}
+
+		fmt.Print(s)
 		return
 	}
 
@@ -1439,12 +1454,12 @@ func init() {
 
 var ZSH_COMPLETION = `# This is zsh completion code.
 # If you want to use it. write the following code in your '.zshrc'
-#   eval "$(essh --zsh-completion)"
+#   eval "$({{.Executable}} --zsh-completion)"
 _essh_hosts() {
     local -a __essh_hosts
     PRE_IFS=$IFS
     IFS=$'\n'
-    __essh_hosts=($(essh --zsh-completion-hosts | awk -F'\t' '{print $1":"$2}'))
+    __essh_hosts=($({{.Executable}} --zsh-completion-hosts | awk -F'\t' '{print $1":"$2}'))
     IFS=$PRE_IFS
     _describe -t host "host" __essh_hosts
 }
@@ -1453,7 +1468,7 @@ _essh_tasks() {
     local -a __essh_tasks
     PRE_IFS=$IFS
     IFS=$'\n'
-    __essh_tasks=($(essh --zsh-completion-tasks | awk -F'\t' '{print $1":"$2}'))
+    __essh_tasks=($({{.Executable}} --zsh-completion-tasks | awk -F'\t' '{print $1":"$2}'))
     IFS=$PRE_IFS
     _describe -t task "task" __essh_tasks
 }
@@ -1462,7 +1477,7 @@ _essh_tags() {
     local -a __essh_tags
     PRE_IFS=$IFS
     IFS=$'\n'
-    __essh_tags=($(essh --zsh-completion-tags))
+    __essh_tags=($({{.Executable}} --zsh-completion-tags))
     IFS=$PRE_IFS
     _describe -t tag "tag" __essh_tags
 }
@@ -1656,15 +1671,4 @@ function ersync() {
 }
 `
 
-var BASH_COMPLETION = `
-_essh_targets() {
-
-}
-
-_essh () {
-
-}
-
-complete -F _essh essh
-
-`
+var BASH_COMPLETION = ``
