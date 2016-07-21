@@ -1668,7 +1668,7 @@ var ALIASES_CODE = `# This is aliases code.
 # If you want to use it. write the following code in your '.zshrc'
 #   eval "$({{.Executable}} --aliases)"
 function escp() {
-    {{.Executable}} --exec 'scp -F $ESSH_SSH_CONFIG ' "$@"
+    {{.Executable}} --exec 'scp -F $ESSH_SSH_CONFIG' "$@"
 }
 function ersync() {
     {{.Executable}} --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG"' "$@"
