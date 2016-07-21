@@ -9,5 +9,6 @@ gom 'github.com/cjoudrey/gluahttp', :commit => '9597a1d57575a0121726a2c50ad54fb7
 gom 'github.com/otm/gluash', :commit => 'e145c563986f0b91f740a758a84bca46c163aec7'
 gom 'github.com/fatih/color', :commit => '87d4004f2ab62d0d255e0a38f1680aa534549fe3'
 gom 'github.com/kardianos/osext', :commit => '29ae4ffbc9a6fe9fb2bc5029050ce6996ea1d3bc'
+gom 'github.com/Songmu/wrapcommander', :commit => '4888652de0bfef31e500e8f4e0831e8ae9ecaa85'
 gom 'github.com/hashicorp/go-getter', :commit => '3d6040e1c4b972f6634c5aafb08901f916c5ee3c'
 gom 'github.com/mitchellh/gox', :commit => '6e9ee79eab7bb1b84155379b3f94ff9a87b344e4'

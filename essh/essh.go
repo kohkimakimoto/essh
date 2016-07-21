@@ -3,8 +3,8 @@ package essh
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"github.com/Songmu/wrapcommander"
 	"github.com/kardianos/osext"
 	"github.com/kohkimakimoto/essh/support/color"
 	"github.com/kohkimakimoto/essh/support/helper"
@@ -73,32 +73,33 @@ var (
 	driverVar       string
 )
 
-func Start() (err error) {
+const (
+	ExitErr = 1
+)
+
+
+func Start() (exitStatus int) {
 	defer func() {
 		if e := recover(); e != nil {
-			err = fmt.Errorf("%v", e)
-		}
+			exitStatus = ExitErr
 
-		if err != nil && zshCompletionModeFlag && !debugFlag {
-			// suppress the error in running completion code.
-			err = nil
+			// if it paniked?
+			if zshCompletionModeFlag && !debugFlag {
+				// suppress printing error in running completion code.
+				return
+			}
+
+			printError(e)
 		}
 	}()
 
-	err = start()
-
-	return err
-}
-
-func start() error {
 	if len(os.Args) == 1 {
 		printUsage()
-		return nil
+		return
 	}
 
 	osArgs := os.Args[1:]
 	args := []string{}
-	doesNotParseOption := false
 
 	for {
 		if len(osArgs) == 0 {
@@ -107,10 +108,7 @@ func start() error {
 
 		arg := osArgs[0]
 
-		if doesNotParseOption {
-			// restructure args to remove essh options.
-			args = append(args, arg)
-		} else if arg == "--print" {
+		if arg == "--print" {
 			printFlag = true
 		} else if arg == "--version" {
 			versionFlag = true
@@ -130,8 +128,10 @@ func start() error {
 		} else if arg == "--filter" {
 			// filter is deprecated. use select instead of it.
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--filter reguires an argument.")
+				printError("--filter reguires an argument.")
+				return ExitErr
 			}
+
 			selectVar = append(selectVar, osArgs[1])
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--filter=") {
@@ -139,7 +139,8 @@ func start() error {
 
 		} else if arg == "--select" {
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--select reguires an argument.")
+				printError("--select reguires an argument.")
+				return ExitErr
 			}
 			selectVar = append(selectVar, osArgs[1])
 			osArgs = osArgs[1:]
@@ -177,7 +178,8 @@ func start() error {
 			aliasesFlag = true
 		} else if arg == "--working-dir" {
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--working-dir reguires an argument.")
+				printError("--working-dir reguires an argument.")
+				return ExitErr
 			}
 			workindDirVar = osArgs[1]
 			osArgs = osArgs[1:]
@@ -185,7 +187,8 @@ func start() error {
 			workindDirVar = strings.Split(arg, "=")[1]
 		} else if arg == "--config" {
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--config reguires an argument.")
+				printError("--config reguires an argument.")
+				return ExitErr
 			}
 			configVar = osArgs[1]
 			osArgs = osArgs[1:]
@@ -201,7 +204,8 @@ func start() error {
 			prefixFlag = true
 		} else if arg == "--prefix-string" {
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--prefix-string reguires an argument.")
+				printError("--prefix-string reguires an argument.")
+				return ExitErr
 			}
 			prefixStringVar = osArgs[1]
 			osArgs = osArgs[1:]
@@ -209,7 +213,8 @@ func start() error {
 			prefixStringVar = strings.Split(arg, "=")[1]
 		} else if arg == "--driver" {
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--driver reguires an argument.")
+				printError("--driver reguires an argument.")
+				return ExitErr
 			}
 			driverVar = osArgs[1]
 			osArgs = osArgs[1:]
@@ -217,7 +222,8 @@ func start() error {
 			driverVar = strings.Split(arg, "=")[1]
 		} else if arg == "--target" {
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--target reguires an argument.")
+				printError("--target reguires an argument.")
+				return ExitErr
 			}
 			targetVar = append(targetVar, osArgs[1])
 			osArgs = osArgs[1:]
@@ -225,7 +231,8 @@ func start() error {
 			targetVar = append(targetVar, strings.Split(arg, "=")[1])
 		} else if arg == "--backend" {
 			if len(osArgs) < 2 {
-				return fmt.Errorf("--backend reguires an argument.")
+				printError("--backend reguires an argument.")
+				return ExitErr
 			}
 			backendVar = osArgs[1]
 			osArgs = osArgs[1:]
@@ -235,10 +242,6 @@ func start() error {
 			fileFlag = true
 		} else if arg == "--pty" {
 			ptyFlag = true
-		} else if arg == "--" {
-			doesNotParseOption = true
-		} else if strings.HasPrefix(arg, "--") {
-			return fmt.Errorf("invalid option '%s'.", arg)
 		} else {
 			// restructure args to remove essh options.
 			args = append(args, arg)
@@ -254,15 +257,18 @@ func start() error {
 	if workindDirVar != "" {
 		err := os.Chdir(workindDirVar)
 		if err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 	}
 
 	// decide the wokingDirConfigFile
 	wd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("couldn't get working dir %v\n", err)
+		printError(fmt.Errorf("couldn't get working dir %v\n", err))
+		return ExitErr
 	}
+
 	WorkingDir = wd
 	WorkingDataDir = filepath.Join(wd, ".essh")
 	WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
@@ -285,40 +291,42 @@ func start() error {
 
 	if helpFlag {
 		printHelp()
-		return nil
+		return
 	}
 
 	if cleanAllFlag || cleanModulesFlag || cleanTmpFlag {
 		err := removeRegistryData()
 		if err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
-		return nil
+		return
 	}
 
 	if versionFlag {
 		fmt.Printf("%s (%s)\n", Version, CommitHash)
-		return nil
+		return
 	}
 
 	if zshCompletionFlag {
 		fmt.Print(ZSH_COMPLETION)
-		return nil
+		return
 	}
 
 	if aliasesFlag {
 		s, err := sprintByTemplate(ALIASES_CODE)
 		if err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		fmt.Print(s)
-		return nil
+		return
 	}
 
 	if bashCompletionFlag {
 		fmt.Print(BASH_COMPLETION)
-		return nil
+		return
 	}
 
 	// set up the lua state.
@@ -333,7 +341,8 @@ func start() error {
 	// generate temporary ssh config file
 	tmpFile, err := ioutil.TempFile("", "essh.ssh_config.")
 	if err != nil {
-		return err
+		printError(err)
+		return ExitErr
 	}
 	defer func() {
 		tmpFile.Close()
@@ -351,7 +360,8 @@ func start() error {
 
 	lessh, ok := toLTable(L.GetGlobal("essh"))
 	if !ok {
-		return fmt.Errorf("essh must be a table")
+		printError(fmt.Errorf("essh must be a table"))
+		return ExitErr
 	}
 
 	// set temporary ssh config file path
@@ -363,7 +373,8 @@ func start() error {
 	RegistryMap[CurrentRegistry.Key] = CurrentRegistry
 
 	if err := CurrentRegistry.MkDirs(); err != nil {
-		return err
+		printError(err)
+		return ExitErr
 	}
 
 	// load system wide config
@@ -373,11 +384,14 @@ func start() error {
 		}
 
 		if err := CurrentRegistry.MkDirs(); err != nil {
-			return err
+			printError(err)
+			return ExitErr
+
 		}
 
 		if err := L.DoFile(SystemWideConfigFile); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if debugFlag {
@@ -392,11 +406,13 @@ func start() error {
 		}
 
 		if err := CurrentRegistry.MkDirs(); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if err := L.DoFile(UserConfigFile); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if debugFlag {
@@ -416,11 +432,13 @@ func start() error {
 		}
 
 		if err := CurrentRegistry.MkDirs(); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if err := L.DoFile(WorkingDirConfigFile); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if debugFlag {
@@ -435,7 +453,8 @@ func start() error {
 		}
 
 		if err := L.DoFile(WorkingDirOverrideConfigFile); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if debugFlag {
@@ -451,11 +470,13 @@ func start() error {
 		}
 
 		if err := CurrentRegistry.MkDirs(); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if err := L.DoFile(UserOverrideConfigFile); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if debugFlag {
@@ -470,11 +491,13 @@ func start() error {
 		}
 
 		if err := CurrentRegistry.MkDirs(); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if err := L.DoFile(SystemWideOverrideConfigFile); err != nil {
-			return err
+			printError(err)
+			return ExitErr
 		}
 
 		if debugFlag {
@@ -484,7 +507,8 @@ func start() error {
 
 	// validate config
 	if err := validateConfig(); err != nil {
-		return err
+		printError(err)
+		return ExitErr
 	}
 
 	// show hosts for zsh completion
@@ -495,7 +519,7 @@ func start() error {
 			}
 		}
 
-		return nil
+		return
 	}
 
 	// show tasks for zsh completion
@@ -505,14 +529,14 @@ func start() error {
 				fmt.Printf("%s\t%s\n", ColonEscape(task.Name), ColonEscape(task.DescriptionOrDefault()))
 			}
 		}
-		return nil
+		return
 	}
 
 	if zshCompletionTagsFlag {
 		for _, tag := range Tags() {
 			fmt.Printf("%s\n", ColonEscape(tag))
 		}
-		return nil
+		return
 	}
 
 	// only print hosts list
@@ -547,7 +571,7 @@ func start() error {
 		}
 		tb.Render()
 
-		return nil
+		return
 	}
 
 	// only print tags list
@@ -565,7 +589,7 @@ func start() error {
 		}
 		tb.Render()
 
-		return nil
+		return
 	}
 
 	// only print tasks list
@@ -585,35 +609,38 @@ func start() error {
 		}
 		tb.Render()
 
-		return nil
+		return
 	}
 
 	outputConfig, ok := toString(lessh.RawGetString("ssh_config"))
 	if !ok {
-		return fmt.Errorf("invalid value %v in the 'ssh_config'", lessh.RawGetString("ssh_config"))
+		printError(fmt.Errorf("invalid value %v in the 'ssh_config'", lessh.RawGetString("ssh_config")))
+		return ExitErr
 	}
 
 	// generate ssh hosts config
 	content, err := UpdateSSHConfig(outputConfig, SortedPublicHosts())
 	if err != nil {
-		return err
+		printError(err)
+		return ExitErr
 	}
 
 	// only print generated config
 	if printFlag {
 		fmt.Println(string(content))
-		return nil
+		return
 	}
 
 	// only generating contents
 	if genFlag {
-		return nil
+		return
 	}
 
 	// select running mode and run it.
 	if execFlag {
 		if len(args) == 0 {
-			return fmt.Errorf("exec mode requires 1 parameter at latest.")
+			printError("exec mode requires 1 parameter at latest.")
+			return ExitErr
 		}
 
 		command := strings.Join(args, " ")
@@ -654,7 +681,13 @@ func start() error {
 			task.Prefix = prefixStringVar
 		}
 
-		return runTask(outputConfig, task, payload)
+		err := runTask(outputConfig, task, payload)
+		if err != nil {
+			printError(err)
+			return ExitErr
+		}
+
+		return
 	} else {
 		// try to get a task.
 		if len(args) > 0 {
@@ -662,30 +695,48 @@ func start() error {
 			task := GetEnabledTask(taskName)
 			if task != nil {
 				if len(args) > 2 {
-					return fmt.Errorf("too many arguments.")
+					printError("too many arguments.")
+					return ExitErr
 				} else if len(args) == 2 {
-					return runTask(outputConfig, task, args[1])
+					err := runTask(outputConfig, task, args[1])
+					if err != nil {
+						printError(err)
+						return ExitErr
+					}
+					return
 				} else {
-					return runTask(outputConfig, task, "")
+					err := runTask(outputConfig, task, "")
+					if err != nil {
+						printError(err)
+						return ExitErr
+					}
+					return
 				}
 			}
 		}
 
 		if updateFlag && len(args) == 0 {
 			// run just "essh --update"
-			return nil
+			return
 		}
 
 		// no argument
 		if len(args) == 0 {
 			printUsage()
-			return nil
+			return
 		}
+
 		// run ssh command
-		err = runSSH(L, outputConfig, args)
+		err, ex := runSSH(L, outputConfig, args)
+		if err != nil {
+			printError(err)
+			return ExitErr
+		}
+
+		exitStatus = ex
 	}
 
-	return err
+	return
 }
 
 func UpdateSSHConfig(outputConfig string, enabledHosts []*Host) ([]byte, error) {
@@ -706,42 +757,6 @@ func UpdateSSHConfig(outputConfig string, enabledHosts []*Host) ([]byte, error) 
 	}
 
 	return content, nil
-}
-
-func printJson(hosts []*Host, indent string) {
-	convHosts := []map[string]map[string]interface{}{}
-
-	for _, host := range hosts {
-		h := map[string]map[string]interface{}{}
-
-		hv := map[string]interface{}{}
-		for _, pair := range host.SortedSSHConfig() {
-			for k, v := range pair {
-				hv[k] = v
-			}
-		}
-		h[host.Name] = hv
-
-		hv["description"] = host.Description
-		hv["Hidden"] = host.Hidden
-		hv["tags"] = host.Tags
-
-		convHosts = append(convHosts, h)
-	}
-
-	if indent == "" {
-		b, err := json.Marshal(convHosts)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(b))
-	} else {
-		b, err := json.MarshalIndent(convHosts, "", indent)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(b))
-	}
 }
 
 func runTask(config string, task *Task, payload string) error {
@@ -1046,7 +1061,7 @@ func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) 
 	}
 }
 
-func runSSH(L *lua.LState, config string, args []string) error {
+func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	// hooks
 	var hooks map[string][]interface{}
 
@@ -1066,13 +1081,13 @@ func runSSH(L *lua.LState, config string, args []string) error {
 		}
 		hookScript, err := getHookScript(L, before)
 		if err != nil {
-			return err
+			return err, ExitErr
 		}
 		if debugFlag {
 			fmt.Printf("[essh debug] before_connect hook script: %s\n", hookScript)
 		}
 		if err := runCommand(hookScript); err != nil {
-			return err
+			return err, ExitErr
 		}
 	}
 
@@ -1103,7 +1118,7 @@ func runSSH(L *lua.LState, config string, args []string) error {
 	if afterConnect := hooks["after_connect"]; afterConnect != nil {
 		hookScript, err := getHookScript(L, afterConnect)
 		if err != nil {
-			return err
+			return err, ExitErr
 		}
 
 		script := hookScript
@@ -1139,7 +1154,12 @@ func runSSH(L *lua.LState, config string, args []string) error {
 		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
 	}
 
-	return cmd.Run()
+	err := cmd.Run()
+	ex := wrapcommander.ResolveExitCode(err)
+
+	// Running as a wrapper of ssh command suppress printing error.
+	// Printing error is essh's behavior. ssh does not have it.
+	return nil, ex
 }
 
 func getHookScript(L *lua.LState, hooks []interface{}) (string, error) {
@@ -1184,56 +1204,6 @@ func convertHook(L *lua.LState, hook interface{}) (string, error) {
 	} else {
 		return "", fmt.Errorf("invalid type hook: %v", hook)
 	}
-}
-
-func runSCP(config string, args []string) error {
-	if debugFlag {
-		fmt.Printf("[essh debug] use scp mode.\n")
-	}
-
-	if len(args) < 2 {
-		return fmt.Errorf("scp mode requires 2 parameters at least.")
-	}
-
-	// In the scp mode.
-	// the arguments must be scp command options and args.
-	sshCommandArgs := []string{"-F", config}
-	sshCommandArgs = append(sshCommandArgs, args[:]...)
-
-	// execute ssh commmand
-	cmd := exec.Command("scp", sshCommandArgs[:]...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if debugFlag {
-		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
-	}
-
-	return cmd.Run()
-}
-
-func runRsync(config string, args []string) error {
-	if debugFlag {
-		fmt.Printf("[essh debug] use rsync mode.\n")
-	}
-
-	if len(args) < 1 {
-		return fmt.Errorf("rsync mode requires 1 parameters at least.")
-	}
-
-	// In the rsync mode.
-	// the arguments must be rsync command options and args.
-	sshCommandArgs := []string{"-F", config}
-	rsyncSSHOption := `-e "ssh ` + strings.Join(sshCommandArgs, " ") + `"`
-
-	rsyncCommand := "rsync " + rsyncSSHOption + " " + strings.Join(args, " ")
-
-	if debugFlag {
-		fmt.Printf("[essh debug] real rsync command: %v\n", rsyncCommand)
-	}
-
-	return runCommand(rsyncCommand)
 }
 
 func runCommand(command string) error {
@@ -1432,6 +1402,10 @@ func sprintByTemplate(tmplContent string) (string, error) {
 	}
 
 	return b.String(), nil
+}
+
+func printError(err interface{}) {
+	fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
 }
 
 func init() {
@@ -1675,10 +1649,10 @@ var ALIASES_CODE = `# This is aliases code.
 # If you want to use it. write the following code in your '.zshrc'
 #   eval "$({{.Executable}} --aliases)"
 function escp() {
-    {{.Executable}} --exec -- 'scp -F $ESSH_SSH_CONFIG ' "$@"
+    {{.Executable}} --exec 'scp -F $ESSH_SSH_CONFIG ' "$@"
 }
 function ersync() {
-    {{.Executable}} --exec -- 'rsync -e "ssh -F $ESSH_SSH_CONFIG"' "$@"
+    {{.Executable}} --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG"' "$@"
 }
 `
 

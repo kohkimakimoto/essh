@@ -11,13 +11,10 @@ gom "github.com/kohkimakimoto/gluaenv"
 gom "github.com/cjoudrey/gluahttp"
 gom "github.com/otm/gluash"
 
-# color package
+# etc...
 gom "github.com/fatih/color"
-
-# extensions to the "os" package.
 gom "github.com/kardianos/osext"
-
-# go getter
+gom "github.com/Songmu/wrapcommander"
 gom "github.com/hashicorp/go-getter"
 
 # dev tool
