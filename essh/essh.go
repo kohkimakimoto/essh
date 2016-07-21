@@ -826,7 +826,7 @@ func runTask(config string, task *Task, payload string) error {
 		}
 
 		if len(hosts) == 0 {
-			return fmt.Errorf("There are not hosts to run the command. you must specify the valid remote hosts.")
+			return fmt.Errorf("There are not hosts to run the command. you must specify the valid hosts.")
 		}
 
 		wg := &sync.WaitGroup{}
@@ -862,6 +862,10 @@ func runTask(config string, task *Task, payload string) error {
 
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
+
+		if len(task.Targets) >= 1 && len(hosts) == 0 {
+			return fmt.Errorf("There are not hosts to run the command. you must specify the valid hosts.")
+		}
 
 		if len(hosts) == 0 {
 			err := runLocalTaskScript(config, task, payload, nil, m)

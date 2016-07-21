@@ -30,7 +30,7 @@ var Tasks map[string]*Task = map[string]*Task{}
 
 var (
 	DefaultPrefixRemote = "[{{.Host.Name}}] "
-	DefaultPrefixLocal  = "[Local => {{.Host.Name}}] "
+	DefaultPrefixLocal  = "[{{.Host.Name}}] "
 )
 
 const (
