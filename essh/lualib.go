@@ -356,10 +356,10 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
 	}
 
 	h := &Host{
-		Name:    name,
-		Props:   map[string]string{},
-		Hooks:   map[string][]interface{}{},
-		Tags:    []string{},
+		Name:     name,
+		Props:    map[string]string{},
+		Hooks:    map[string][]interface{}{},
+		Tags:     []string{},
 		Registry: CurrentRegistry,
 	}
 

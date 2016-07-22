@@ -64,19 +64,18 @@ var (
 	parallelFlag           bool
 	privilegedFlag         bool
 	ptyFlag                bool
-	workindDirVar   string
-	configVar       string
-	selectVar       []string = []string{}
-	targetVar       []string = []string{}
-	backendVar      string
-	prefixStringVar string
-	driverVar       string
+	workindDirVar          string
+	configVar              string
+	selectVar              []string = []string{}
+	targetVar              []string = []string{}
+	backendVar             string
+	prefixStringVar        string
+	driverVar              string
 )
 
 const (
 	ExitErr = 1
 )
-
 
 func Start() (exitStatus int) {
 	defer func() {
@@ -1450,7 +1449,6 @@ func init() {
 
 	UserConfigFile = filepath.Join(UserDataDir, "config.lua")
 	UserOverrideConfigFile = filepath.Join(UserDataDir, "config_override.lua")
-
 
 	if _bin, err := osext.Executable(); err == nil {
 		Executable = _bin

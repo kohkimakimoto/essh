@@ -6,11 +6,11 @@ type Task struct {
 	Name        string
 	Description string
 	// Configure deprecated.
-	Prepare   func(task *TaskContext) error
-	Driver    string
-	Pty       bool
-	Script    []map[string]string
-	File      string
+	Prepare func(task *TaskContext) error
+	Driver  string
+	Pty     bool
+	Script  []map[string]string
+	File    string
 
 	Backend string
 	Targets []string

@@ -52,13 +52,13 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 	}
 
 	dict := map[string]interface{}{
-		"GOARCH":  runtime.GOARCH,
-		"GOOS":    runtime.GOOS,
-		"Debug":   debugFlag,
-		"Driver":  driver,
-		"Task":    task,
-		"Host":    host,
-		"Scripts": scripts,
+		"GOARCH":        runtime.GOARCH,
+		"GOOS":          runtime.GOOS,
+		"Debug":         debugFlag,
+		"Driver":        driver,
+		"Task":          task,
+		"Host":          host,
+		"Scripts":       scripts,
 		"SSHConfigPath": sshConfigPath,
 	}
 

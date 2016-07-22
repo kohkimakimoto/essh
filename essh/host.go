@@ -17,8 +17,8 @@ type Host struct {
 	Registry    *Registry
 	Private     bool
 
-	sshConfig   *lua.LTable
-	lconfig     *lua.LTable
+	sshConfig *lua.LTable
+	lconfig   *lua.LTable
 }
 
 //
