@@ -29,8 +29,8 @@ type Task struct {
 var Tasks map[string]*Task = map[string]*Task{}
 
 var (
-	DefaultPrefixRemote = "[{{.Host.Name}}] "
-	DefaultPrefixLocal  = "[{{.Host.Name}}] "
+	DefaultPrefixLocal  = "[local:{{.Host.Name}}] "
+	DefaultPrefixRemote = "[remote:{{.Host.Name}}] "
 )
 
 const (

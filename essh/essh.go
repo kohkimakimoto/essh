@@ -1027,7 +1027,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *
 		// simple local task (does not specify the hosts)
 		// prevent to use invalid text template.
 		// replace prefix string to the string that is not included "{{.Host}}"
-		prefix = "[Local] "
+		prefix = "[local] "
 	} else if task.Prefix != "" {
 		dict := map[string]interface{}{
 			"Host": host,
