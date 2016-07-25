@@ -43,7 +43,7 @@ All the properties of this type are listed below.
 
 * `hidden` (boolean): If you set it true, zsh completion doesn't show the host.
 
-* `private` (boolean): If you set it true, This host can be only used to the tasks. See also [private hosts](#private-hosts)
+* `private` (boolean): If you set it true, This host can be only used to the tasks. See also [scope](#scope)
 
 * `hooks` (table): Hooks is a table that defines `before_connect`(string, table or function), `after_connect`(string, table or function) and `after_disconnect`(string, table or function).
 
