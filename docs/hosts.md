@@ -71,7 +71,7 @@ All the properties of this type are listed below.
     -- ESSH_HOST_PROPS_FOO=bar
     ```
 
-## Private Hosts
+## Scope
 
 Hosts in Essh have scope: **private** or **public**.
 
@@ -100,7 +100,7 @@ host "example" {
 
 ## Constraints
 
-There are constraints about scopes and registries.
+There are constraints about [scope](#scope) and [registries](configuration-files.md#registries).
 
 * Each public hosts must be unique. (You can NOT define public hosts by the same name in the local and global registry.)
 * Any hosts must be unique in a same registry. (You can NOT define hosts by the same name in the same registry.)
