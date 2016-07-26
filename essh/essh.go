@@ -834,7 +834,7 @@ func runTask(config string, task *Task, payload string) error {
 			if task.Parallel {
 				wg.Add(1)
 				go func(host *Host) {
-					err := runRemoteTaskScript(config, task, payload, host, m)
+					err := runRemoteTaskScript(config, task, payload, host, hosts, m)
 					if err != nil {
 						fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
 						panic(err)
@@ -843,7 +843,7 @@ func runTask(config string, task *Task, payload string) error {
 					wg.Done()
 				}(host)
 			} else {
-				err := runRemoteTaskScript(config, task, payload, host, m)
+				err := runRemoteTaskScript(config, task, payload, host, hosts, m)
 				if err != nil {
 					return err
 				}
@@ -867,7 +867,7 @@ func runTask(config string, task *Task, payload string) error {
 		}
 
 		if len(hosts) == 0 {
-			err := runLocalTaskScript(config, task, payload, nil, m)
+			err := runLocalTaskScript(config, task, payload, nil, hosts, m)
 			if err != nil {
 				return err
 			}
@@ -878,7 +878,7 @@ func runTask(config string, task *Task, payload string) error {
 			if task.Parallel {
 				wg.Add(1)
 				go func(host *Host) {
-					err := runLocalTaskScript(config, task, payload, host, m)
+					err := runLocalTaskScript(config, task, payload, host, hosts, m)
 					if err != nil {
 						fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
 						panic(err)
@@ -887,7 +887,7 @@ func runTask(config string, task *Task, payload string) error {
 					wg.Done()
 				}(host)
 			} else {
-				err := runLocalTaskScript(config, task, payload, host, m)
+				err := runLocalTaskScript(config, task, payload, host, hosts, m)
 				if err != nil {
 					return err
 				}
@@ -899,7 +899,7 @@ func runTask(config string, task *Task, payload string) error {
 	return nil
 }
 
-func runRemoteTaskScript(sshConfigPath string, task *Task, payload string, host *Host, m *sync.Mutex) error {
+func runRemoteTaskScript(sshConfigPath string, task *Task, payload string, host *Host, hosts []*Host, m *sync.Mutex) error {
 	// setup ssh command args
 	var sshCommandArgs []string
 	if task.Pty {
@@ -942,11 +942,19 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, payload string, host 
 
 	prefix := ""
 	if task.Prefix != "" {
+		funcMap := template.FuncMap{
+			"ShellEscape":  ShellEscape,
+			"ToUpper":      strings.ToUpper,
+			"ToLower":      strings.ToLower,
+			"EnvKeyEscape": EnvKeyEscape,
+			"HostnameAlignString": HostnameAlignString(host, hosts),
+		}
+
 		dict := map[string]interface{}{
 			"Host": host,
 			"Task": task,
 		}
-		tmpl, err := template.New("T").Parse(task.Prefix)
+		tmpl, err := template.New("T").Funcs(funcMap).Parse(task.Prefix)
 		if err != nil {
 			return err
 		}
@@ -982,7 +990,7 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, payload string, host 
 	return cmd.Wait()
 }
 
-func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *Host, m *sync.Mutex) error {
+func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *Host, hosts []*Host, m *sync.Mutex) error {
 	var shell, flag string
 	if runtime.GOOS == "windows" {
 		shell = "cmd"
@@ -1028,11 +1036,19 @@ func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *
 		// replace prefix string to the string that is not included "{{.Host}}"
 		prefix = "[local] "
 	} else if task.Prefix != "" {
+		funcMap := template.FuncMap{
+			"ShellEscape":  ShellEscape,
+			"ToUpper":      strings.ToUpper,
+			"ToLower":      strings.ToLower,
+			"EnvKeyEscape": EnvKeyEscape,
+			"AlignByHostname": HostnameAlignString(host, hosts),
+		}
+
 		dict := map[string]interface{}{
 			"Host": host,
 			"Task": task,
 		}
-		tmpl, err := template.New("T").Parse(task.Prefix)
+		tmpl, err := template.New("T").Funcs(funcMap).Parse(task.Prefix)
 		if err != nil {
 			return err
 		}

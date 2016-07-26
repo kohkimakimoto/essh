@@ -5,6 +5,7 @@ import (
 	"github.com/yuin/gopher-lua"
 	"sort"
 	"text/template"
+	"strings"
 )
 
 type Host struct {
@@ -28,7 +29,7 @@ type Host struct {
 //
 //   Example:
 //     /etc/essh/config.lua              -> "global"
-//     ~/.esh/config.lua                 -> "global"
+//     ~/.essh/config.lua                -> "global"
 //     /path/to/project/esshconfig.lua   -> "local"
 //
 //   Hosts also have configuration "scope". There are two types of scope: "public" and "private".
@@ -309,4 +310,21 @@ func ResetHosts() {
 	LocalHosts = map[string]*Host{}
 	GlobalHosts = map[string]*Host{}
 	PublicHosts = map[string]*Host{}
+}
+
+
+func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
+	var maxlen int
+	for _, h := range hosts {
+		size := len(h.Name)
+		if maxlen < size {
+			maxlen = size
+		}
+	}
+
+	var namelen = len(host.Name)
+	return func(s string) string {
+		diff := maxlen - namelen
+		return strings.Repeat(s, 1 + diff)
+	}
 }
