@@ -1041,7 +1041,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *
 			"ToUpper":      strings.ToUpper,
 			"ToLower":      strings.ToLower,
 			"EnvKeyEscape": EnvKeyEscape,
-			"AlignByHostname": HostnameAlignString(host, hosts),
+			"HostnameAlignString": HostnameAlignString(host, hosts),
 		}
 
 		dict := map[string]interface{}{
