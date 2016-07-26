@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	fatihColor "github.com/fatih/color"
 	"github.com/Songmu/wrapcommander"
 	"github.com/kardianos/osext"
 	"github.com/kohkimakimoto/essh/support/color"
@@ -39,6 +40,8 @@ var (
 	versionFlag            bool
 	helpFlag               bool
 	printFlag              bool
+	colorFlag              bool
+	noColorFlag            bool
 	debugFlag              bool
 	hostsFlag              bool
 	quietFlag              bool
@@ -121,6 +124,10 @@ func Start() (exitStatus int) {
 			versionFlag = true
 		} else if arg == "--help" {
 			helpFlag = true
+		} else if arg == "--color" {
+			colorFlag = true
+		} else if arg == "--no-color" {
+			noColorFlag = true
 		} else if arg == "--debug" {
 			debugFlag = true
 		} else if arg == "--hosts" {
@@ -260,6 +267,14 @@ func Start() (exitStatus int) {
 		}
 
 		osArgs = osArgs[1:]
+	}
+
+	if colorFlag {
+		fatihColor.NoColor = false
+	}
+
+	if noColorFlag {
+		fatihColor.NoColor = true
 	}
 
 	if os.Getenv("ESSH_DEBUG") != "" {
@@ -1034,7 +1049,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *
 		// simple local task (does not specify the hosts)
 		// prevent to use invalid text template.
 		// replace prefix string to the string that is not included "{{.Host}}"
-		prefix = "local: "
+		prefix = "[local] "
 	} else if task.Prefix != "" {
 		funcMap := template.FuncMap{
 			"ShellEscape":  ShellEscape,
@@ -1384,6 +1399,8 @@ general options.
   --gen                         Only generate ssh config.
   --working-dir <dir>           Change working directory.
   --config <file>               Load per-project configuration from the file.
+  --color                       Force ANSI output.
+  --no-color                    Disable ANSI output.
   --debug                       Output debug log.
 
 manage hosts, tags and tasks.
@@ -1513,6 +1530,8 @@ _essh_options() {
         '--version:Print version.'
         '--help:Print help.'
         '--print:Print generated ssh config.'
+        '--color:Force ANSI output.'
+        '--no-color:Disable ANSI output.'
         '--gen:Only generate ssh config.'
         '--update:Update modules.'
         '--clean-modules:Clean downloaded modules.'
