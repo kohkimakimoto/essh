@@ -909,23 +909,45 @@ func checkHost(L *lua.LState) *Host {
 
 func registerHostClass(L *lua.LState) {
 	mt := L.NewTypeMetatable(LHostClass)
-	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
-		"name":   hostName,
-		"config": hostConfig,
-	}))
+	mt.RawSetString("__call", L.NewFunction(hostCall))
+	mt.RawSetString("__index", L.NewFunction(hostIndex))
+	mt.RawSetString("__newindex", L.NewFunction(hostNewindex))
 }
 
-func hostName(L *lua.LState) int {
+func hostCall(L *lua.LState) int {
+	//host := checkHost(L)
+
+	return 0
+}
+
+func hostIndex(L *lua.LState) int {
 	host := checkHost(L)
-	L.Push(lua.LString(host.Name))
+	index := L.CheckString(2)
+
+	v := host.lconfig.RawGetString(index)
+	L.Push(v)
 	return 1
 }
 
-func hostConfig(L *lua.LState) int {
-	host := checkHost(L)
-	L.Push(host.lconfig)
-	return 1
+func hostNewindex(L *lua.LState) int {
+	//host := checkHost(L)
+
+	return 0
 }
+
+
+//
+//func hostName(L *lua.LState) int {
+//	host := checkHost(L)
+//	L.Push(lua.LString(host.Name))
+//	return 1
+//}
+//
+//func hostConfig(L *lua.LState) int {
+//	host := checkHost(L)
+//	L.Push(host.lconfig)
+//	return 1
+//}
 
 const LRegistryClass = "Registry*"
 
