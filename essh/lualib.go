@@ -6,10 +6,11 @@ import (
 	"github.com/kohkimakimoto/essh/support/gluamapper"
 	"github.com/kohkimakimoto/gluaenv"
 	"github.com/kohkimakimoto/gluafs"
-	"github.com/kohkimakimoto/gluajson"
+	gluajson "github.com/layeh/gopher-json"
 	"github.com/kohkimakimoto/gluaquestion"
 	"github.com/kohkimakimoto/gluatemplate"
 	"github.com/kohkimakimoto/gluayaml"
+	"github.com/yuin/gluare"
 	"github.com/otm/gluash"
 	"github.com/yuin/gopher-lua"
 	"net/http"
@@ -31,6 +32,16 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 
 	// modules
+	L.PreloadModule("json", gluajson.Loader)
+	L.PreloadModule("fs", gluafs.Loader)
+	L.PreloadModule("yaml", gluayaml.Loader)
+	L.PreloadModule("template", gluatemplate.Loader)
+	L.PreloadModule("question", gluaquestion.Loader)
+	L.PreloadModule("env", gluaenv.Loader)
+	L.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
+	L.PreloadModule("re", gluare.Loader)
+	L.PreloadModule("sh", gluash.Loader)
+	// for BC
 	L.PreloadModule("glua.json", gluajson.Loader)
 	L.PreloadModule("glua.fs", gluafs.Loader)
 	L.PreloadModule("glua.yaml", gluayaml.Loader)
@@ -38,6 +49,7 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("glua.question", gluaquestion.Loader)
 	L.PreloadModule("glua.env", gluaenv.Loader)
 	L.PreloadModule("glua.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
+	L.PreloadModule("glua.re", gluare.Loader)
 	L.PreloadModule("glua.sh", gluash.Loader)
 
 	// global variables
@@ -915,8 +927,8 @@ func registerHostClass(L *lua.LState) {
 }
 
 func hostCall(L *lua.LState) int {
-	//host := checkHost(L)
-
+	// host := checkHost(L)
+	// TODO
 	return 0
 }
 
@@ -930,11 +942,10 @@ func hostIndex(L *lua.LState) int {
 }
 
 func hostNewindex(L *lua.LState) int {
-	//host := checkHost(L)
-
+	// host := checkHost(L)
+	// TODO
 	return 0
 }
-
 
 //
 //func hostName(L *lua.LState) int {

@@ -1,21 +1,25 @@
 # lua vm
 gom "github.com/yuin/gopher-lua"
 
-# lua modules
+# lua libraries
+gom "github.com/yuin/gopher-lua"
+gom "github.com/yuin/gluare"
 gom "github.com/kohkimakimoto/gluayaml"
 gom "github.com/kohkimakimoto/gluatemplate"
-gom "github.com/kohkimakimoto/gluajson"
 gom "github.com/kohkimakimoto/gluafs"
 gom "github.com/kohkimakimoto/gluaquestion"
 gom "github.com/kohkimakimoto/gluaenv"
+gom "github.com/layeh/gopher-json"
 gom "github.com/cjoudrey/gluahttp"
 gom "github.com/otm/gluash"
+
 
 # etc...
 gom "github.com/fatih/color"
 gom "github.com/kardianos/osext"
 gom "github.com/Songmu/wrapcommander"
 gom "github.com/hashicorp/go-getter"
+gom "github.com/mattn/go-runewidth"
 
 # dev tool
 gom "github.com/mitchellh/gox"

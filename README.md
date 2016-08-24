@@ -36,7 +36,7 @@ See [Documentation](./docs/README.md)
 
 Requirements
 
-* Go 1.6 or later
+* Go 1.7 or later (my development env)
 * [Gom](https://github.com/mattn/gom)
 
 Installing dependences

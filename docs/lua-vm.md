@@ -16,14 +16,14 @@ print(jsontext)
 
 The following are the built-in libraries that are included in Essh.
 
-* `glua.json`: Json encoder/decoder. It is implemented by [gluajson](https://github.com/kohkimakimoto/gluajson).
-* `glua.fs`: Filesystem utility. It is implemented by [gluafs](https://github.com/kohkimakimoto/gluafs).
-* `glua.yaml`: Yaml parser. It is implemented by [gluayaml](https://github.com/kohkimakimoto/gluayaml).
-* `glua.template`: Text template. It is implemented by [gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
-* `glua.question`: A library to prompt the user for input. It is implemented by [gluaquestion](https://github.com/kohkimakimoto/gluaquestion).
-* `glua.env`: Utility package for manipulating environment variables. It is implemented by [gluaenv](https://github.com/kohkimakimoto/gluaenv).
-* `glua.http`: Http module. It is implemented by [gluahttp](https://github.com/cjoudrey/gluahttp).
-* `glua.sh`: A shell module. It is implemented by [gluash](https://github.com/otm/gluash).
+* `json`: Json encoder/decoder. See [layeh/gopher-json](https://github.com/layeh/gopher-json).
+* `fs`: Filesystem utility. See [kohkimakimoto/gluafs](https://github.com/kohkimakimoto/gluafs).
+* `yaml`: Yaml parser. See [kohkimakimoto/gluayaml](https://github.com/kohkimakimoto/gluayaml).
+* `template`: Text template. See [kohkimakimoto/gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
+* `env`: Utility package for manipulating environment variables. See [kohkimakimoto/gluaenv](https://github.com/kohkimakimoto/gluaenv).
+* `http`: Http module. See [cjoudrey/gluahttp](https://github.com/cjoudrey/gluahttp).
+* `re`: Regular expressions for the GopherLua. See [yuin/gluare](https://github.com/yuin/gluare)
+* `sh`:A shell module for gopher-lua. See [otm/gluash](https://github.com/otm/gluash)
 
 Of course, You can also use another Lua libraries by using `require`. See the Lua's [manual](http://www.lua.org/manual/5.1/manual.html#pdf-require).
 
