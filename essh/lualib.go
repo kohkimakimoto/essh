@@ -20,8 +20,10 @@ import (
 
 func InitLuaState(L *lua.LState) {
 	// custom type.
-	registerTaskContextClass(L)
+	registerTaskClass(L)
 	registerHostClass(L)
+
+	registerTaskContextClass(L)
 	registerRegistryClass(L)
 
 	// global functions
@@ -40,7 +42,8 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 	L.PreloadModule("re", gluare.Loader)
 	L.PreloadModule("sh", gluash.Loader)
-	// for BC
+
+	// modules for BC
 	L.PreloadModule("glua.json", gluajson.Loader)
 	L.PreloadModule("glua.fs", gluafs.Loader)
 	L.PreloadModule("glua.yaml", gluayaml.Loader)
@@ -55,19 +58,21 @@ func InitLuaState(L *lua.LState) {
 	lessh := L.NewTable()
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
-
+	lessh.RawSetString("version", lua.LString(Version))
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
 		"host":         esshHost,
 		"private_host": esshPrivateHost,
-		"task":   esshTask,
-		"driver": esshDriver,
+		"task":         esshTask,
+		"driver":       esshDriver,
 		// utilities.
-		"require":  esshRequire,
-		"debug":    esshDebug,
-		"gethosts": esshGethosts,
-		"hosts":    esshGethosts,
-		"registry": esshRegistry,
+		"require":    esshRequire,
+		"debug":      esshDebug,
+		"find_hosts": esshFindHosts,
+
+		"gethosts": esshGethosts, // deprecated
+		"hosts":    esshGethosts, // deprecated
+		"registry": esshRegistry, // deprecated
 	})
 }
 
@@ -348,6 +353,8 @@ func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
 
 				h.Props[propsKeyStr] = propsValueStr
 			})
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
 		}
 
 	case "hooks":
@@ -369,19 +376,31 @@ func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
 			if err != nil {
 				panic(err)
 			}
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
 		}
+
 	case "description":
 		if descStr, ok := toString(value); ok {
 			h.Description = descStr
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
 		}
+
 	case "hidden":
 		if hiddenBool, ok := toBool(value); ok {
 			h.Hidden = hiddenBool
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
 		}
+
 	case "private":
 		if privateBool, ok := toBool(value); ok {
 			h.Private = privateBool
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
 		}
+
 	case "tags":
 		if tagsTb, ok := toLTable(value); ok {
 			// initialize
@@ -394,7 +413,10 @@ func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
 					L.RaiseError("unsupported format of tags.")
 				}
 			})
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
 		}
+
 	default:
 		panic("unsupported host's field '" + key + "'.")
 
@@ -629,7 +651,7 @@ func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 		}, nil
 	}
 
-	return nil, fmt.Errorf("'scrpt' got a invalid value.")
+	return nil, fmt.Errorf("'script' got a invalid value.")
 }
 
 func esshRequire(L *lua.LState) int {
@@ -668,6 +690,88 @@ func esshRequire(L *lua.LState) int {
 	}
 
 	L.Push(module.Value)
+	return 1
+}
+
+func esshFindHosts(L *lua.LState) int {
+	if L.GetTop() > 1 {
+		panic("find_hosts can receive max 1 argument.")
+	}
+
+	var condTb *lua.LTable
+	if L.GetTop() == 1 {
+		condTb = L.CheckTable(1)
+
+	}
+
+	lhosts := L.NewTable()
+
+	for _, host := range SortedHosts() {
+		if condTb == nil {
+			lhost := newLHost(L, host)
+			lhosts.Append(lhost)
+		} else {
+			var notfound bool
+
+			condTb.ForEach(func(k, v lua.LValue) {
+				if notfound {
+					return
+				}
+
+				ks, ok := toString(k)
+				if !ok {
+					panic("find_hosts condition must be a table, the key of which is a string")
+				}
+
+				if hv := host.LValues[ks]; hv != nil {
+					if ks == "tags" || ks == "tag" {
+						if tagsValues, ok := toLTable(hv); ok {
+							var found bool
+							tagsValues.ForEach(func(_, tag lua.LValue) {
+								if found == false && tag == v {
+									found = true
+								}
+							})
+							if !found {
+								notfound = true
+								return
+							}
+						} else {
+							notfound = true
+						}
+					} else if ks == "props" || ks == "prop" {
+						if propsValues, ok := toLTable(hv); ok {
+							var found bool
+							propsValues.ForEach(func(_, prop lua.LValue) {
+								if found == false && prop == v {
+									found = true
+								}
+							})
+
+							if !found {
+								notfound = true
+								return
+							}
+						} else {
+							notfound = true
+						}
+					} else if hv != v {
+						notfound = true
+					}
+				} else {
+					notfound = true
+				}
+			})
+
+			if !notfound {
+				lhost := newLHost(L, host)
+				lhosts.Append(lhost)
+			}
+
+		}
+	}
+
+	L.Push(lhosts)
 	return 1
 }
 
@@ -803,7 +907,87 @@ func checkTaskContext(L *lua.LState) *TaskContext {
 	return nil
 }
 
+const LTaskClass = "Task*"
+
+func registerTaskClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LTaskClass)
+	mt.RawSetString("__call", L.NewFunction(taskCall))
+	mt.RawSetString("__index", L.NewFunction(taskIndex))
+	mt.RawSetString("__newindex", L.NewFunction(taskNewindex))
+}
+
+func newLTask(L *lua.LState, task *Task) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = task
+	L.SetMetatable(ud, L.GetTypeMetatable(LTaskClass))
+	return ud
+}
+
+func checkTask(L *lua.LState) *Task {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Task); ok {
+		return v
+	}
+	L.ArgError(1, "Task object expected")
+	return nil
+}
+
+func taskCall(L *lua.LState) int {
+	//task := checkTask(L)
+	//tb := L.CheckTable(2)
+	//
+
+	return 0
+}
+
+func taskIndex(L *lua.LState) int {
+	task := checkTask(L)
+	index := L.CheckString(2)
+
+	if index == "name" {
+		L.Push(lua.LString(task.Name))
+		return 1
+	}
+
+	v, ok := task.LValues[index]
+	if v == nil || !ok {
+		v = lua.LNil
+	}
+
+	L.Push(v)
+	return 1
+}
+
+func taskNewindex(L *lua.LState) int {
+	task := checkTask(L)
+	index := L.CheckString(2)
+	value := L.CheckAny(3)
+
+	updateTask(L, task, index, value)
+
+	return 0
+}
+
+func setupTask(L *lua.LState, t *Task, config *lua.LTable) {
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateTask(L, t, kstr, v)
+		}
+	})
+}
+
+func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
+	task.LValues[key] = value
+}
+
 const LHostClass = "Host*"
+
+func registerHostClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LHostClass)
+	mt.RawSetString("__call", L.NewFunction(hostCall))
+	mt.RawSetString("__index", L.NewFunction(hostIndex))
+	mt.RawSetString("__newindex", L.NewFunction(hostNewindex))
+}
 
 func newLHost(L *lua.LState, host *Host) *lua.LUserData {
 	ud := L.NewUserData()
@@ -821,13 +1005,6 @@ func checkHost(L *lua.LState) *Host {
 	return nil
 }
 
-func registerHostClass(L *lua.LState) {
-	mt := L.NewTypeMetatable(LHostClass)
-	mt.RawSetString("__call", L.NewFunction(hostCall))
-	mt.RawSetString("__index", L.NewFunction(hostIndex))
-	mt.RawSetString("__newindex", L.NewFunction(hostNewindex))
-}
-
 func hostCall(L *lua.LState) int {
 	host := checkHost(L)
 	tb := L.CheckTable(2)
@@ -840,6 +1017,11 @@ func hostCall(L *lua.LState) int {
 func hostIndex(L *lua.LState) int {
 	host := checkHost(L)
 	index := L.CheckString(2)
+
+	if index == "name" {
+		L.Push(lua.LString(host.Name))
+		return 1
+	}
 
 	v, ok := host.LValues[index]
 	if v == nil || !ok {
