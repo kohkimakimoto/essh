@@ -317,7 +317,7 @@ func Start() (exitStatus int) {
 	}
 
 	if helpFlag {
-		printHelp()
+		printUsage()
 		return
 	}
 
@@ -1362,19 +1362,6 @@ func removeRegistryData() error {
 	return nil
 }
 
-func printHelp() {
-	fmt.Print(`Usage: essh [<options>] [<ssh options and args...>]
-
-  essh is an extended ssh command.
-  version ` + Version + ` (` + CommitHash + `)
-
-  Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
-  The MIT License (MIT)
-
-`)
-	printOptionsInfo()
-}
-
 func printUsage() {
 	fmt.Print(`Usage: essh [<options>] [<ssh options and args...>]
 
@@ -1384,17 +1371,7 @@ func printUsage() {
   Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
   The MIT License (MIT)
 
-See also:
-  essh --help
-
-`)
-}
-
-func printOptionsInfo() {
-	fmt.Print(`Options:
-general options.
-  --version                     Print version.
-  --help                        Print help.
+Options:
   --print                       Print generated ssh config.
   --gen                         Only generate ssh config.
   --working-dir <dir>           Change working directory.
@@ -1403,7 +1380,6 @@ general options.
   --no-color                    Disable ANSI output.
   --debug                       Output debug log.
 
-manage hosts, tags and tasks.
   --hosts                       List hosts.
   --tags                        List tags.
   --tasks                       List tasks.
@@ -1411,14 +1387,12 @@ manage hosts, tags and tasks.
   --all                         (Using with --hosts, --tasks or --tags option) Show all that includs hidden objects.
   --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
 
-manage modules.
   --update                      Update modules.
   --clean-modules               Clean downloaded modules.
   --clean-tmp                   Clean temporary data.
   --clean-all                   Clean all data.
-  --with-global                 (Using with --update, --clean-modules, --clean-tmp or --clean-all option) Update or clean modules in the local, global both registry.
+  --with-global                 (Using with --update, --clean-modules, --clean-tmp or --clean-all option) Update or clean modules in the local and global both registry.
 
-execute commands using hosts configuration.
   --exec                        Execute commands with the hosts.
   --target <tag|host>           (Using with --exec option) Target hosts to run the commands.
   --backend <remote|local>      (Using with --exec option) Run the commands on local or remote hosts.
@@ -1430,12 +1404,13 @@ execute commands using hosts configuration.
   --file                        (Using with --exec option) Load commands from a file.
   --driver                      (Using with --exec option) Specify a driver.
 
-utility for zsh.
   --zsh-completion              Output zsh completion code.
   --aliases                     Output aliases code.
 
-Github:
-  https://github.com/kohkimakimoto/essh
+  --version                     Print version.
+  --help                        Print help.
+
+See: https://github.com/kohkimakimoto/essh for updates, code and issues.
 
 `)
 }
