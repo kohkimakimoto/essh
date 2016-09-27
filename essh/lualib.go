@@ -31,6 +31,8 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("private_host", L.NewFunction(esshPrivateHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
+	L.SetGlobal("import", L.NewFunction(esshImport))
+	L.SetGlobal("find_hosts", L.NewFunction(esshFindHosts))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -65,11 +67,12 @@ func InitLuaState(L *lua.LState) {
 		"private_host": esshPrivateHost,
 		"task":         esshTask,
 		"driver":       esshDriver,
-		// utilities.
-		"require":    esshRequire,
-		"debug":      esshDebug,
+		"import":    esshImport,
 		"find_hosts": esshFindHosts,
 
+		// deprecated
+		"require":    esshImport,  // deprecated
+		"debug":      esshDebug,  // deprecated
 		"gethosts": esshGethosts, // deprecated
 		"hosts":    esshGethosts, // deprecated
 		"registry": esshRegistry, // deprecated
@@ -431,7 +434,7 @@ func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 	return nil, fmt.Errorf("'script' got a invalid value.")
 }
 
-func esshRequire(L *lua.LState) int {
+func esshImport(L *lua.LState) int {
 	name := L.CheckString(1)
 
 	module := CurrentRegistry.LoadedModules[name]
