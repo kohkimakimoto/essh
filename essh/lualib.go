@@ -133,58 +133,25 @@ func esshPrivateHost(L *lua.LState) int {
 }
 
 func esshTask(L *lua.LState) int {
-	first := L.CheckAny(1)
-	if tb, ok := first.(*lua.LTable); ok {
-		registerTaskByTable(L, tb)
-		return 0
-	}
 
 	name := L.CheckString(1)
+	if L.GetTop() == 1 {
+		// object or DSL style
+		t := registerTask(L, name)
+		L.Push(newLTask(L, t))
 
-	// procedural style
-	if L.GetTop() == 2 {
+		return 1
+	} else if L.GetTop() == 2 {
+		// function style
 		tb := L.CheckTable(2)
-		registerTask(L, name, tb)
+		t := registerTask(L, name)
+		setupTask(L, t, tb)
+		L.Push(newLTask(L, t))
 
-		return 0
+		return 1
 	}
 
-	// DSL style
-	L.Push(L.NewFunction(func(L *lua.LState) int {
-		tb := L.CheckTable(1)
-		registerTask(L, name, tb)
-
-		return 0
-	}))
-
-	return 1
-}
-
-func registerTaskByTable(L *lua.LState, tb *lua.LTable) {
-	maxn := tb.MaxN()
-	if maxn == 0 { // table
-		tb.ForEach(func(key, value lua.LValue) {
-			config, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			name, ok := key.(lua.LString)
-			if !ok {
-				return
-			}
-
-			registerTask(L, string(name), config)
-		})
-	} else { // array
-		for i := 1; i <= maxn; i++ {
-			value := tb.RawGetInt(i)
-			valueTb, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			registerTaskByTable(L, valueTb)
-		}
-	}
+	panic("task requires 1 or 2 arguments")
 }
 
 func esshDriver(L *lua.LState) int {
@@ -451,136 +418,19 @@ func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) 
 
 	return nil
 }
-
-func registerTask(L *lua.LState, name string, config *lua.LTable) *Task {
-	task := NewTask()
-	task.Name = name
-	task.Registry = CurrentRegistry
-
-	backend := config.RawGetString("backend")
-	if backendStr, ok := toString(backend); ok {
-		task.Backend = backendStr
-		if backendStr != TASK_BACKEND_LOCAL && backendStr != TASK_BACKEND_REMOTE {
-			L.RaiseError("backend must be '%s' or '%s'.", TASK_BACKEND_LOCAL, TASK_BACKEND_REMOTE)
-		}
+func registerTask(L *lua.LState, name string) *Task {
+	if debugFlag {
+		fmt.Printf("[essh debug] register task: %s\n", name)
 	}
 
-	targets := config.RawGetString("targets")
-	if targetsStr, ok := toString(targets); ok {
-		task.Targets = []string{targetsStr}
-	} else if targetsSlice, ok := toSlice(targets); ok {
-		for _, target := range targetsSlice {
-			if targetStr, ok := target.(string); ok {
-				task.Targets = append(task.Targets, targetStr)
-			}
-		}
-	}
+	t := NewTask()
+	t.Name = name
+	t.Registry = CurrentRegistry
 
-	description := config.RawGetString("description")
-	if descStr, ok := toString(description); ok {
-		task.Description = descStr
-	}
+	Tasks[t.Name] = t
+	//CurrentRegistry.Tasks[t.Name] = t
 
-	pty := config.RawGetString("pty")
-	if ptyBool, ok := toBool(pty); ok {
-		task.Pty = ptyBool
-	}
-
-	driver := config.RawGetString("driver")
-	if driverStr, ok := toString(driver); ok {
-		task.Driver = driverStr
-	}
-
-	parallel := config.RawGetString("parallel")
-	if parallelBool, ok := toBool(parallel); ok {
-		task.Parallel = parallelBool
-	}
-
-	privileged := config.RawGetString("privileged")
-	if privilegedBool, ok := toBool(privileged); ok {
-		task.Privileged = privilegedBool
-	}
-
-	disabled := config.RawGetString("disabled")
-	if disabledBool, ok := toBool(disabled); ok {
-		task.Disabled = disabledBool
-	}
-
-	hidden := config.RawGetString("hidden")
-	if hiddenBool, ok := toBool(hidden); ok {
-		task.Hidden = hiddenBool
-	}
-
-	lock := config.RawGetString("lock")
-	if lockBool, ok := toBool(lock); ok {
-		task.Lock = lockBool
-	}
-
-	script, err := toScript(L, config.RawGetString("script"))
-	if err != nil {
-		L.RaiseError("%v", err)
-	}
-	task.Script = script
-
-	file := config.RawGetString("file")
-	if fileStr, ok := toString(file); ok {
-		task.File = fileStr
-	}
-
-	if task.File != "" && len(task.Script) > 0 {
-		L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
-	}
-
-	prefix := config.RawGetString("prefix")
-	if prefixBool, ok := toBool(prefix); ok {
-		if prefixBool {
-			if task.IsRemoteTask() {
-				task.Prefix = DefaultPrefixRemote
-			} else {
-				task.Prefix = DefaultPrefixLocal
-			}
-		}
-	} else if prefixStr, ok := toString(prefix); ok {
-		task.Prefix = prefixStr
-	}
-
-	prepare := config.RawGetString("prepare")
-	if prepare != lua.LNil {
-		if prepareFn, ok := prepare.(*lua.LFunction); ok {
-			task.Prepare = func(ctx *TaskContext) error {
-				lctx := newLTaskContext(L, ctx)
-				err := L.CallByParam(lua.P{
-					Fn:      prepareFn,
-					NRet:    1,
-					Protect: false,
-				}, lctx)
-				if err != nil {
-					return err
-				}
-
-				ret := L.Get(-1) // returned value
-				L.Pop(1)
-
-				if ret == lua.LNil {
-					return nil
-				} else if retB, ok := ret.(lua.LBool); ok {
-					if retB {
-						return nil
-					} else {
-						return fmt.Errorf("returned false from the prepare function.")
-					}
-				}
-
-				return nil
-			}
-		} else {
-			L.RaiseError("prepare have to be a function.")
-		}
-	}
-
-	Tasks[task.Name] = task
-
-	return task
+	return t
 }
 
 func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
@@ -933,9 +783,10 @@ func checkTask(L *lua.LState) *Task {
 }
 
 func taskCall(L *lua.LState) int {
-	//task := checkTask(L)
-	//tb := L.CheckTable(2)
-	//
+	task := checkTask(L)
+	tb := L.CheckTable(2)
+
+	setupTask(L, task, tb)
 
 	return 0
 }
@@ -978,7 +829,145 @@ func setupTask(L *lua.LState, t *Task, config *lua.LTable) {
 
 func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 	task.LValues[key] = value
+
+	switch key {
+	case "backend":
+		if backendStr, ok := toString(value); ok {
+			task.Backend = backendStr
+			if backendStr != TASK_BACKEND_LOCAL && backendStr != TASK_BACKEND_REMOTE {
+				L.RaiseError("backend must be '%s' or '%s'.", TASK_BACKEND_LOCAL, TASK_BACKEND_REMOTE)
+			}
+		}
+	case "targets":
+		if targetsStr, ok := toString(value); ok {
+			task.Targets = []string{targetsStr}
+		} else if targetsSlice, ok := toSlice(value); ok {
+			for _, target := range targetsSlice {
+				if targetStr, ok := target.(string); ok {
+					task.Targets = append(task.Targets, targetStr)
+				}
+			}
+		}  else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "description":
+		if descStr, ok := toString(value); ok {
+			task.Description = descStr
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "pty":
+		if ptyBool, ok := toBool(value); ok {
+			task.Pty = ptyBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "driver":
+		if driverStr, ok := toString(value); ok {
+			task.Driver = driverStr
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "parallel":
+		if parallelBool, ok := toBool(value); ok {
+			task.Parallel = parallelBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "privileged":
+		if privilegedBool, ok := toBool(value); ok {
+			task.Privileged = privilegedBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "disabled":
+		if disabledBool, ok := toBool(value); ok {
+			task.Disabled = disabledBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "hidden":
+		if hiddenBool, ok := toBool(value); ok {
+			task.Hidden = hiddenBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "lock":
+		if lockBool, ok := toBool(value); ok {
+			task.Lock = lockBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "script":
+		script, err := toScript(L, value)
+		if err != nil {
+			L.RaiseError("%v", err)
+		}
+		task.Script = script
+
+		if task.File != "" && len(task.Script) > 0 {
+			L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
+		}
+	case "file":
+		if fileStr, ok := toString(value); ok {
+			task.File = fileStr
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+
+		if task.File != "" && len(task.Script) > 0 {
+			L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
+		}
+	case "prefix":
+		if prefixBool, ok := toBool(value); ok {
+			if prefixBool {
+				if task.IsRemoteTask() {
+					task.Prefix = DefaultPrefixRemote
+				} else {
+					task.Prefix = DefaultPrefixLocal
+				}
+			}
+		} else if prefixStr, ok := toString(value); ok {
+			task.Prefix = prefixStr
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "prepare":
+		if prepareFn, ok := value.(*lua.LFunction); ok {
+			task.Prepare = func(ctx *TaskContext) error {
+				lctx := newLTaskContext(L, ctx)
+				err := L.CallByParam(lua.P{
+					Fn:      prepareFn,
+					NRet:    1,
+					Protect: false,
+				}, lctx)
+				if err != nil {
+					return err
+				}
+
+				ret := L.Get(-1) // returned value
+				L.Pop(1)
+
+				if ret == lua.LNil {
+					return nil
+				} else if retB, ok := ret.(lua.LBool); ok {
+					if retB {
+						return nil
+					} else {
+						return fmt.Errorf("returned false from the prepare function.")
+					}
+				}
+
+				return nil
+			}
+		} else {
+			L.RaiseError("prepare have to be a function.")
+		}
+	default:
+		panic("unsupported task's field '" + key + "'.")
+	}
 }
+
 
 const LHostClass = "Host*"
 
