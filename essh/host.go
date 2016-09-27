@@ -9,26 +9,29 @@ import (
 )
 
 type Host struct {
-	Name        string
-	Props       map[string]string
-	Hooks       map[string][]interface{}
-	Description string
-	Hidden      bool
-	Tags        []string
-	Registry    *Registry
-	Private     bool
-
-	SSHConfig map[string]string
-	LValues   map[string]lua.LValue
+	Name                string
+	Description         string
+	Props               map[string]string
+	HookBeforeConnect   []interface{}
+	HookAfterConnect    []interface{}
+	HookAfterDisconnect []interface{}
+	Hidden              bool
+	Tags                []string
+	Registry            *Registry
+	Private             bool
+	SSHConfig           map[string]string
+	LValues             map[string]lua.LValue
 }
 
 func NewHost() *Host {
 	return &Host{
-		Props:     map[string]string{},
-		Hooks:     map[string][]interface{}{},
-		Tags:      []string{},
-		SSHConfig: map[string]string{},
-		LValues:   map[string]lua.LValue{},
+		Props:               map[string]string{},
+		HookBeforeConnect:   []interface{}{},
+		HookAfterConnect:    []interface{}{},
+		HookAfterDisconnect: []interface{}{},
+		Tags:                []string{},
+		SSHConfig:           map[string]string{},
+		LValues:             map[string]lua.LValue{},
 	}
 }
 

@@ -1121,7 +1121,9 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	if len(args) == 1 {
 		hostname := args[0]
 		if host := GetPublicHost(hostname); host != nil {
-			hooks = host.Hooks
+			hooks["before_connect"] = host.HookBeforeConnect
+			hooks["after_disconnect"] = host.HookAfterDisconnect
+			hooks["after_connect"] = host.HookAfterConnect
 		}
 	}
 

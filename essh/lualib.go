@@ -67,12 +67,12 @@ func InitLuaState(L *lua.LState) {
 		"private_host": esshPrivateHost,
 		"task":         esshTask,
 		"driver":       esshDriver,
-		"import":    esshImport,
-		"find_hosts": esshFindHosts,
+		"import":       esshImport,
+		"find_hosts":   esshFindHosts,
 
 		// deprecated
-		"require":    esshImport,  // deprecated
-		"debug":      esshDebug,  // deprecated
+		"require":  esshImport,   // deprecated
+		"debug":    esshDebug,    // deprecated
 		"gethosts": esshGethosts, // deprecated
 		"hosts":    esshGethosts, // deprecated
 		"registry": esshRegistry, // deprecated
@@ -110,7 +110,6 @@ func esshHost(L *lua.LState) int {
 }
 
 func esshPrivateHost(L *lua.LState) int {
-
 	name := L.CheckString(1)
 	if L.GetTop() == 1 {
 		// object or DSL style
@@ -136,7 +135,6 @@ func esshPrivateHost(L *lua.LState) int {
 }
 
 func esshTask(L *lua.LState) int {
-
 	name := L.CheckString(1)
 	if L.GetTop() == 1 {
 		// object or DSL style
@@ -159,7 +157,6 @@ func esshTask(L *lua.LState) int {
 
 func esshDriver(L *lua.LState) int {
 	name := L.CheckString(1)
-
 	if L.GetTop() == 1 {
 		// object or DSL style
 		d := registerDriver(L, name)
@@ -177,261 +174,6 @@ func esshDriver(L *lua.LState) int {
 	}
 
 	panic("driver requires 1 or 2 arguments")
-}
-
-func registerDriver(L *lua.LState, name string) *Driver {
-	if debugFlag {
-		fmt.Printf("[essh debug] register driver: %s\n", name)
-	}
-
-	driver := NewDriver()
-	driver.Name = name
-
-	Drivers[driver.Name] = driver
-
-	return driver
-}
-
-func registerHost(L *lua.LState, name string) *Host {
-	if debugFlag {
-		fmt.Printf("[essh debug] register host: %s\n", name)
-	}
-
-	h := NewHost()
-	h.Name = name
-	h.Registry = CurrentRegistry
-
-	CurrentRegistry.Hosts[h.Name] = h
-
-	return h
-}
-
-func setupHost(L *lua.LState, h *Host, config *lua.LTable) {
-	config.ForEach(func(k, v lua.LValue) {
-		if kstr, ok := toString(k); ok {
-			updateHost(L, h, kstr, v)
-		}
-	})
-}
-
-func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
-	h.LValues[key] = value
-
-	var firstChar rune
-	for _, c := range key {
-		firstChar = c
-		break
-	}
-
-	if unicode.IsUpper(firstChar) {
-		if valuestr, ok := toString(value); ok {
-			h.SSHConfig[key] = valuestr
-			return
-		}
-
-		panic("SSH property must be string")
-	}
-
-	switch key {
-	case "props":
-		if propsTb, ok := toLTable(value); ok {
-			// initialize
-			h.Props = map[string]string{}
-
-			propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
-				propsKeyStr, ok := toString(propsKey)
-				if !ok {
-					L.RaiseError("props table's key must be a string: %v", propsKey)
-				}
-				propsValueStr, ok := toString(propsValue)
-				if !ok {
-					L.RaiseError("props table's value must be a string: %v", propsValue)
-				}
-
-				h.Props[propsKeyStr] = propsValueStr
-			})
-		} else {
-			panic("invalid value of a host's field '" + key + "'.")
-		}
-
-	case "hooks":
-		if hookTb, ok := toLTable(value); ok {
-			// initialize
-			h.Hooks = map[string][]interface{}{}
-
-			err := registerHook(L, h, "before_connect", hookTb.RawGetString("before_connect"))
-			if err != nil {
-				panic(err)
-			}
-
-			err = registerHook(L, h, "after_connect", hookTb.RawGetString("after_connect"))
-			if err != nil {
-				panic(err)
-			}
-
-			err = registerHook(L, h, "after_disconnect", hookTb.RawGetString("after_disconnect"))
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			panic("invalid value of a host's field '" + key + "'.")
-		}
-
-	case "description":
-		if descStr, ok := toString(value); ok {
-			h.Description = descStr
-		} else {
-			panic("invalid value of a host's field '" + key + "'.")
-		}
-
-	case "hidden":
-		if hiddenBool, ok := toBool(value); ok {
-			h.Hidden = hiddenBool
-		} else {
-			panic("invalid value of a host's field '" + key + "'.")
-		}
-
-	case "private":
-		if privateBool, ok := toBool(value); ok {
-			h.Private = privateBool
-		} else {
-			panic("invalid value of a host's field '" + key + "'.")
-		}
-
-	case "tags":
-		if tagsTb, ok := toLTable(value); ok {
-			// initialize
-			h.Tags = []string{}
-
-			tagsTb.ForEach(func(_ lua.LValue, v lua.LValue) {
-				if vs, ok := toString(v); ok {
-					h.Tags = append(h.Tags, vs)
-				} else {
-					L.RaiseError("unsupported format of tags.")
-				}
-			})
-		} else {
-			panic("invalid value of a host's field '" + key + "'.")
-		}
-
-	default:
-		panic("unsupported host's field '" + key + "'.")
-
-	}
-}
-
-func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
-	if hook != lua.LNil {
-		if hookFn, ok := toLFunction(hook); ok {
-			hooks := host.Hooks[hookPoint]
-			hooks = append(hooks, hookFn)
-			host.Hooks[hookPoint] = hooks
-		} else if hookString, ok := toString(hook); ok {
-			hooks := host.Hooks[hookPoint]
-			hooks = append(hooks, hookString)
-			host.Hooks[hookPoint] = hooks
-		} else if tb, ok := toLTable(hook); ok {
-			maxn := tb.MaxN()
-			if maxn == 0 { // table
-				return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
-			}
-
-			for i := 1; i <= maxn; i++ {
-				if err := registerHook(L, host, hookPoint, tb.RawGetInt(i)); err != nil {
-					return err
-				}
-			}
-		} else {
-			return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
-		}
-	}
-
-	return nil
-}
-func registerTask(L *lua.LState, name string) *Task {
-	if debugFlag {
-		fmt.Printf("[essh debug] register task: %s\n", name)
-	}
-
-	t := NewTask()
-	t.Name = name
-	t.Registry = CurrentRegistry
-
-	Tasks[t.Name] = t
-	//CurrentRegistry.Tasks[t.Name] = t
-
-	return t
-}
-
-func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
-	ret := []map[string]string{}
-
-	if tb, ok := toLTable(value); ok {
-		maxn := tb.MaxN()
-		if maxn == 0 { // table
-			if tb.RawGetString("code") == lua.LNil {
-				return nil, fmt.Errorf("if a 'script' entry is table, it has to have 'code' property.")
-			}
-
-			m := map[string]string{}
-			tb.ForEach(func(k, v lua.LValue) {
-				vs, ok := toString(v)
-				if !ok {
-					vb, ok := toBool(v)
-					if !ok {
-						panic("if a 'script' entry is table, it's value has to be string or bool.")
-					}
-					if vb {
-						vs = "true"
-					} else {
-						vs = "false"
-					}
-				}
-				ks, ok := toString(k)
-				if !ok {
-					panic("if a 'script' entry is table, it's property has to be string.")
-				}
-				m[ks] = vs
-			})
-
-			ret = append(ret, m)
-		} else { // array
-			for i := 1; i <= maxn; i++ {
-				value := tb.RawGetInt(i)
-				if fn, ok := toLFunction(value); ok {
-					err := L.CallByParam(lua.P{
-						Fn:      fn,
-						NRet:    1,
-						Protect: false,
-					})
-					if err != nil {
-						panic(err)
-					}
-					funcRet := L.Get(-1)
-					L.Pop(1)
-
-					script, err := toScript(L, funcRet)
-					if err != nil {
-						return nil, err
-					}
-					ret = append(ret, script...)
-				} else {
-					script, err := toScript(L, value)
-					if err != nil {
-						return nil, err
-					}
-					ret = append(ret, script...)
-				}
-			}
-		}
-		return ret, nil
-	} else if str, ok := toString(value); ok {
-		return []map[string]string{
-			map[string]string{"code": str},
-		}, nil
-	}
-
-	return nil, fmt.Errorf("'script' got a invalid value.")
 }
 
 func esshImport(L *lua.LState) int {
@@ -553,6 +295,286 @@ func esshFindHosts(L *lua.LState) int {
 
 	L.Push(lhosts)
 	return 1
+}
+
+func registerHost(L *lua.LState, name string) *Host {
+	if debugFlag {
+		fmt.Printf("[essh debug] register host: %s\n", name)
+	}
+
+	h := NewHost()
+	h.Name = name
+	h.Registry = CurrentRegistry
+
+	CurrentRegistry.Hosts[h.Name] = h
+
+	return h
+}
+
+func registerTask(L *lua.LState, name string) *Task {
+	if debugFlag {
+		fmt.Printf("[essh debug] register task: %s\n", name)
+	}
+
+	t := NewTask()
+	t.Name = name
+	t.Registry = CurrentRegistry
+
+	Tasks[t.Name] = t
+
+	return t
+}
+
+func registerDriver(L *lua.LState, name string) *Driver {
+	if debugFlag {
+		fmt.Printf("[essh debug] register driver: %s\n", name)
+	}
+
+	d := NewDriver()
+	d.Name = name
+
+	Drivers[d.Name] = d
+
+	return d
+}
+
+func setupHost(L *lua.LState, h *Host, config *lua.LTable) {
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateHost(L, h, kstr, v)
+		}
+	})
+}
+
+func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
+	h.LValues[key] = value
+
+	var firstChar rune
+	for _, c := range key {
+		firstChar = c
+		break
+	}
+
+	if unicode.IsUpper(firstChar) {
+		if valuestr, ok := toString(value); ok {
+			h.SSHConfig[key] = valuestr
+			return
+		}
+
+		panic("SSH property must be string")
+	}
+
+	switch key {
+	case "props":
+		if propsTb, ok := toLTable(value); ok {
+			// initialize
+			h.Props = map[string]string{}
+
+			propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
+				propsKeyStr, ok := toString(propsKey)
+				if !ok {
+					L.RaiseError("props table's key must be a string: %v", propsKey)
+				}
+				propsValueStr, ok := toString(propsValue)
+				if !ok {
+					L.RaiseError("props table's value must be a string: %v", propsValue)
+				}
+
+				h.Props[propsKeyStr] = propsValueStr
+			})
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+	case "hook_before_connect":
+		if tb, ok := toLTable(value); ok {
+			maxn := tb.MaxN()
+			if maxn != 0 { // array
+				panic("hook_before_connect must table of array.")
+			}
+			// array
+			hooks := make([]interface{}, 0, maxn)
+			for i := 1; i <= maxn; i++ {
+				hooks = append(hooks, toGoValue(tb.RawGetInt(i)))
+			}
+
+			h.HookBeforeConnect = hooks
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+	case "after_connect":
+		if tb, ok := toLTable(value); ok {
+			maxn := tb.MaxN()
+			if maxn != 0 { // array
+				panic("hook_before_connect must table of array.")
+			}
+			// array
+			hooks := make([]interface{}, 0, maxn)
+			for i := 1; i <= maxn; i++ {
+				hooks = append(hooks, toGoValue(tb.RawGetInt(i)))
+			}
+
+			h.HookAfterConnect = hooks
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+	case "after_disconnect":
+		if tb, ok := toLTable(value); ok {
+			maxn := tb.MaxN()
+			if maxn != 0 { // array
+				panic("hook_before_connect must table of array.")
+			}
+			// array
+			hooks := make([]interface{}, 0, maxn)
+			for i := 1; i <= maxn; i++ {
+				hooks = append(hooks, toGoValue(tb.RawGetInt(i)))
+			}
+
+			h.HookAfterDisconnect = hooks
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+	case "description":
+		if descStr, ok := toString(value); ok {
+			h.Description = descStr
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+
+	case "hidden":
+		if hiddenBool, ok := toBool(value); ok {
+			h.Hidden = hiddenBool
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+
+	case "private":
+		if privateBool, ok := toBool(value); ok {
+			h.Private = privateBool
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+
+	case "tags":
+		if tagsTb, ok := toLTable(value); ok {
+			// initialize
+			h.Tags = []string{}
+
+			tagsTb.ForEach(func(_ lua.LValue, v lua.LValue) {
+				if vs, ok := toString(v); ok {
+					h.Tags = append(h.Tags, vs)
+				} else {
+					L.RaiseError("unsupported format of tags.")
+				}
+			})
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+
+	default:
+		panic("unsupported host's field '" + key + "'.")
+
+	}
+}
+
+//func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
+//	if hook != lua.LNil {
+//		if hookFn, ok := toLFunction(hook); ok {
+//			hooks := host.Hooks[hookPoint]
+//			hooks = append(hooks, hookFn)
+//			host.Hooks[hookPoint] = hooks
+//		} else if hookString, ok := toString(hook); ok {
+//			hooks := host.Hooks[hookPoint]
+//			hooks = append(hooks, hookString)
+//			host.Hooks[hookPoint] = hooks
+//		} else if tb, ok := toLTable(hook); ok {
+//			maxn := tb.MaxN()
+//			if maxn == 0 { // table
+//				return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
+//			}
+//
+//			for i := 1; i <= maxn; i++ {
+//				if err := registerHook(L, host, hookPoint, tb.RawGetInt(i)); err != nil {
+//					return err
+//				}
+//			}
+//		} else {
+//			return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
+//		}
+//	}
+//
+//	return nil
+//}
+//
+
+func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
+	ret := []map[string]string{}
+
+	if tb, ok := toLTable(value); ok {
+		maxn := tb.MaxN()
+		if maxn == 0 { // table
+			if tb.RawGetString("code") == lua.LNil {
+				return nil, fmt.Errorf("if a 'script' entry is table, it has to have 'code' property.")
+			}
+
+			m := map[string]string{}
+			tb.ForEach(func(k, v lua.LValue) {
+				vs, ok := toString(v)
+				if !ok {
+					vb, ok := toBool(v)
+					if !ok {
+						panic("if a 'script' entry is table, it's value has to be string or bool.")
+					}
+					if vb {
+						vs = "true"
+					} else {
+						vs = "false"
+					}
+				}
+				ks, ok := toString(k)
+				if !ok {
+					panic("if a 'script' entry is table, it's property has to be string.")
+				}
+				m[ks] = vs
+			})
+
+			ret = append(ret, m)
+		} else { // array
+			for i := 1; i <= maxn; i++ {
+				value := tb.RawGetInt(i)
+				if fn, ok := toLFunction(value); ok {
+					err := L.CallByParam(lua.P{
+						Fn:      fn,
+						NRet:    1,
+						Protect: false,
+					})
+					if err != nil {
+						panic(err)
+					}
+					funcRet := L.Get(-1)
+					L.Pop(1)
+
+					script, err := toScript(L, funcRet)
+					if err != nil {
+						return nil, err
+					}
+					ret = append(ret, script...)
+				} else {
+					script, err := toScript(L, value)
+					if err != nil {
+						return nil, err
+					}
+					ret = append(ret, script...)
+				}
+			}
+		}
+		return ret, nil
+	} else if str, ok := toString(value); ok {
+		return []map[string]string{
+			map[string]string{"code": str},
+		}, nil
+	}
+
+	return nil, fmt.Errorf("'script' got a invalid value.")
 }
 
 func esshGethosts(L *lua.LState) int {
@@ -1032,7 +1054,6 @@ func setupDriver(L *lua.LState, driver *Driver, config *lua.LTable) {
 
 func updateDriver(L *lua.LState, driver *Driver, key string, value lua.LValue) {
 	driver.LValues[key] = value
-
 
 	switch key {
 	case "engine":

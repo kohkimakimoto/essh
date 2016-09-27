@@ -2,17 +2,17 @@ package essh
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/yuin/gopher-lua"
 	"runtime"
 	"strings"
 	"text/template"
-	"fmt"
 )
 
 type Driver struct {
-	Name   string
-	Props  map[string]interface{}
-	Engine func(*Driver) (string, error)
+	Name    string
+	Props   map[string]interface{}
+	Engine  func(*Driver) (string, error)
 	LValues map[string]lua.LValue
 }
 
@@ -24,7 +24,7 @@ var (
 
 func NewDriver() *Driver {
 	return &Driver{
-		Props: map[string]interface{}{},
+		Props:   map[string]interface{}{},
 		LValues: map[string]lua.LValue{},
 	}
 }

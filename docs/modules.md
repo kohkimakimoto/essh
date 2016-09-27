@@ -4,16 +4,16 @@ Module allows you to use, create and share reusable code easily for Essh configu
 
 ## Using Modules
 
-You can use `essh.require` function to load a Essh module.
+You can use `import` function to load a Essh module.
 
 ```lua
-local bash = essh.require "github.com/kohkimakimoto/essh/modules/bash"
+local bash = import "github.com/kohkimakimoto/essh/modules/bash"
 ```
 
-`essh.require` returns Lua value. In the above case, `bash` is Lua table that has several variables and functions. You can use `bash` in your configuration.
+`import` returns Lua value. In the above case, `bash` is Lua table that has several variables and functions. You can use `bash` in your configuration.
 
 ```lua
-local bash = essh.require "github.com/kohkimakimoto/essh//modules/bash"
+local bash = import "github.com/kohkimakimoto/essh//modules/bash"
 
 task "example" {
     script = {
@@ -26,7 +26,7 @@ task "example" {
 `bash.indent` is [this code snippet](https://github.com/kohkimakimoto/essh/blob/master/modules%2Fbash%2Findex.lua#L3-L17).
 So the task displays indented output.
 
-`essh.require` is implemented by using [hashicorp/go-getter](https://github.com/hashicorp/go-getter). You can use git url and local filesystem path to specify a module path.
+`import` is implemented by using [hashicorp/go-getter](https://github.com/hashicorp/go-getter). You can use git url and local filesystem path to specify a module path.
 
 Modules are installed automatically when Essh runs. The installed modules are stored in `.essh` directory. If you need to update installed modules, runs `essh --update`.
 
@@ -51,7 +51,7 @@ return m
 `index.lua` is the entry-point that have to return Lua value. This example returns a table that has `hello` variable. That's it. To use this module, write below config.
 
 ```lua
-local my_module = essh.require "./my_module"
+local my_module = import "./my_module"
 
 task "example" {
     script = {
@@ -67,10 +67,10 @@ $ essh example
 hello
 ```
 
-If you want to share the module, create a git repository from the module directory and push it to a remote repository as github.com. To use the module of git repository, you update `essh.require` path to the url.
+If you want to share the module, create a git repository from the module directory and push it to a remote repository as github.com. To use the module of git repository, you update `import` path to the url.
 
 ```lua
-local my_module = essh.require "github.com/your_account/my_module"
+local my_module = import "github.com/your_account/my_module"
 
 task "example" {
     script = {
