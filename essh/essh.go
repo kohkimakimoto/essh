@@ -1372,6 +1372,7 @@ func printUsage() {
   The MIT License (MIT)
 
 Options:
+  (General Options)
   --print                       Print generated ssh config.
   --gen                         Only generate ssh config.
   --working-dir <dir>           Change working directory.
@@ -1380,6 +1381,7 @@ Options:
   --no-color                    Disable ANSI output.
   --debug                       Output debug log.
 
+  (Manage Hosts, Tags And Tasks)
   --hosts                       List hosts.
   --tags                        List tags.
   --tasks                       List tasks.
@@ -1387,12 +1389,14 @@ Options:
   --all                         (Using with --hosts, --tasks or --tags option) Show all that includs hidden objects.
   --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
 
+  (Manage Modules)
   --update                      Update modules.
   --clean-modules               Clean downloaded modules.
   --clean-tmp                   Clean temporary data.
   --clean-all                   Clean all data.
   --with-global                 (Using with --update, --clean-modules, --clean-tmp or --clean-all option) Update or clean modules in the local and global both registry.
 
+  (Execute Commands)
   --exec                        Execute commands with the hosts.
   --target <tag|host>           (Using with --exec option) Target hosts to run the commands.
   --backend <remote|local>      (Using with --exec option) Run the commands on local or remote hosts.
@@ -1404,9 +1408,11 @@ Options:
   --file                        (Using with --exec option) Load commands from a file.
   --driver                      (Using with --exec option) Specify a driver.
 
+  (Completion)
   --zsh-completion              Output zsh completion code.
   --aliases                     Output aliases code.
 
+  (Help)
   --version                     Print version.
   --help                        Print help.
 
