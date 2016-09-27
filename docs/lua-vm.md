@@ -5,10 +5,10 @@ Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM to load co
 ## Libraries
 
 Essh provides built-in Lua libraries that you can use in your configuration files.
-For instance, if you want to use `glua.json` library, you should use Lua's `require` function like below.
+For instance, if you want to use `json` library, you should use Lua's `require` function like below.
 
 ```lua
-local json = require("glua.json")
+local json = require("json")
 
 local jsontext = json.encode({aaa = "bbb", ccc = "ddd"})
 print(jsontext)
@@ -16,16 +16,14 @@ print(jsontext)
 
 The following are the built-in libraries that are included in Essh.
 
-* `json`: Json encoder/decoder. See [layeh/gopher-json](https://github.com/layeh/gopher-json).
-* `fs`: Filesystem utility. See [kohkimakimoto/gluafs](https://github.com/kohkimakimoto/gluafs).
-* `yaml`: Yaml parser. See [kohkimakimoto/gluayaml](https://github.com/kohkimakimoto/gluayaml).
-* `template`: Text template. See [kohkimakimoto/gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
-* `env`: Utility package for manipulating environment variables. See [kohkimakimoto/gluaenv](https://github.com/kohkimakimoto/gluaenv).
-* `http`: Http module. See [cjoudrey/gluahttp](https://github.com/cjoudrey/gluahttp).
-* `re`: Regular expressions for the GopherLua. See [yuin/gluare](https://github.com/yuin/gluare)
-* `sh`:A shell module for gopher-lua. See [otm/gluash](https://github.com/otm/gluash)
-
-Of course, You can also use another Lua libraries by using `require`. See the Lua's [manual](http://www.lua.org/manual/5.1/manual.html#pdf-require).
+* `json`: [layeh/gopher-json](https://github.com/layeh/gopher-json).
+* `fs`: [kohkimakimoto/gluafs](https://github.com/kohkimakimoto/gluafs).
+* `yaml`: [kohkimakimoto/gluayaml](https://github.com/kohkimakimoto/gluayaml).
+* `template`: [kohkimakimoto/gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
+* `env`: [kohkimakimoto/gluaenv](https://github.com/kohkimakimoto/gluaenv).
+* `http`: [cjoudrey/gluahttp](https://github.com/cjoudrey/gluahttp).
+* `re`: [yuin/gluare](https://github.com/yuin/gluare)
+* `sh`:[otm/gluash](https://github.com/otm/gluash)
 
 ## Predefined Variables
 
