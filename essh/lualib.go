@@ -127,63 +127,6 @@ func esshPrivateHost(L *lua.LState) int {
 	return 0
 }
 
-//func esshOverrideHost(L *lua.LState) int {
-//	ud := L.CheckUserData(1)
-//	host, ok := ud.Value.(*Host)
-//	if !ok {
-//		L.ArgError(1, "Host object expected")
-//	}
-//
-//	// procedural style
-//	if L.GetTop() == 2 {
-//		tb := L.CheckTable(2)
-//		overrideHost(L, host, tb)
-//
-//		return 0
-//	}
-//
-//	// DSL style
-//	L.Push(L.NewFunction(func(L *lua.LState) int {
-//		tb := L.CheckTable(1)
-//		overrideHost(L, host, tb)
-//
-//		return 0
-//	}))
-//
-//	return 1
-//}
-
-//func registerHostByTable(L *lua.LState, tb *lua.LTable, private bool) {
-//	maxn := tb.MaxN()
-//	if maxn == 0 { // table
-//		tb.ForEach(func(key, value lua.LValue) {
-//			config, ok := value.(*lua.LTable)
-//			if !ok {
-//				return
-//			}
-//			name, ok := key.(lua.LString)
-//			if !ok {
-//				return
-//			}
-//
-//			if private {
-//				config.RawSetString("private", lua.LBool(true))
-//			}
-//
-//			registerHost(L, string(name), config)
-//		})
-//	} else { // array
-//		for i := 1; i <= maxn; i++ {
-//			value := tb.RawGetInt(i)
-//			valueTb, ok := value.(*lua.LTable)
-//			if !ok {
-//				return
-//			}
-//			registerHostByTable(L, valueTb, private)
-//		}
-//	}
-//}
-
 func esshTask(L *lua.LState) int {
 	first := L.CheckAny(1)
 	if tb, ok := first.(*lua.LTable); ok {
