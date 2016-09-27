@@ -6,12 +6,12 @@ import (
 	"github.com/kohkimakimoto/essh/support/gluamapper"
 	"github.com/kohkimakimoto/gluaenv"
 	"github.com/kohkimakimoto/gluafs"
-	gluajson "github.com/layeh/gopher-json"
 	"github.com/kohkimakimoto/gluaquestion"
 	"github.com/kohkimakimoto/gluatemplate"
 	"github.com/kohkimakimoto/gluayaml"
-	"github.com/yuin/gluare"
+	gluajson "github.com/layeh/gopher-json"
 	"github.com/otm/gluash"
+	"github.com/yuin/gluare"
 	"github.com/yuin/gopher-lua"
 	"net/http"
 	"os"
@@ -377,11 +377,7 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
 
 	updateHost(L, h, config)
 
-	if h.Registry.Type == RegistryTypeLocal {
-		LocalHosts[h.Name] = h
-	} else if h.Registry.Type == RegistryTypeGlobal {
-		GlobalHosts[h.Name] = h
-	}
+	CurrentRegistry.Hosts[h.Name] = h
 
 	return h
 }

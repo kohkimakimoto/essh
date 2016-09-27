@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"github.com/yuin/gopher-lua"
 	"sort"
-	"text/template"
 	"strings"
+	"text/template"
 )
 
 type Host struct {
@@ -41,11 +41,6 @@ type Host struct {
 //     * Private hosts is only used by tasks.
 //     * There can be duplicated hosts in the entire registries. (You can define private hosts even if you define same name public hosts.)
 //
-
-var GlobalHosts map[string]*Host = map[string]*Host{}
-var LocalHosts map[string]*Host = map[string]*Host{}
-
-var PublicHosts map[string]*Host = map[string]*Host{}
 
 func (h *Host) SortedSSHConfig() []map[string]string {
 	values := []map[string]string{}
@@ -88,10 +83,6 @@ func (h *Host) Scope() string {
 	}
 }
 
-func (h *Host) Key() string {
-	return h.Registry.TypeString() + ":" + h.Name
-}
-
 func GetPublicHost(hostname string) *Host {
 	for _, h := range SortedPublicHosts() {
 		if h.Name == hostname {
@@ -107,7 +98,7 @@ func SortedHosts() []*Host {
 	namesMap := map[string]bool{}
 	hosts := []*Host{}
 
-	for name, _ := range GlobalHosts {
+	for name, _ := range GlobalRegistry.Hosts {
 		if namesMap[name] {
 			// already registerd to names
 			continue
@@ -117,7 +108,7 @@ func SortedHosts() []*Host {
 		namesMap[name] = true
 	}
 
-	for name, _ := range LocalHosts {
+	for name, _ := range LocalRegistry.Hosts {
 		if namesMap[name] {
 			// already registerd to names
 			continue
@@ -130,11 +121,11 @@ func SortedHosts() []*Host {
 	sort.Strings(names)
 
 	for _, name := range names {
-		if h, ok := GlobalHosts[name]; ok {
+		if h, ok := GlobalRegistry.Hosts[name]; ok {
 			hosts = append(hosts, h)
 		}
 
-		if h, ok := LocalHosts[name]; ok {
+		if h, ok := LocalRegistry.Hosts[name]; ok {
 			hosts = append(hosts, h)
 		}
 	}
@@ -152,7 +143,6 @@ func SortedPublicHosts() []*Host {
 	}
 
 	return hosts
-
 }
 
 func SameRegistryHosts(contextType int) []*Host {
@@ -312,11 +302,6 @@ func HostsByTag(name string, isOnlyPublic bool) []*Host {
 	return hosts
 }
 
-func ResetHosts() {
-	LocalHosts = map[string]*Host{}
-	GlobalHosts = map[string]*Host{}
-}
-
 func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
 	var maxlen int
 	for _, h := range hosts {
@@ -329,6 +314,6 @@ func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
 	var namelen = len(host.Name)
 	return func(s string) string {
 		diff := maxlen - namelen
-		return strings.Repeat(s, 1 + diff)
+		return strings.Repeat(s, 1+diff)
 	}
 }

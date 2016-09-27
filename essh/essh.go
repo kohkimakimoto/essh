@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	fatihColor "github.com/fatih/color"
 	"github.com/Songmu/wrapcommander"
+	fatihColor "github.com/fatih/color"
 	"github.com/kardianos/osext"
 	"github.com/kohkimakimoto/essh/support/color"
 	"github.com/kohkimakimoto/essh/support/helper"
@@ -403,7 +403,6 @@ func Start() (exitStatus int) {
 	// user context
 	CurrentRegistry = NewRegistry(UserDataDir, RegistryTypeGlobal)
 	GlobalRegistry = CurrentRegistry
-	RegistryMap[CurrentRegistry.Key] = CurrentRegistry
 
 	if err := CurrentRegistry.MkDirs(); err != nil {
 		printError(err)
@@ -457,7 +456,6 @@ func Start() (exitStatus int) {
 	// change context to working dir context
 	CurrentRegistry = NewRegistry(WorkingDataDir, RegistryTypeLocal)
 	LocalRegistry = CurrentRegistry
-	RegistryMap[CurrentRegistry.Key] = CurrentRegistry
 
 	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
 		if debugFlag {
@@ -958,10 +956,10 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, payload string, host 
 	prefix := ""
 	if task.Prefix != "" {
 		funcMap := template.FuncMap{
-			"ShellEscape":  ShellEscape,
-			"ToUpper":      strings.ToUpper,
-			"ToLower":      strings.ToLower,
-			"EnvKeyEscape": EnvKeyEscape,
+			"ShellEscape":         ShellEscape,
+			"ToUpper":             strings.ToUpper,
+			"ToLower":             strings.ToLower,
+			"EnvKeyEscape":        EnvKeyEscape,
 			"HostnameAlignString": HostnameAlignString(host, hosts),
 		}
 
@@ -1052,10 +1050,10 @@ func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *
 		prefix = "[local] "
 	} else if task.Prefix != "" {
 		funcMap := template.FuncMap{
-			"ShellEscape":  ShellEscape,
-			"ToUpper":      strings.ToUpper,
-			"ToLower":      strings.ToLower,
-			"EnvKeyEscape": EnvKeyEscape,
+			"ShellEscape":         ShellEscape,
+			"ToUpper":             strings.ToUpper,
+			"ToLower":             strings.ToLower,
+			"EnvKeyEscape":        EnvKeyEscape,
 			"HostnameAlignString": HostnameAlignString(host, hosts),
 		}
 
