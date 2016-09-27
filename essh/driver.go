@@ -6,13 +6,14 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
+	"fmt"
 )
 
 type Driver struct {
 	Name   string
-	Config *lua.LTable
 	Props  map[string]interface{}
 	Engine func(*Driver) (string, error)
+	LValues map[string]lua.LValue
 }
 
 var Drivers map[string]*Driver = map[string]*Driver{}
@@ -24,10 +25,19 @@ var (
 func NewDriver() *Driver {
 	return &Driver{
 		Props: map[string]interface{}{},
+		LValues: map[string]lua.LValue{},
 	}
 }
 
 func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, host *Host) (string, error) {
+	for key, value := range driver.LValues {
+		driver.Props[key] = toGoValue(value)
+	}
+
+	if driver.Engine == nil {
+		return "", fmt.Errorf("invalid driver '%s'. The engine was not defined.", driver.Name)
+	}
+
 	templateText, err := driver.Engine(driver)
 	if err != nil {
 		return "", err

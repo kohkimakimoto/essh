@@ -3,7 +3,6 @@ package essh
 import (
 	"fmt"
 	"github.com/cjoudrey/gluahttp"
-	"github.com/kohkimakimoto/essh/support/gluamapper"
 	"github.com/kohkimakimoto/gluaenv"
 	"github.com/kohkimakimoto/gluafs"
 	"github.com/kohkimakimoto/gluaquestion"
@@ -22,6 +21,7 @@ func InitLuaState(L *lua.LState) {
 	// custom type.
 	registerTaskClass(L)
 	registerHostClass(L)
+	registerDriverClass(L)
 
 	registerTaskContextClass(L)
 	registerRegistryClass(L)
@@ -155,111 +155,38 @@ func esshTask(L *lua.LState) int {
 }
 
 func esshDriver(L *lua.LState) int {
-	first := L.CheckAny(1)
-	if tb, ok := first.(*lua.LTable); ok {
-		registerDriverByTable(L, tb)
-		return 0
-	}
-
 	name := L.CheckString(1)
 
-	// procedural style
-	if L.GetTop() == 2 {
+	if L.GetTop() == 1 {
+		// object or DSL style
+		d := registerDriver(L, name)
+		L.Push(newLDriver(L, d))
+
+		return 1
+	} else if L.GetTop() == 2 {
+		// function style
 		tb := L.CheckTable(2)
-		registerDriver(L, name, tb)
+		d := registerDriver(L, name)
+		setupDriver(L, d, tb)
+		L.Push(newLDriver(L, d))
 
-		return 0
+		return 1
 	}
 
-	// DSL style
-	L.Push(L.NewFunction(func(L *lua.LState) int {
-		tb := L.CheckTable(1)
-		registerDriver(L, name, tb)
-
-		return 0
-	}))
-
-	return 1
+	panic("driver requires 1 or 2 arguments")
 }
 
-func registerDriverByTable(L *lua.LState, tb *lua.LTable) {
-	maxn := tb.MaxN()
-	if maxn == 0 { // table
-		tb.ForEach(func(key, value lua.LValue) {
-			config, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			name, ok := key.(lua.LString)
-			if !ok {
-				return
-			}
-
-			registerDriver(L, string(name), config)
-		})
-	} else { // array
-		for i := 1; i <= maxn; i++ {
-			value := tb.RawGetInt(i)
-			valueTb, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			registerDriverByTable(L, valueTb)
-		}
-	}
-}
-
-func registerDriver(L *lua.LState, name string, config *lua.LTable) {
-	driver := NewDriver()
-	driver.Name = name
-
+func registerDriver(L *lua.LState, name string) *Driver {
 	if debugFlag {
 		fmt.Printf("[essh debug] register driver: %s\n", name)
 	}
 
-	engine := config.RawGetString("engine")
-	if engine == lua.LNil {
-		L.RaiseError("driver 'engine' is must.")
-	} else {
-		if engineFn, ok := engine.(*lua.LFunction); ok {
-			driver.Engine = func(driver *Driver) (string, error) {
-				err := L.CallByParam(lua.P{
-					Fn:      engineFn,
-					NRet:    1,
-					Protect: true,
-				}, driver.Config)
-				if err != nil {
-					return "", err
-				}
-
-				ret := L.Get(-1) // returned value
-				L.Pop(1)
-
-				if retStr, ok := toString(ret); ok {
-					return retStr, nil
-				} else {
-					return "", fmt.Errorf("driver engine has to return a string.")
-				}
-			}
-		} else if engineStr, ok := toString(engine); ok {
-			driver.Engine = func(driver *Driver) (string, error) {
-				return engineStr, nil
-			}
-		} else {
-			L.RaiseError("driver 'engine' have to be a function or string.")
-		}
-	}
-
-	driver.Config = config
-
-	mapper := gluamapper.NewMapper(gluamapper.Option{
-		NameFunc: func(s string) string {
-			return s
-		},
-	})
-	mapper.Map(driver.Config, &driver.Props)
+	driver := NewDriver()
+	driver.Name = name
 
 	Drivers[driver.Name] = driver
+
+	return driver
 }
 
 func registerHost(L *lua.LState, name string) *Host {
@@ -847,7 +774,7 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 					task.Targets = append(task.Targets, targetStr)
 				}
 			}
-		}  else {
+		} else {
 			panic("invalid value of a task's field '" + key + "'.")
 		}
 	case "description":
@@ -968,7 +895,6 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 	}
 }
 
-
 const LHostClass = "Host*"
 
 func registerHostClass(L *lua.LState) {
@@ -1029,6 +955,112 @@ func hostNewindex(L *lua.LState) int {
 	updateHost(L, host, index, value)
 
 	return 0
+}
+
+const LDriverClass = "Driver*"
+
+func registerDriverClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LDriverClass)
+	mt.RawSetString("__call", L.NewFunction(driverCall))
+	mt.RawSetString("__index", L.NewFunction(driverIndex))
+	mt.RawSetString("__newindex", L.NewFunction(driverNewindex))
+}
+
+func newLDriver(L *lua.LState, driver *Driver) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = driver
+	L.SetMetatable(ud, L.GetTypeMetatable(LDriverClass))
+	return ud
+}
+
+func checkDriver(L *lua.LState) *Driver {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Driver); ok {
+		return v
+	}
+	L.ArgError(1, "Driver object expected")
+	return nil
+}
+
+func driverCall(L *lua.LState) int {
+	driver := checkDriver(L)
+	tb := L.CheckTable(2)
+
+	setupDriver(L, driver, tb)
+
+	return 0
+}
+
+func driverIndex(L *lua.LState) int {
+	driver := checkDriver(L)
+	index := L.CheckString(2)
+
+	if index == "name" {
+		L.Push(lua.LString(driver.Name))
+		return 1
+	}
+
+	v, ok := driver.LValues[index]
+	if v == nil || !ok {
+		v = lua.LNil
+	}
+
+	L.Push(v)
+	return 1
+}
+
+func driverNewindex(L *lua.LState) int {
+	driver := checkDriver(L)
+	index := L.CheckString(2)
+	value := L.CheckAny(3)
+
+	updateDriver(L, driver, index, value)
+
+	return 0
+}
+
+func setupDriver(L *lua.LState, driver *Driver, config *lua.LTable) {
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateDriver(L, driver, kstr, v)
+		}
+	})
+}
+
+func updateDriver(L *lua.LState, driver *Driver, key string, value lua.LValue) {
+	driver.LValues[key] = value
+
+
+	switch key {
+	case "engine":
+		if engineFn, ok := value.(*lua.LFunction); ok {
+			driver.Engine = func(driver *Driver) (string, error) {
+				err := L.CallByParam(lua.P{
+					Fn:      engineFn,
+					NRet:    1,
+					Protect: true,
+				}, newLDriver(L, driver))
+				if err != nil {
+					return "", err
+				}
+
+				ret := L.Get(-1) // returned value
+				L.Pop(1)
+
+				if retStr, ok := toString(ret); ok {
+					return retStr, nil
+				} else {
+					return "", fmt.Errorf("driver engine has to return a string.")
+				}
+			}
+		} else if engineStr, ok := toString(value); ok {
+			driver.Engine = func(driver *Driver) (string, error) {
+				return engineStr, nil
+			}
+		} else {
+			L.RaiseError("driver 'engine' have to be a function or string.")
+		}
+	}
 }
 
 const LRegistryClass = "Registry*"
