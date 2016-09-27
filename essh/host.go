@@ -93,7 +93,13 @@ func (h *Host) Key() string {
 }
 
 func GetPublicHost(hostname string) *Host {
-	return PublicHosts[hostname]
+	for _, h := range SortedPublicHosts() {
+		if h.Name == hostname {
+			return h
+		}
+	}
+
+	return nil
 }
 
 func SortedHosts() []*Host {
@@ -309,9 +315,7 @@ func HostsByTag(name string, isOnlyPublic bool) []*Host {
 func ResetHosts() {
 	LocalHosts = map[string]*Host{}
 	GlobalHosts = map[string]*Host{}
-	PublicHosts = map[string]*Host{}
 }
-
 
 func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
 	var maxlen int

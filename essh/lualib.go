@@ -383,10 +383,6 @@ func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
 		GlobalHosts[h.Name] = h
 	}
 
-	if !h.Private {
-		PublicHosts[h.Name] = h
-	}
-
 	return h
 }
 
