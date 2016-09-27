@@ -18,8 +18,18 @@ type Host struct {
 	Registry    *Registry
 	Private     bool
 
-	sshConfig *lua.LTable
-	lconfig   *lua.LTable
+	SSHConfig map[string]string
+	LValues   map[string]lua.LValue
+}
+
+func NewHost() *Host {
+	return &Host{
+		Props:     map[string]string{},
+		Hooks:     map[string][]interface{}{},
+		Tags:      []string{},
+		SSHConfig: map[string]string{},
+		LValues:   map[string]lua.LValue{},
+	}
 }
 
 //
@@ -47,21 +57,16 @@ func (h *Host) SortedSSHConfig() []map[string]string {
 
 	var names []string
 
-	h.sshConfig.ForEach(func(k lua.LValue, v lua.LValue) {
-		if keystr, ok := toString(k); ok {
-			names = append(names, keystr)
-		}
-	})
+	for name, _ := range h.SSHConfig {
+		names = append(names, name)
+	}
 
 	sort.Strings(names)
 
 	for _, name := range names {
-		lvalue := h.sshConfig.RawGetString(name)
-		if svalue, ok := toString(lvalue); ok {
-			// can use only string value.
-			value := map[string]string{name: svalue}
-			values = append(values, value)
-		}
+		v := h.SSHConfig[name]
+		value := map[string]string{name: v}
+		values = append(values, value)
 	}
 
 	return values
