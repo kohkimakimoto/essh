@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	fatihColor "github.com/fatih/color"
 	"github.com/Songmu/wrapcommander"
+	fatihColor "github.com/fatih/color"
 	"github.com/kardianos/osext"
 	"github.com/kohkimakimoto/essh/support/color"
 	"github.com/kohkimakimoto/essh/support/helper"
@@ -403,7 +403,6 @@ func Start() (exitStatus int) {
 	// user context
 	CurrentRegistry = NewRegistry(UserDataDir, RegistryTypeGlobal)
 	GlobalRegistry = CurrentRegistry
-	RegistryMap[CurrentRegistry.Key] = CurrentRegistry
 
 	if err := CurrentRegistry.MkDirs(); err != nil {
 		printError(err)
@@ -457,7 +456,6 @@ func Start() (exitStatus int) {
 	// change context to working dir context
 	CurrentRegistry = NewRegistry(WorkingDataDir, RegistryTypeLocal)
 	LocalRegistry = CurrentRegistry
-	RegistryMap[CurrentRegistry.Key] = CurrentRegistry
 
 	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
 		if debugFlag {
@@ -958,10 +956,10 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, payload string, host 
 	prefix := ""
 	if task.Prefix != "" {
 		funcMap := template.FuncMap{
-			"ShellEscape":  ShellEscape,
-			"ToUpper":      strings.ToUpper,
-			"ToLower":      strings.ToLower,
-			"EnvKeyEscape": EnvKeyEscape,
+			"ShellEscape":         ShellEscape,
+			"ToUpper":             strings.ToUpper,
+			"ToLower":             strings.ToLower,
+			"EnvKeyEscape":        EnvKeyEscape,
 			"HostnameAlignString": HostnameAlignString(host, hosts),
 		}
 
@@ -1052,10 +1050,10 @@ func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *
 		prefix = "[local] "
 	} else if task.Prefix != "" {
 		funcMap := template.FuncMap{
-			"ShellEscape":  ShellEscape,
-			"ToUpper":      strings.ToUpper,
-			"ToLower":      strings.ToLower,
-			"EnvKeyEscape": EnvKeyEscape,
+			"ShellEscape":         ShellEscape,
+			"ToUpper":             strings.ToUpper,
+			"ToLower":             strings.ToLower,
+			"EnvKeyEscape":        EnvKeyEscape,
 			"HostnameAlignString": HostnameAlignString(host, hosts),
 		}
 
@@ -1116,19 +1114,21 @@ func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) 
 
 func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	// hooks
-	var hooks map[string][]interface{}
+	hooks := map[string][]interface{}{}
 
 	// Limitation!
 	// hooks fires only when the hostname is just specified.
 	if len(args) == 1 {
 		hostname := args[0]
 		if host := GetPublicHost(hostname); host != nil {
-			hooks = host.Hooks
+			hooks["before_connect"] = host.HooksBeforeConnect
+			hooks["after_disconnect"] = host.HooksAfterDisconnect
+			hooks["after_connect"] = host.HooksAfterConnect
 		}
 	}
 
 	// run before_connect hook
-	if before := hooks["before_connect"]; before != nil {
+	if before := hooks["before_connect"]; before != nil && len(before) > 0{
 		if debugFlag {
 			fmt.Printf("[essh debug] run before_connect hook\n")
 		}
@@ -1147,7 +1147,7 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	// register after_disconnect hook
 	defer func() {
 		// after hook
-		if after := hooks["after_disconnect"]; after != nil {
+		if after := hooks["after_disconnect"]; after != nil && len(after) > 0{
 			if debugFlag {
 				fmt.Printf("[essh debug] run after_disconnect hook\n")
 			}
@@ -1168,7 +1168,7 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	var sshCommandArgs []string
 
 	// run after_connect hook
-	if afterConnect := hooks["after_connect"]; afterConnect != nil {
+	if afterConnect := hooks["after_connect"]; afterConnect != nil && len(afterConnect) > 0 {
 		hookScript, err := getHookScript(L, afterConnect)
 		if err != nil {
 			return err, ExitErr

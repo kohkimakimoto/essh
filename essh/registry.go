@@ -11,6 +11,7 @@ type Registry struct {
 	Key           string
 	DataDir       string
 	LoadedModules map[string]*Module
+	Hosts         map[string]*Host
 	Type          int
 }
 
@@ -23,14 +24,13 @@ var CurrentRegistry *Registry
 var GlobalRegistry *Registry
 var LocalRegistry *Registry
 
-var RegistryMap map[string]*Registry = map[string]*Registry{}
-
-func NewRegistry(dataDir string, contextType int) *Registry {
+func NewRegistry(dataDir string, registryType int) *Registry {
 	reg := &Registry{
 		Key:           fmt.Sprintf("%x", sha256.Sum256([]byte(dataDir))),
 		DataDir:       dataDir,
 		LoadedModules: map[string]*Module{},
-		Type:          contextType,
+		Hosts:         map[string]*Host{},
+		Type:          registryType,
 	}
 
 	return reg

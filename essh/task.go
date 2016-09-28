@@ -1,6 +1,9 @@
 package essh
 
-import "sort"
+import (
+	"github.com/yuin/gopher-lua"
+	"sort"
+)
 
 type Task struct {
 	Name        string
@@ -24,6 +27,8 @@ type Task struct {
 
 	Prefix   string
 	Registry *Registry
+
+	LValues map[string]lua.LValue
 }
 
 var Tasks map[string]*Task = map[string]*Task{}
@@ -43,6 +48,7 @@ func NewTask() *Task {
 		Targets: []string{},
 		Backend: TASK_BACKEND_LOCAL,
 		Script:  []map[string]string{},
+		LValues: map[string]lua.LValue{},
 	}
 }
 

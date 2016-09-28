@@ -1,5 +1,5 @@
-local sh = require "glua.sh"
-local template = require "glua.template"
+local sh = require "sh"
+local template = require "template"
 
 local sshrc = function(override_config)
     local config = {

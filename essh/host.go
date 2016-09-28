@@ -4,22 +4,35 @@ import (
 	"bytes"
 	"github.com/yuin/gopher-lua"
 	"sort"
-	"text/template"
 	"strings"
+	"text/template"
 )
 
 type Host struct {
-	Name        string
-	Props       map[string]string
-	Hooks       map[string][]interface{}
-	Description string
-	Hidden      bool
-	Tags        []string
-	Registry    *Registry
-	Private     bool
+	Name                 string
+	Description          string
+	Props                map[string]string
+	HooksBeforeConnect   []interface{}
+	HooksAfterConnect    []interface{}
+	HooksAfterDisconnect []interface{}
+	Hidden               bool
+	Tags                 []string
+	Registry             *Registry
+	Private              bool
+	SSHConfig            map[string]string
+	LValues              map[string]lua.LValue
+}
 
-	sshConfig *lua.LTable
-	lconfig   *lua.LTable
+func NewHost() *Host {
+	return &Host{
+		Props:               map[string]string{},
+		HooksBeforeConnect:   []interface{}{},
+		HooksAfterConnect:    []interface{}{},
+		HooksAfterDisconnect: []interface{}{},
+		Tags:                []string{},
+		SSHConfig:           map[string]string{},
+		LValues:             map[string]lua.LValue{},
+	}
 }
 
 //
@@ -42,31 +55,21 @@ type Host struct {
 //     * There can be duplicated hosts in the entire registries. (You can define private hosts even if you define same name public hosts.)
 //
 
-var GlobalHosts map[string]*Host = map[string]*Host{}
-var LocalHosts map[string]*Host = map[string]*Host{}
-
-var PublicHosts map[string]*Host = map[string]*Host{}
-
 func (h *Host) SortedSSHConfig() []map[string]string {
 	values := []map[string]string{}
 
 	var names []string
 
-	h.sshConfig.ForEach(func(k lua.LValue, v lua.LValue) {
-		if keystr, ok := toString(k); ok {
-			names = append(names, keystr)
-		}
-	})
+	for name, _ := range h.SSHConfig {
+		names = append(names, name)
+	}
 
 	sort.Strings(names)
 
 	for _, name := range names {
-		lvalue := h.sshConfig.RawGetString(name)
-		if svalue, ok := toString(lvalue); ok {
-			// can use only string value.
-			value := map[string]string{name: svalue}
-			values = append(values, value)
-		}
+		v := h.SSHConfig[name]
+		value := map[string]string{name: v}
+		values = append(values, value)
 	}
 
 	return values
@@ -88,12 +91,14 @@ func (h *Host) Scope() string {
 	}
 }
 
-func (h *Host) Key() string {
-	return h.Registry.TypeString() + ":" + h.Name
-}
-
 func GetPublicHost(hostname string) *Host {
-	return PublicHosts[hostname]
+	for _, h := range SortedPublicHosts() {
+		if h.Name == hostname {
+			return h
+		}
+	}
+
+	return nil
 }
 
 func SortedHosts() []*Host {
@@ -101,7 +106,7 @@ func SortedHosts() []*Host {
 	namesMap := map[string]bool{}
 	hosts := []*Host{}
 
-	for name, _ := range GlobalHosts {
+	for name, _ := range GlobalRegistry.Hosts {
 		if namesMap[name] {
 			// already registerd to names
 			continue
@@ -111,7 +116,7 @@ func SortedHosts() []*Host {
 		namesMap[name] = true
 	}
 
-	for name, _ := range LocalHosts {
+	for name, _ := range LocalRegistry.Hosts {
 		if namesMap[name] {
 			// already registerd to names
 			continue
@@ -124,11 +129,11 @@ func SortedHosts() []*Host {
 	sort.Strings(names)
 
 	for _, name := range names {
-		if h, ok := GlobalHosts[name]; ok {
+		if h, ok := GlobalRegistry.Hosts[name]; ok {
 			hosts = append(hosts, h)
 		}
 
-		if h, ok := LocalHosts[name]; ok {
+		if h, ok := LocalRegistry.Hosts[name]; ok {
 			hosts = append(hosts, h)
 		}
 	}
@@ -146,7 +151,6 @@ func SortedPublicHosts() []*Host {
 	}
 
 	return hosts
-
 }
 
 func SameRegistryHosts(contextType int) []*Host {
@@ -306,13 +310,6 @@ func HostsByTag(name string, isOnlyPublic bool) []*Host {
 	return hosts
 }
 
-func ResetHosts() {
-	LocalHosts = map[string]*Host{}
-	GlobalHosts = map[string]*Host{}
-	PublicHosts = map[string]*Host{}
-}
-
-
 func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
 	var maxlen int
 	for _, h := range hosts {
@@ -325,6 +322,6 @@ func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
 	var namelen = len(host.Name)
 	return func(s string) string {
 		diff := maxlen - namelen
-		return strings.Repeat(s, 1 + diff)
+		return strings.Repeat(s, 1+diff)
 	}
 }

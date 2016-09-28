@@ -44,19 +44,3 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
         ProxyCommand = "ssh -q -F " .. essh.ssh_config .. " -W %h:%p getway-server1",
     }
     ```
-
-* `debug` (function): debug is a function to output the debug message. The debug message outputs only when you run Essh with `--debug` option.
-
-  ```lua
-  essh.debug("this is a debug message!")
-  ```
-
-* `require` (function): require is a function to load Essh module. see the [Module](#module) section.
-
-  ```lua
-  local bash = essh.require "github.com/kohkimakimoto/essh/modules/bash"
-  ```
-
-* `hosts` (function): hosts is a function to get defined hosts.
-
-* `registry` (function):

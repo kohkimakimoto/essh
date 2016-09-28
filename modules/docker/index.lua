@@ -18,11 +18,6 @@ __essh_var_docker_build="{{if .Driver.Props.build}}1{{end}}"
 __essh_var_docker_build_url={{if .Driver.Props.build.url}}{{.Driver.Props.build.url | ShellEscape}}{{end}}
 __essh_var_docker_build_dockerfile={{if .Driver.Props.build.dockerfile}}{{.Driver.Props.build.dockerfile | ShellEscape}}{{end}}
 
-{{if ne .Task.Registry.TypeString "local"}}
-echo "error: docker driver engine supports only running a task that is defined in 'local' registry." 1>&2
-exit 1
-{{end}}
-
 __essh_var_status=0
 echo 'Starting task by using docker driver engine.'
 echo "Checking docker version."
