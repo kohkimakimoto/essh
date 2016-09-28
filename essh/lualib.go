@@ -3,15 +3,14 @@ package essh
 import (
 	"fmt"
 	"github.com/cjoudrey/gluahttp"
-	"github.com/kohkimakimoto/essh/support/gluamapper"
 	"github.com/kohkimakimoto/gluaenv"
 	"github.com/kohkimakimoto/gluafs"
-	gluajson "github.com/layeh/gopher-json"
 	"github.com/kohkimakimoto/gluaquestion"
 	"github.com/kohkimakimoto/gluatemplate"
 	"github.com/kohkimakimoto/gluayaml"
-	"github.com/yuin/gluare"
+	gluajson "github.com/layeh/gopher-json"
 	"github.com/otm/gluash"
+	"github.com/yuin/gluare"
 	"github.com/yuin/gopher-lua"
 	"net/http"
 	"os"
@@ -20,16 +19,20 @@ import (
 
 func InitLuaState(L *lua.LState) {
 	// custom type.
-	registerTaskContextClass(L)
+	registerTaskClass(L)
 	registerHostClass(L)
+	registerDriverClass(L)
+
+	registerTaskContextClass(L)
 	registerRegistryClass(L)
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("private_host", L.NewFunction(esshPrivateHost))
-	L.SetGlobal("override_host", L.NewFunction(esshOverrideHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
+	L.SetGlobal("import", L.NewFunction(esshImport))
+	L.SetGlobal("find_hosts", L.NewFunction(esshFindHosts))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -41,7 +44,8 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 	L.PreloadModule("re", gluare.Loader)
 	L.PreloadModule("sh", gluash.Loader)
-	// for BC
+
+	// modules for BC
 	L.PreloadModule("glua.json", gluajson.Loader)
 	L.PreloadModule("glua.fs", gluafs.Loader)
 	L.PreloadModule("glua.yaml", gluayaml.Loader)
@@ -56,20 +60,23 @@ func InitLuaState(L *lua.LState) {
 	lessh := L.NewTable()
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
+	lessh.RawSetString("version", lua.LString(Version))
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
-		"host":          esshHost,
-		"private_host":  esshPrivateHost,
-		"override_host": esshOverrideHost,
-		"task":          esshTask,
-		"driver":        esshDriver,
-		// utilities.
-		"require":  esshRequire,
-		"debug":    esshDebug,
-		"gethosts": esshGethosts,
-		"hosts":    esshGethosts,
-		"registry": esshRegistry,
+		"host":         esshHost,
+		"private_host": esshPrivateHost,
+		"task":         esshTask,
+		"driver":       esshDriver,
+		"import":       esshImport,
+		"find_hosts":   esshFindHosts,
+
+		// deprecated
+		"require":  esshImport,   // deprecated
+		"debug":    esshDebug,    // deprecated
+		"gethosts": esshGethosts, // deprecated
+		"hosts":    esshGethosts, // deprecated
+		"registry": esshRegistry, // deprecated
 	})
 }
 
@@ -83,580 +90,386 @@ func esshDebug(L *lua.LState) int {
 }
 
 func esshHost(L *lua.LState) int {
-	first := L.CheckAny(1)
-	if tb, ok := first.(*lua.LTable); ok {
-		registerHostByTable(L, tb, false)
-		return 0
-	}
-
 	name := L.CheckString(1)
+	if L.GetTop() == 1 {
+		// object or DSL style
+		h := registerHost(L, name)
+		L.Push(newLHost(L, h))
 
-	// procedural style
-	if L.GetTop() == 2 {
+		return 1
+	} else if L.GetTop() == 2 {
+		// function style
 		tb := L.CheckTable(2)
-		registerHost(L, name, tb)
+		h := registerHost(L, name)
+		setupHost(L, h, tb)
+		L.Push(newLHost(L, h))
 
-		return 0
+		return 1
 	}
 
-	// DSL style
-	L.Push(L.NewFunction(func(L *lua.LState) int {
-		tb := L.CheckTable(1)
-		registerHost(L, name, tb)
-
-		return 0
-	}))
-
-	return 1
+	panic("host requires 1 or 2 arguments")
 }
 
 func esshPrivateHost(L *lua.LState) int {
-	first := L.CheckAny(1)
-	if tb, ok := first.(*lua.LTable); ok {
-		registerHostByTable(L, tb, true)
-		return 0
-	}
-
 	name := L.CheckString(1)
+	if L.GetTop() == 1 {
+		// object or DSL style
+		h := registerHost(L, name)
+		updateHost(L, h, "private", lua.LBool(true))
+		L.Push(newLHost(L, h))
 
-	// procedural style
-	if L.GetTop() == 2 {
+		return 1
+	} else if L.GetTop() == 2 {
+		// function style
 		tb := L.CheckTable(2)
+		h := registerHost(L, name)
+		updateHost(L, h, "private", lua.LBool(true))
+		setupHost(L, h, tb)
+		L.Push(newLHost(L, h))
 
-		tb.RawSetString("private", lua.LBool(true))
-		registerHost(L, name, tb)
-
-		return 0
+		return 1
 	}
 
-	// DSL style
-	L.Push(L.NewFunction(func(L *lua.LState) int {
-		tb := L.CheckTable(1)
+	panic("private_host requires 1 or 2 arguments")
 
-		tb.RawSetString("private", lua.LBool(true))
-		registerHost(L, name, tb)
-
-		return 0
-	}))
-
-	return 1
-}
-
-func esshOverrideHost(L *lua.LState) int {
-	ud := L.CheckUserData(1)
-	host, ok := ud.Value.(*Host)
-	if !ok {
-		L.ArgError(1, "Host object expected")
-	}
-
-	// procedural style
-	if L.GetTop() == 2 {
-		tb := L.CheckTable(2)
-		overrideHost(L, host, tb)
-
-		return 0
-	}
-
-	// DSL style
-	L.Push(L.NewFunction(func(L *lua.LState) int {
-		tb := L.CheckTable(1)
-		overrideHost(L, host, tb)
-
-		return 0
-	}))
-
-	return 1
-}
-
-func registerHostByTable(L *lua.LState, tb *lua.LTable, private bool) {
-	maxn := tb.MaxN()
-	if maxn == 0 { // table
-		tb.ForEach(func(key, value lua.LValue) {
-			config, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			name, ok := key.(lua.LString)
-			if !ok {
-				return
-			}
-
-			if private {
-				config.RawSetString("private", lua.LBool(true))
-			}
-
-			registerHost(L, string(name), config)
-		})
-	} else { // array
-		for i := 1; i <= maxn; i++ {
-			value := tb.RawGetInt(i)
-			valueTb, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			registerHostByTable(L, valueTb, private)
-		}
-	}
+	return 0
 }
 
 func esshTask(L *lua.LState) int {
-	first := L.CheckAny(1)
-	if tb, ok := first.(*lua.LTable); ok {
-		registerTaskByTable(L, tb)
-		return 0
-	}
-
 	name := L.CheckString(1)
+	if L.GetTop() == 1 {
+		// object or DSL style
+		t := registerTask(L, name)
+		L.Push(newLTask(L, t))
 
-	// procedural style
-	if L.GetTop() == 2 {
+		return 1
+	} else if L.GetTop() == 2 {
+		// function style
 		tb := L.CheckTable(2)
-		registerTask(L, name, tb)
+		t := registerTask(L, name)
+		setupTask(L, t, tb)
+		L.Push(newLTask(L, t))
 
-		return 0
+		return 1
 	}
 
-	// DSL style
-	L.Push(L.NewFunction(func(L *lua.LState) int {
-		tb := L.CheckTable(1)
-		registerTask(L, name, tb)
-
-		return 0
-	}))
-
-	return 1
-}
-
-func registerTaskByTable(L *lua.LState, tb *lua.LTable) {
-	maxn := tb.MaxN()
-	if maxn == 0 { // table
-		tb.ForEach(func(key, value lua.LValue) {
-			config, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			name, ok := key.(lua.LString)
-			if !ok {
-				return
-			}
-
-			registerTask(L, string(name), config)
-		})
-	} else { // array
-		for i := 1; i <= maxn; i++ {
-			value := tb.RawGetInt(i)
-			valueTb, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			registerTaskByTable(L, valueTb)
-		}
-	}
+	panic("task requires 1 or 2 arguments")
 }
 
 func esshDriver(L *lua.LState) int {
-	first := L.CheckAny(1)
-	if tb, ok := first.(*lua.LTable); ok {
-		registerDriverByTable(L, tb)
-		return 0
+	name := L.CheckString(1)
+	if L.GetTop() == 1 {
+		// object or DSL style
+		d := registerDriver(L, name)
+		L.Push(newLDriver(L, d))
+
+		return 1
+	} else if L.GetTop() == 2 {
+		// function style
+		tb := L.CheckTable(2)
+		d := registerDriver(L, name)
+		setupDriver(L, d, tb)
+		L.Push(newLDriver(L, d))
+
+		return 1
 	}
 
+	panic("driver requires 1 or 2 arguments")
+}
+
+func esshImport(L *lua.LState) int {
 	name := L.CheckString(1)
 
-	// procedural style
-	if L.GetTop() == 2 {
-		tb := L.CheckTable(2)
-		registerDriver(L, name, tb)
+	module := CurrentRegistry.LoadedModules[name]
+	if module == nil {
+		module = NewModule(name)
 
-		return 0
+		update := updateFlag
+		if CurrentRegistry.Type == RegistryTypeGlobal && !withGlobalFlag {
+			update = false
+		}
+
+		err := module.Load(update)
+		if err != nil {
+			L.RaiseError("%v", err)
+		}
+
+		indexFile := module.IndexFile()
+		if _, err := os.Stat(indexFile); err != nil {
+			L.RaiseError("invalid module: %v", err)
+		}
+		if err := L.DoFile(indexFile); err != nil {
+			L.RaiseError("%v", err)
+		}
+
+		// get a module return value
+		ret := L.Get(-1)
+		module.Value = ret
+
+		// register loaded module.
+		CurrentRegistry.LoadedModules[name] = module
+
+		return 1
 	}
 
-	// DSL style
-	L.Push(L.NewFunction(func(L *lua.LState) int {
-		tb := L.CheckTable(1)
-		registerDriver(L, name, tb)
-
-		return 0
-	}))
-
+	L.Push(module.Value)
 	return 1
 }
 
-func registerDriverByTable(L *lua.LState, tb *lua.LTable) {
-	maxn := tb.MaxN()
-	if maxn == 0 { // table
-		tb.ForEach(func(key, value lua.LValue) {
-			config, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			name, ok := key.(lua.LString)
-			if !ok {
-				return
-			}
-
-			registerDriver(L, string(name), config)
-		})
-	} else { // array
-		for i := 1; i <= maxn; i++ {
-			value := tb.RawGetInt(i)
-			valueTb, ok := value.(*lua.LTable)
-			if !ok {
-				return
-			}
-			registerDriverByTable(L, valueTb)
-		}
-	}
-}
-
-func registerDriver(L *lua.LState, name string, config *lua.LTable) {
-	driver := NewDriver()
-	driver.Name = name
-
-	if debugFlag {
-		fmt.Printf("[essh debug] register driver: %s\n", name)
+func esshFindHosts(L *lua.LState) int {
+	if L.GetTop() > 1 {
+		panic("find_hosts can receive max 1 argument.")
 	}
 
-	engine := config.RawGetString("engine")
-	if engine == lua.LNil {
-		L.RaiseError("driver 'engine' is must.")
-	} else {
-		if engineFn, ok := engine.(*lua.LFunction); ok {
-			driver.Engine = func(driver *Driver) (string, error) {
-				err := L.CallByParam(lua.P{
-					Fn:      engineFn,
-					NRet:    1,
-					Protect: true,
-				}, driver.Config)
-				if err != nil {
-					return "", err
-				}
+	var condTb *lua.LTable
+	if L.GetTop() == 1 {
+		condTb = L.CheckTable(1)
 
-				ret := L.Get(-1) // returned value
-				L.Pop(1)
+	}
 
-				if retStr, ok := toString(ret); ok {
-					return retStr, nil
-				} else {
-					return "", fmt.Errorf("driver engine has to return a string.")
-				}
-			}
-		} else if engineStr, ok := toString(engine); ok {
-			driver.Engine = func(driver *Driver) (string, error) {
-				return engineStr, nil
-			}
+	lhosts := L.NewTable()
+
+	for _, host := range SortedHosts() {
+		if condTb == nil {
+			lhost := newLHost(L, host)
+			lhosts.Append(lhost)
 		} else {
-			L.RaiseError("driver 'engine' have to be a function or string.")
+			var notfound bool
+
+			condTb.ForEach(func(k, v lua.LValue) {
+				if notfound {
+					return
+				}
+
+				ks, ok := toString(k)
+				if !ok {
+					panic("find_hosts condition must be a table, the key of which is a string")
+				}
+
+				if ks == "tag" {
+					ks = "tags"
+				}
+				if ks == "prop" {
+					ks = "props"
+				}
+
+				if hv := host.LValues[ks]; hv != nil {
+					if ks == "tags" {
+						if tagsValues, ok := toLTable(hv); ok {
+							var found bool
+							tagsValues.ForEach(func(_, tag lua.LValue) {
+								if found == false && tag == v {
+									found = true
+								}
+							})
+							if !found {
+								notfound = true
+								return
+							}
+						} else {
+							notfound = true
+						}
+					} else if ks == "props" {
+						if propsValues, ok := toLTable(hv); ok {
+							var found bool
+							propsValues.ForEach(func(_, prop lua.LValue) {
+								if found == false && prop == v {
+									found = true
+								}
+							})
+
+							if !found {
+								notfound = true
+								return
+							}
+						} else {
+							notfound = true
+						}
+					} else if hv != v {
+						notfound = true
+					}
+				} else {
+					notfound = true
+				}
+			})
+
+			if !notfound {
+				lhost := newLHost(L, host)
+				lhosts.Append(lhost)
+			}
+
 		}
 	}
 
-	driver.Config = config
-
-	mapper := gluamapper.NewMapper(gluamapper.Option{
-		NameFunc: func(s string) string {
-			return s
-		},
-	})
-	mapper.Map(driver.Config, &driver.Props)
-
-	Drivers[driver.Name] = driver
+	L.Push(lhosts)
+	return 1
 }
 
-func registerHost(L *lua.LState, name string, config *lua.LTable) *Host {
+func registerHost(L *lua.LState, name string) *Host {
 	if debugFlag {
 		fmt.Printf("[essh debug] register host: %s\n", name)
 	}
 
-	h := &Host{
-		Name:     name,
-		Props:    map[string]string{},
-		Hooks:    map[string][]interface{}{},
-		Tags:     []string{},
-		Registry: CurrentRegistry,
-	}
+	h := NewHost()
+	h.Name = name
+	h.Registry = CurrentRegistry
 
-	updateHost(L, h, config)
-
-	if h.Registry.Type == RegistryTypeLocal {
-		LocalHosts[h.Name] = h
-	} else if h.Registry.Type == RegistryTypeGlobal {
-		GlobalHosts[h.Name] = h
-	}
-
-	if !h.Private {
-		PublicHosts[h.Name] = h
-	}
+	CurrentRegistry.Hosts[h.Name] = h
 
 	return h
 }
 
-func overrideHost(L *lua.LState, h *Host, config *lua.LTable) *Host {
+func registerTask(L *lua.LState, name string) *Task {
 	if debugFlag {
-		fmt.Printf("[essh debug] override host: %s\n", h.Name)
+		fmt.Printf("[essh debug] register task: %s\n", name)
 	}
 
-	updatedConfig := h.lconfig
+	t := NewTask()
+	t.Name = name
+	t.Registry = CurrentRegistry
 
-	if config.RawGetString("private") != lua.LNil {
-		L.RaiseError("couldn't override 'private' configuration.")
+	Tasks[t.Name] = t
+
+	return t
+}
+
+func registerDriver(L *lua.LState, name string) *Driver {
+	if debugFlag {
+		fmt.Printf("[essh debug] register driver: %s\n", name)
 	}
 
-	// override
+	d := NewDriver()
+	d.Name = name
+
+	Drivers[d.Name] = d
+
+	return d
+}
+
+func setupHost(L *lua.LState, h *Host, config *lua.LTable) {
 	config.ForEach(func(k, v lua.LValue) {
-		updatedConfig.RawSet(k, v)
-	})
-
-	// fmt.Println(updatedConfig)
-	updateHost(L, h, updatedConfig)
-
-	return h
-}
-
-func updateHost(L *lua.LState, h *Host, config *lua.LTable) {
-	h.lconfig = config
-
-	sshConfig := L.NewTable()
-	config.ForEach(func(k lua.LValue, v lua.LValue) {
-		var firstChar rune
-		for _, c := range k.String() {
-			firstChar = c
-			break
-		}
-
-		if unicode.IsUpper(firstChar) {
-			sshConfig.RawSet(k, v)
+		if kstr, ok := toString(k); ok {
+			updateHost(L, h, kstr, v)
 		}
 	})
-	h.sshConfig = sshConfig
-
-	props := config.RawGetString("props")
-	if propsTb, ok := toLTable(props); ok {
-		// initialize
-		h.Props = map[string]string{}
-
-		propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
-			propsKeyStr, ok := toString(propsKey)
-			if !ok {
-				L.RaiseError("props table's key must be a string: %v", propsKey)
-			}
-			propsValueStr, ok := toString(propsValue)
-			if !ok {
-				L.RaiseError("props table's value must be a string: %v", propsValue)
-			}
-
-			h.Props[propsKeyStr] = propsValueStr
-		})
-	}
-
-	hooks := config.RawGetString("hooks")
-	if hookTb, ok := toLTable(hooks); ok {
-		// initialize
-		h.Hooks = map[string][]interface{}{}
-
-		err := registerHook(L, h, "before_connect", hookTb.RawGetString("before_connect"))
-		if err != nil {
-			panic(err)
-		}
-
-		err = registerHook(L, h, "after_connect", hookTb.RawGetString("after_connect"))
-		if err != nil {
-			panic(err)
-		}
-
-		err = registerHook(L, h, "after_disconnect", hookTb.RawGetString("after_disconnect"))
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	description := config.RawGetString("description")
-	if descStr, ok := toString(description); ok {
-		h.Description = descStr
-	}
-
-	hidden := config.RawGetString("hidden")
-	if hiddenBool, ok := toBool(hidden); ok {
-		h.Hidden = hiddenBool
-	}
-
-	private := config.RawGetString("private")
-	if privateBool, ok := toBool(private); ok {
-		h.Private = privateBool
-	}
-
-	tags := config.RawGetString("tags")
-	if tagsTb, ok := tags.(*lua.LTable); ok {
-		// initialize
-		h.Tags = []string{}
-
-		tagsTb.ForEach(func(_ lua.LValue, v lua.LValue) {
-			if vs, ok := toString(v); ok {
-				h.Tags = append(h.Tags, vs)
-			} else {
-				L.RaiseError("unsupported format of tags.")
-			}
-		})
-	}
 }
 
-func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
-	if hook != lua.LNil {
-		if hookFn, ok := toLFunction(hook); ok {
-			hooks := host.Hooks[hookPoint]
-			hooks = append(hooks, hookFn)
-			host.Hooks[hookPoint] = hooks
-		} else if hookString, ok := toString(hook); ok {
-			hooks := host.Hooks[hookPoint]
-			hooks = append(hooks, hookString)
-			host.Hooks[hookPoint] = hooks
-		} else if tb, ok := toLTable(hook); ok {
+func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
+	h.LValues[key] = value
+
+	var firstChar rune
+	for _, c := range key {
+		firstChar = c
+		break
+	}
+
+	if unicode.IsUpper(firstChar) {
+		if valuestr, ok := toString(value); ok {
+			h.SSHConfig[key] = valuestr
+			return
+		}
+
+		panic("SSH property must be string")
+	}
+
+	switch key {
+	case "props":
+		if propsTb, ok := toLTable(value); ok {
+			// initialize
+			h.Props = map[string]string{}
+
+			propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
+				propsKeyStr, ok := toString(propsKey)
+				if !ok {
+					L.RaiseError("props table's key must be a string: %v", propsKey)
+				}
+				propsValueStr, ok := toString(propsValue)
+				if !ok {
+					L.RaiseError("props table's value must be a string: %v", propsValue)
+				}
+
+				h.Props[propsKeyStr] = propsValueStr
+			})
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+	case "hooks_before_connect":
+		if tb, ok := toLTable(value); ok {
 			maxn := tb.MaxN()
-			if maxn == 0 { // table
-				return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
-			}
-
+			hooks := make([]interface{}, 0, maxn)
 			for i := 1; i <= maxn; i++ {
-				if err := registerHook(L, host, hookPoint, tb.RawGetInt(i)); err != nil {
-					return err
-				}
+				hooks = append(hooks, toGoValue(tb.RawGetInt(i)))
 			}
+
+			h.HooksBeforeConnect = hooks
 		} else {
-			return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
+			panic("invalid value of a host's field '" + key + "'.")
 		}
-	}
-
-	return nil
-}
-
-func registerTask(L *lua.LState, name string, config *lua.LTable) *Task {
-	task := NewTask()
-	task.Name = name
-	task.Registry = CurrentRegistry
-
-	backend := config.RawGetString("backend")
-	if backendStr, ok := toString(backend); ok {
-		task.Backend = backendStr
-		if backendStr != TASK_BACKEND_LOCAL && backendStr != TASK_BACKEND_REMOTE {
-			L.RaiseError("backend must be '%s' or '%s'.", TASK_BACKEND_LOCAL, TASK_BACKEND_REMOTE)
-		}
-	}
-
-	targets := config.RawGetString("targets")
-	if targetsStr, ok := toString(targets); ok {
-		task.Targets = []string{targetsStr}
-	} else if targetsSlice, ok := toSlice(targets); ok {
-		for _, target := range targetsSlice {
-			if targetStr, ok := target.(string); ok {
-				task.Targets = append(task.Targets, targetStr)
+	case "hooks_after_connect":
+		if tb, ok := toLTable(value); ok {
+			maxn := tb.MaxN()
+			hooks := make([]interface{}, 0, maxn)
+			for i := 1; i <= maxn; i++ {
+				hooks = append(hooks, toGoValue(tb.RawGetInt(i)))
 			}
-		}
-	}
 
-	description := config.RawGetString("description")
-	if descStr, ok := toString(description); ok {
-		task.Description = descStr
-	}
-
-	pty := config.RawGetString("pty")
-	if ptyBool, ok := toBool(pty); ok {
-		task.Pty = ptyBool
-	}
-
-	driver := config.RawGetString("driver")
-	if driverStr, ok := toString(driver); ok {
-		task.Driver = driverStr
-	}
-
-	parallel := config.RawGetString("parallel")
-	if parallelBool, ok := toBool(parallel); ok {
-		task.Parallel = parallelBool
-	}
-
-	privileged := config.RawGetString("privileged")
-	if privilegedBool, ok := toBool(privileged); ok {
-		task.Privileged = privilegedBool
-	}
-
-	disabled := config.RawGetString("disabled")
-	if disabledBool, ok := toBool(disabled); ok {
-		task.Disabled = disabledBool
-	}
-
-	hidden := config.RawGetString("hidden")
-	if hiddenBool, ok := toBool(hidden); ok {
-		task.Hidden = hiddenBool
-	}
-
-	lock := config.RawGetString("lock")
-	if lockBool, ok := toBool(lock); ok {
-		task.Lock = lockBool
-	}
-
-	script, err := toScript(L, config.RawGetString("script"))
-	if err != nil {
-		L.RaiseError("%v", err)
-	}
-	task.Script = script
-
-	file := config.RawGetString("file")
-	if fileStr, ok := toString(file); ok {
-		task.File = fileStr
-	}
-
-	if task.File != "" && len(task.Script) > 0 {
-		L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
-	}
-
-	prefix := config.RawGetString("prefix")
-	if prefixBool, ok := toBool(prefix); ok {
-		if prefixBool {
-			if task.IsRemoteTask() {
-				task.Prefix = DefaultPrefixRemote
-			} else {
-				task.Prefix = DefaultPrefixLocal
-			}
-		}
-	} else if prefixStr, ok := toString(prefix); ok {
-		task.Prefix = prefixStr
-	}
-
-	prepare := config.RawGetString("prepare")
-	if prepare != lua.LNil {
-		if prepareFn, ok := prepare.(*lua.LFunction); ok {
-			task.Prepare = func(ctx *TaskContext) error {
-				lctx := newLTaskContext(L, ctx)
-				err := L.CallByParam(lua.P{
-					Fn:      prepareFn,
-					NRet:    1,
-					Protect: false,
-				}, lctx)
-				if err != nil {
-					return err
-				}
-
-				ret := L.Get(-1) // returned value
-				L.Pop(1)
-
-				if ret == lua.LNil {
-					return nil
-				} else if retB, ok := ret.(lua.LBool); ok {
-					if retB {
-						return nil
-					} else {
-						return fmt.Errorf("returned false from the prepare function.")
-					}
-				}
-
-				return nil
-			}
+			h.HooksAfterConnect = hooks
 		} else {
-			L.RaiseError("prepare have to be a function.")
+			panic("invalid value of a host's field '" + key + "'.")
 		}
+	case "hooks_after_disconnect":
+		if tb, ok := toLTable(value); ok {
+			maxn := tb.MaxN()
+			hooks := make([]interface{}, 0, maxn)
+			for i := 1; i <= maxn; i++ {
+				hooks = append(hooks, toGoValue(tb.RawGetInt(i)))
+			}
+
+			h.HooksAfterDisconnect = hooks
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+	case "description":
+		if descStr, ok := toString(value); ok {
+			h.Description = descStr
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+
+	case "hidden":
+		if hiddenBool, ok := toBool(value); ok {
+			h.Hidden = hiddenBool
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+
+	case "private":
+		if privateBool, ok := toBool(value); ok {
+			h.Private = privateBool
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+
+	case "tags":
+		if tagsTb, ok := toLTable(value); ok {
+			// initialize
+			h.Tags = []string{}
+
+			tagsTb.ForEach(func(_ lua.LValue, v lua.LValue) {
+				if vs, ok := toString(v); ok {
+					h.Tags = append(h.Tags, vs)
+				} else {
+					L.RaiseError("unsupported format of tags.")
+				}
+			})
+		} else {
+			panic("invalid value of a host's field '" + key + "'.")
+		}
+
+	default:
+		panic("unsupported host's field '" + key + "'.")
+
 	}
-
-	Tasks[task.Name] = task
-
-	return task
 }
 
 func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
@@ -727,46 +540,7 @@ func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 		}, nil
 	}
 
-	return nil, fmt.Errorf("'scrpt' got a invalid value.")
-}
-
-func esshRequire(L *lua.LState) int {
-	name := L.CheckString(1)
-
-	module := CurrentRegistry.LoadedModules[name]
-	if module == nil {
-		module = NewModule(name)
-
-		update := updateFlag
-		if CurrentRegistry.Type == RegistryTypeGlobal && !withGlobalFlag {
-			update = false
-		}
-
-		err := module.Load(update)
-		if err != nil {
-			L.RaiseError("%v", err)
-		}
-
-		indexFile := module.IndexFile()
-		if _, err := os.Stat(indexFile); err != nil {
-			L.RaiseError("invalid module: %v", err)
-		}
-		if err := L.DoFile(indexFile); err != nil {
-			L.RaiseError("%v", err)
-		}
-
-		// get a module return value
-		ret := L.Get(-1)
-		module.Value = ret
-
-		// register loaded module.
-		CurrentRegistry.LoadedModules[name] = module
-
-		return 1
-	}
-
-	L.Push(module.Value)
-	return 1
+	return nil, fmt.Errorf("'script' got a invalid value.")
 }
 
 func esshGethosts(L *lua.LState) int {
@@ -901,7 +675,225 @@ func checkTaskContext(L *lua.LState) *TaskContext {
 	return nil
 }
 
+const LTaskClass = "Task*"
+
+func registerTaskClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LTaskClass)
+	mt.RawSetString("__call", L.NewFunction(taskCall))
+	mt.RawSetString("__index", L.NewFunction(taskIndex))
+	mt.RawSetString("__newindex", L.NewFunction(taskNewindex))
+}
+
+func newLTask(L *lua.LState, task *Task) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = task
+	L.SetMetatable(ud, L.GetTypeMetatable(LTaskClass))
+	return ud
+}
+
+func checkTask(L *lua.LState) *Task {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Task); ok {
+		return v
+	}
+	L.ArgError(1, "Task object expected")
+	return nil
+}
+
+func taskCall(L *lua.LState) int {
+	task := checkTask(L)
+	tb := L.CheckTable(2)
+
+	setupTask(L, task, tb)
+
+	return 0
+}
+
+func taskIndex(L *lua.LState) int {
+	task := checkTask(L)
+	index := L.CheckString(2)
+
+	if index == "name" {
+		L.Push(lua.LString(task.Name))
+		return 1
+	}
+
+	v, ok := task.LValues[index]
+	if v == nil || !ok {
+		v = lua.LNil
+	}
+
+	L.Push(v)
+	return 1
+}
+
+func taskNewindex(L *lua.LState) int {
+	task := checkTask(L)
+	index := L.CheckString(2)
+	value := L.CheckAny(3)
+
+	updateTask(L, task, index, value)
+
+	return 0
+}
+
+func setupTask(L *lua.LState, t *Task, config *lua.LTable) {
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateTask(L, t, kstr, v)
+		}
+	})
+}
+
+func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
+	task.LValues[key] = value
+
+	switch key {
+	case "backend":
+		if backendStr, ok := toString(value); ok {
+			task.Backend = backendStr
+			if backendStr != TASK_BACKEND_LOCAL && backendStr != TASK_BACKEND_REMOTE {
+				L.RaiseError("backend must be '%s' or '%s'.", TASK_BACKEND_LOCAL, TASK_BACKEND_REMOTE)
+			}
+		}
+	case "targets":
+		if targetsStr, ok := toString(value); ok {
+			task.Targets = []string{targetsStr}
+		} else if targetsSlice, ok := toSlice(value); ok {
+			for _, target := range targetsSlice {
+				if targetStr, ok := target.(string); ok {
+					task.Targets = append(task.Targets, targetStr)
+				}
+			}
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "description":
+		if descStr, ok := toString(value); ok {
+			task.Description = descStr
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "pty":
+		if ptyBool, ok := toBool(value); ok {
+			task.Pty = ptyBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "driver":
+		if driverStr, ok := toString(value); ok {
+			task.Driver = driverStr
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "parallel":
+		if parallelBool, ok := toBool(value); ok {
+			task.Parallel = parallelBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "privileged":
+		if privilegedBool, ok := toBool(value); ok {
+			task.Privileged = privilegedBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "disabled":
+		if disabledBool, ok := toBool(value); ok {
+			task.Disabled = disabledBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "hidden":
+		if hiddenBool, ok := toBool(value); ok {
+			task.Hidden = hiddenBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "lock":
+		if lockBool, ok := toBool(value); ok {
+			task.Lock = lockBool
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "script":
+		script, err := toScript(L, value)
+		if err != nil {
+			L.RaiseError("%v", err)
+		}
+		task.Script = script
+
+		if task.File != "" && len(task.Script) > 0 {
+			L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
+		}
+	case "file":
+		if fileStr, ok := toString(value); ok {
+			task.File = fileStr
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+
+		if task.File != "" && len(task.Script) > 0 {
+			L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
+		}
+	case "prefix":
+		if prefixBool, ok := toBool(value); ok {
+			if prefixBool {
+				if task.IsRemoteTask() {
+					task.Prefix = DefaultPrefixRemote
+				} else {
+					task.Prefix = DefaultPrefixLocal
+				}
+			}
+		} else if prefixStr, ok := toString(value); ok {
+			task.Prefix = prefixStr
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "prepare":
+		if prepareFn, ok := value.(*lua.LFunction); ok {
+			task.Prepare = func(ctx *TaskContext) error {
+				lctx := newLTaskContext(L, ctx)
+				err := L.CallByParam(lua.P{
+					Fn:      prepareFn,
+					NRet:    1,
+					Protect: false,
+				}, lctx)
+				if err != nil {
+					return err
+				}
+
+				ret := L.Get(-1) // returned value
+				L.Pop(1)
+
+				if ret == lua.LNil {
+					return nil
+				} else if retB, ok := ret.(lua.LBool); ok {
+					if retB {
+						return nil
+					} else {
+						return fmt.Errorf("returned false from the prepare function.")
+					}
+				}
+
+				return nil
+			}
+		} else {
+			L.RaiseError("prepare have to be a function.")
+		}
+	default:
+		panic("unsupported task's field '" + key + "'.")
+	}
+}
+
 const LHostClass = "Host*"
+
+func registerHostClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LHostClass)
+	mt.RawSetString("__call", L.NewFunction(hostCall))
+	mt.RawSetString("__index", L.NewFunction(hostIndex))
+	mt.RawSetString("__newindex", L.NewFunction(hostNewindex))
+}
 
 func newLHost(L *lua.LState, host *Host) *lua.LUserData {
 	ud := L.NewUserData()
@@ -919,16 +911,12 @@ func checkHost(L *lua.LState) *Host {
 	return nil
 }
 
-func registerHostClass(L *lua.LState) {
-	mt := L.NewTypeMetatable(LHostClass)
-	mt.RawSetString("__call", L.NewFunction(hostCall))
-	mt.RawSetString("__index", L.NewFunction(hostIndex))
-	mt.RawSetString("__newindex", L.NewFunction(hostNewindex))
-}
-
 func hostCall(L *lua.LState) int {
-	// host := checkHost(L)
-	// TODO
+	host := checkHost(L)
+	tb := L.CheckTable(2)
+
+	setupHost(L, host, tb)
+
 	return 0
 }
 
@@ -936,29 +924,134 @@ func hostIndex(L *lua.LState) int {
 	host := checkHost(L)
 	index := L.CheckString(2)
 
-	v := host.lconfig.RawGetString(index)
+	if index == "name" {
+		L.Push(lua.LString(host.Name))
+		return 1
+	}
+
+	v, ok := host.LValues[index]
+	if v == nil || !ok {
+		v = lua.LNil
+	}
+
 	L.Push(v)
 	return 1
 }
 
 func hostNewindex(L *lua.LState) int {
-	// host := checkHost(L)
-	// TODO
+	host := checkHost(L)
+	index := L.CheckString(2)
+	value := L.CheckAny(3)
+
+	updateHost(L, host, index, value)
+
 	return 0
 }
 
-//
-//func hostName(L *lua.LState) int {
-//	host := checkHost(L)
-//	L.Push(lua.LString(host.Name))
-//	return 1
-//}
-//
-//func hostConfig(L *lua.LState) int {
-//	host := checkHost(L)
-//	L.Push(host.lconfig)
-//	return 1
-//}
+const LDriverClass = "Driver*"
+
+func registerDriverClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LDriverClass)
+	mt.RawSetString("__call", L.NewFunction(driverCall))
+	mt.RawSetString("__index", L.NewFunction(driverIndex))
+	mt.RawSetString("__newindex", L.NewFunction(driverNewindex))
+}
+
+func newLDriver(L *lua.LState, driver *Driver) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = driver
+	L.SetMetatable(ud, L.GetTypeMetatable(LDriverClass))
+	return ud
+}
+
+func checkDriver(L *lua.LState) *Driver {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Driver); ok {
+		return v
+	}
+	L.ArgError(1, "Driver object expected")
+	return nil
+}
+
+func driverCall(L *lua.LState) int {
+	driver := checkDriver(L)
+	tb := L.CheckTable(2)
+
+	setupDriver(L, driver, tb)
+
+	return 0
+}
+
+func driverIndex(L *lua.LState) int {
+	driver := checkDriver(L)
+	index := L.CheckString(2)
+
+	if index == "name" {
+		L.Push(lua.LString(driver.Name))
+		return 1
+	}
+
+	v, ok := driver.LValues[index]
+	if v == nil || !ok {
+		v = lua.LNil
+	}
+
+	L.Push(v)
+	return 1
+}
+
+func driverNewindex(L *lua.LState) int {
+	driver := checkDriver(L)
+	index := L.CheckString(2)
+	value := L.CheckAny(3)
+
+	updateDriver(L, driver, index, value)
+
+	return 0
+}
+
+func setupDriver(L *lua.LState, driver *Driver, config *lua.LTable) {
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateDriver(L, driver, kstr, v)
+		}
+	})
+}
+
+func updateDriver(L *lua.LState, driver *Driver, key string, value lua.LValue) {
+	driver.LValues[key] = value
+
+	switch key {
+	case "engine":
+		if engineFn, ok := value.(*lua.LFunction); ok {
+			driver.Engine = func(driver *Driver) (string, error) {
+				err := L.CallByParam(lua.P{
+					Fn:      engineFn,
+					NRet:    1,
+					Protect: true,
+				}, newLDriver(L, driver))
+				if err != nil {
+					return "", err
+				}
+
+				ret := L.Get(-1) // returned value
+				L.Pop(1)
+
+				if retStr, ok := toString(ret); ok {
+					return retStr, nil
+				} else {
+					return "", fmt.Errorf("driver engine has to return a string.")
+				}
+			}
+		} else if engineStr, ok := toString(value); ok {
+			driver.Engine = func(driver *Driver) (string, error) {
+				return engineStr, nil
+			}
+		} else {
+			L.RaiseError("driver 'engine' have to be a function or string.")
+		}
+	}
+}
 
 const LRegistryClass = "Registry*"
 

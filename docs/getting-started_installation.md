@@ -16,9 +16,7 @@ Usage: essh [<options>] [<ssh options and args...>]
   Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
   The MIT License (MIT)
 
-See also:
-  essh --help
-
+...
 ```
 
 Let's read next section: [Using As SSH Client](getting-started_using-as-ssh-client.md).
