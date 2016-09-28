@@ -464,36 +464,6 @@ func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
 	}
 }
 
-//func registerHook(L *lua.LState, host *Host, hookPoint string, hook lua.LValue) error {
-//	if hook != lua.LNil {
-//		if hookFn, ok := toLFunction(hook); ok {
-//			hooks := host.Hooks[hookPoint]
-//			hooks = append(hooks, hookFn)
-//			host.Hooks[hookPoint] = hooks
-//		} else if hookString, ok := toString(hook); ok {
-//			hooks := host.Hooks[hookPoint]
-//			hooks = append(hooks, hookString)
-//			host.Hooks[hookPoint] = hooks
-//		} else if tb, ok := toLTable(hook); ok {
-//			maxn := tb.MaxN()
-//			if maxn == 0 { // table
-//				return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
-//			}
-//
-//			for i := 1; i <= maxn; i++ {
-//				if err := registerHook(L, host, hookPoint, tb.RawGetInt(i)); err != nil {
-//					return err
-//				}
-//			}
-//		} else {
-//			return fmt.Errorf("invalid hook type '%v'. hook must be string, function or table of array.", hook)
-//		}
-//	}
-//
-//	return nil
-//}
-//
-
 func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 	ret := []map[string]string{}
 
