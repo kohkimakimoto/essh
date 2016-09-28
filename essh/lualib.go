@@ -61,6 +61,7 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
 	lessh.RawSetString("version", lua.LString(Version))
+
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
 		"host":         esshHost,
@@ -245,8 +246,15 @@ func esshFindHosts(L *lua.LState) int {
 					panic("find_hosts condition must be a table, the key of which is a string")
 				}
 
+				if ks == "tag" {
+					ks = "tags"
+				}
+				if ks == "prop" {
+					ks = "props"
+				}
+
 				if hv := host.LValues[ks]; hv != nil {
-					if ks == "tags" || ks == "tag" {
+					if ks == "tags" {
 						if tagsValues, ok := toLTable(hv); ok {
 							var found bool
 							tagsValues.ForEach(func(_, tag lua.LValue) {
@@ -261,7 +269,7 @@ func esshFindHosts(L *lua.LState) int {
 						} else {
 							notfound = true
 						}
-					} else if ks == "props" || ks == "prop" {
+					} else if ks == "props" {
 						if propsValues, ok := toLTable(hv); ok {
 							var found bool
 							propsValues.ForEach(func(_, prop lua.LValue) {
