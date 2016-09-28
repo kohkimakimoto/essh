@@ -45,13 +45,16 @@ All the properties of this type are listed below.
 
 * `private` (boolean): If you set it true, This host can be only used to the tasks. See also [scope](#scope)
 
-* `hooks` (table): Hooks is a table that defines `before_connect`(string, table or function), `after_connect`(string, table or function) and `after_disconnect`(string, table or function).
+* `hooks_before_connect` (table): Hooks Before Connect
 
     ```lua
-    hooks = {
-        -- WIP...
+    hooks_before_connect = {
+        -- function or string.
     }
     ```
+* `hooks_after_connect` (table): Hooks After Connect
+
+* `hooks_after_disconnect` (table): Hooks After Disconnect
 
 * `tags` (array table): Tags classifys hosts.
 
