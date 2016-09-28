@@ -388,10 +388,6 @@ func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
 	case "hook_before_connect":
 		if tb, ok := toLTable(value); ok {
 			maxn := tb.MaxN()
-			if maxn != 0 { // array
-				panic("hook_before_connect must table of array.")
-			}
-			// array
 			hooks := make([]interface{}, 0, maxn)
 			for i := 1; i <= maxn; i++ {
 				hooks = append(hooks, toGoValue(tb.RawGetInt(i)))
@@ -401,13 +397,9 @@ func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
 		} else {
 			panic("invalid value of a host's field '" + key + "'.")
 		}
-	case "after_connect":
+	case "hook_after_connect":
 		if tb, ok := toLTable(value); ok {
 			maxn := tb.MaxN()
-			if maxn != 0 { // array
-				panic("hook_before_connect must table of array.")
-			}
-			// array
 			hooks := make([]interface{}, 0, maxn)
 			for i := 1; i <= maxn; i++ {
 				hooks = append(hooks, toGoValue(tb.RawGetInt(i)))
@@ -417,13 +409,9 @@ func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
 		} else {
 			panic("invalid value of a host's field '" + key + "'.")
 		}
-	case "after_disconnect":
+	case "hook_after_disconnect":
 		if tb, ok := toLTable(value); ok {
 			maxn := tb.MaxN()
-			if maxn != 0 { // array
-				panic("hook_before_connect must table of array.")
-			}
-			// array
 			hooks := make([]interface{}, 0, maxn)
 			for i := 1; i <= maxn; i++ {
 				hooks = append(hooks, toGoValue(tb.RawGetInt(i)))

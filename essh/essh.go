@@ -1114,7 +1114,7 @@ func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) 
 
 func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	// hooks
-	var hooks map[string][]interface{}
+	hooks := map[string][]interface{}{}
 
 	// Limitation!
 	// hooks fires only when the hostname is just specified.
@@ -1128,7 +1128,7 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	}
 
 	// run before_connect hook
-	if before := hooks["before_connect"]; before != nil {
+	if before := hooks["before_connect"]; before != nil && len(before) > 0{
 		if debugFlag {
 			fmt.Printf("[essh debug] run before_connect hook\n")
 		}
@@ -1147,7 +1147,7 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	// register after_disconnect hook
 	defer func() {
 		// after hook
-		if after := hooks["after_disconnect"]; after != nil {
+		if after := hooks["after_disconnect"]; after != nil && len(after) > 0{
 			if debugFlag {
 				fmt.Printf("[essh debug] run after_disconnect hook\n")
 			}
@@ -1168,7 +1168,7 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	var sshCommandArgs []string
 
 	// run after_connect hook
-	if afterConnect := hooks["after_connect"]; afterConnect != nil {
+	if afterConnect := hooks["after_connect"]; afterConnect != nil && len(afterConnect) > 0 {
 		hookScript, err := getHookScript(L, afterConnect)
 		if err != nil {
 			return err, ExitErr
