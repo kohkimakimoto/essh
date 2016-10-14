@@ -29,8 +29,8 @@ func ExamplePlainTable() {
 	tb.Append([]string{"aaa", "bbbbbbbbb", "ccc"})
 	tb.Render()
 	// Output:
-	//AAA    BBB          CCC
-	//aaa    bbb          ccc
-	//aaa    bbbbbb       ccc
-	//aaa    bbbbbbbbb    ccc
+	//AAA        BBB              CCC
+	//aaa        bbb              ccc
+	//aaa        bbbbbb           ccc
+	//aaa        bbbbbbbbb        ccc
 }
