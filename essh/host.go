@@ -25,13 +25,13 @@ type Host struct {
 
 func NewHost() *Host {
 	return &Host{
-		Props:               map[string]string{},
+		Props:                map[string]string{},
 		HooksBeforeConnect:   []interface{}{},
 		HooksAfterConnect:    []interface{}{},
 		HooksAfterDisconnect: []interface{}{},
-		Tags:                []string{},
-		SSHConfig:           map[string]string{},
-		LValues:             map[string]lua.LValue{},
+		Tags:                 []string{},
+		SSHConfig:            map[string]string{},
+		LValues:              map[string]lua.LValue{},
 	}
 }
 

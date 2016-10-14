@@ -10,6 +10,11 @@ docker.driver = function(config)
 {{template "environment" .}}
 set -e
 
+{{if not .Task.Registry}}
+echo "error: docker driver engine can not be used with '--exec' option. You should define a task." 1>&2
+exit 1
+{{end}}
+
 {{ $sudo := "]=] .. sudo .. [=[" }}
 
 __essh_var_docker_working_dir=$(pwd)
@@ -17,6 +22,7 @@ __essh_var_docker_image={{if .Driver.Props.image}}{{.Driver.Props.image | ShellE
 __essh_var_docker_build="{{if .Driver.Props.build}}1{{end}}"
 __essh_var_docker_build_url={{if .Driver.Props.build.url}}{{.Driver.Props.build.url | ShellEscape}}{{end}}
 __essh_var_docker_build_dockerfile={{if .Driver.Props.build.dockerfile}}{{.Driver.Props.build.dockerfile | ShellEscape}}{{end}}
+__essh_var_docker_remove_terminated_containers="{{if .Driver.Props.remove_terminated_containers}}1{{end}}"
 
 __essh_var_status=0
 echo 'Starting task by using docker driver engine.'
@@ -72,7 +78,9 @@ fi
 {{if .Task.IsRemoteTask}}
     __essh_var_docker_tmp_dir=$({{$sudo}}mktemp -d /tmp/.essh_docker.XXXXXXXX)
 {{else}}
+    {{if .Task.Registry}}
     __essh_var_docker_tmp_dir=$({{$sudo}}mktemp -d {{.Task.Registry.TmpDir}}/.essh_docker.XXXXXXXX)
+    {{end}}
 {{end}}
 
 trap "{{$sudo}}rm -rf $__essh_var_docker_tmp_dir; exit" 0
@@ -109,8 +117,10 @@ echo "Running task in a docker container..."
     bash /tmp/essh/run.sh
 __essh_var_status=$?
 
-echo "Removing tarminated containers."
-{{$sudo}}docker rm `{{$sudo}}docker ps -a -q`
+if [ -n "$__essh_var_docker_remove_terminated_containers" ]; then
+    echo "Removing terminated containers."
+    {{$sudo}}docker rm `{{$sudo}}docker ps -a -q -f status=exited`
+fi
 
 echo "Task exited with $__essh_var_status."
 exit $__essh_var_status
@@ -118,3 +128,20 @@ exit $__essh_var_status
 end
 
 return docker
+
+
+-- Experimental:
+--
+-- Building docker image before running if it doesn't exist (only local task).
+--
+--
+-- ```lua
+-- driver "docker" {
+-- engine = docker.driver,
+-- image = "my-custom-image",
+-- build = {
+-- -- using current directory Dockerfile.
+-- url = ".",
+-- }
+-- }
+--```

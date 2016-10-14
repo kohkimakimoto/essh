@@ -45,17 +45,6 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("re", gluare.Loader)
 	L.PreloadModule("sh", gluash.Loader)
 
-	// modules for BC
-	L.PreloadModule("glua.json", gluajson.Loader)
-	L.PreloadModule("glua.fs", gluafs.Loader)
-	L.PreloadModule("glua.yaml", gluayaml.Loader)
-	L.PreloadModule("glua.template", gluatemplate.Loader)
-	L.PreloadModule("glua.question", gluaquestion.Loader)
-	L.PreloadModule("glua.env", gluaenv.Loader)
-	L.PreloadModule("glua.http", gluahttp.NewHttpModule(&http.Client{}).Loader)
-	L.PreloadModule("glua.re", gluare.Loader)
-	L.PreloadModule("glua.sh", gluash.Loader)
-
 	// global variables
 	lessh := L.NewTable()
 	L.SetGlobal("essh", lessh)
@@ -328,7 +317,7 @@ func registerTask(L *lua.LState, name string) *Task {
 	t.Name = name
 	t.Registry = CurrentRegistry
 
-	Tasks[t.Name] = t
+	CurrentRegistry.Tasks[t.Name] = t
 
 	return t
 }
@@ -341,7 +330,7 @@ func registerDriver(L *lua.LState, name string) *Driver {
 	d := NewDriver()
 	d.Name = name
 
-	Drivers[d.Name] = d
+	CurrentRegistry.Drivers[d.Name] = d
 
 	return d
 }
@@ -807,12 +796,6 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 	case "hidden":
 		if hiddenBool, ok := toBool(value); ok {
 			task.Hidden = hiddenBool
-		} else {
-			panic("invalid value of a task's field '" + key + "'.")
-		}
-	case "lock":
-		if lockBool, ok := toBool(value); ok {
-			task.Lock = lockBool
 		} else {
 			panic("invalid value of a task's field '" + key + "'.")
 		}

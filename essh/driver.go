@@ -16,7 +16,7 @@ type Driver struct {
 	LValues map[string]lua.LValue
 }
 
-var Drivers map[string]*Driver = map[string]*Driver{}
+var DefaultDriver *Driver
 
 var (
 	BuiltinDefaultDriverName = "default"
@@ -91,9 +91,35 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 	return b.String(), nil
 }
 
+func FindDriverInRegistry(name string, registry *Registry) *Driver {
+	if registry != nil {
+		if driver, ok := registry.Drivers[name]; ok {
+			return driver
+		}
+	} else {
+		if driver, ok := LocalRegistry.Drivers[name]; ok {
+			return driver
+		}
+		if driver, ok := GlobalRegistry.Drivers[name]; ok {
+			return driver
+		}
+	}
+
+	return nil
+}
+
 func init() {
 	// set built-in drivers
-	ResetDrivers()
+	// default (just concatenate with new line code)
+	driver := NewDriver()
+	driver.Name = BuiltinDefaultDriverName
+	driver.Engine = func(driver *Driver) (string, error) {
+		return `
+{{template "environment" .}}
+{{range $i, $script := .Scripts}}{{$script.code}}
+{{end}}`, nil
+	}
+	DefaultDriver = driver
 }
 
 const EnvironmentTemplate = `{{define "environment" -}}
@@ -118,18 +144,3 @@ export ESSH_HOST_TAGS_{{$value | ToUpper | EnvKeyEscape}}=1
 {{end -}}
 {{end}}
 `
-
-func ResetDrivers() {
-	Drivers = map[string]*Driver{}
-
-	// default (just concatenate with new line code)
-	driver := NewDriver()
-	driver.Name = BuiltinDefaultDriverName
-	driver.Engine = func(driver *Driver) (string, error) {
-		return `
-{{template "environment" .}}
-{{range $i, $script := .Scripts}}{{$script.code}}
-{{end}}`, nil
-	}
-	Drivers[driver.Name] = driver
-}
