@@ -8,30 +8,22 @@ import (
 type Task struct {
 	Name        string
 	Description string
-	// Configure deprecated.
-	Prepare func(task *TaskContext) error
-	Driver  string
-	Pty     bool
-	Script  []map[string]string
-	File    string
-
-	Backend string
-	Targets []string
-
-	Parallel   bool
-	Privileged bool
-	// Lock is deprecated. use "bash.lock" in `modules/bash/index.lua`
-	Lock     bool
-	Disabled bool
-	Hidden   bool
-
-	Prefix   string
-	Registry *Registry
+	Prepare     func(task *TaskContext) error
+	Driver      string
+	Pty         bool
+	Script      []map[string]string
+	File        string
+	Backend     string
+	Targets     []string
+	Parallel    bool
+	Privileged  bool
+	Disabled    bool
+	Hidden      bool
+	Prefix      string
+	Registry    *Registry
 
 	LValues map[string]lua.LValue
 }
-
-var Tasks map[string]*Task = map[string]*Task{}
 
 var (
 	DefaultPrefixLocal  = `[local:{{.Host.Name}}]{{HostnameAlignString " "}}`
@@ -54,25 +46,48 @@ func NewTask() *Task {
 
 func SortedTasks() []*Task {
 	names := []string{}
+	namesMap := map[string]bool{}
 	tasks := []*Task{}
 
-	for name, _ := range Tasks {
+	for name, _ := range GlobalRegistry.Tasks {
+		if namesMap[name] {
+			// already registerd to names
+			continue
+		}
+
 		names = append(names, name)
+		namesMap[name] = true
+	}
+
+	for name, _ := range LocalRegistry.Tasks {
+		if namesMap[name] {
+			// already registerd to names
+			continue
+		}
+
+		names = append(names, name)
+		namesMap[name] = true
 	}
 
 	sort.Strings(names)
 
 	for _, name := range names {
-		tasks = append(tasks, Tasks[name])
+		if t, ok := GlobalRegistry.Tasks[name]; ok {
+			tasks = append(tasks, t)
+		}
+
+		if t, ok := LocalRegistry.Tasks[name]; ok {
+			tasks = append(tasks, t)
+		}
 	}
 
 	return tasks
 }
 
 func GetEnabledTask(name string) *Task {
-	if task, ok := Tasks[name]; ok {
-		if !task.Disabled {
-			return task
+	for _, t := range SortedTasks() {
+		if t.Name == name && !t.Disabled {
+			return t
 		}
 	}
 

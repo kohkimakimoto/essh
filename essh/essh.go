@@ -84,8 +84,6 @@ func Start() (exitStatus int) {
 	defer func() {
 		if e := recover(); e != nil {
 			exitStatus = ExitErr
-
-			// if it paniked?
 			if zshCompletionModeFlag && !debugFlag {
 				// suppress printing error in running completion code.
 				return
@@ -555,7 +553,7 @@ func Start() (exitStatus int) {
 
 	// show tasks for zsh completion
 	if zshCompletionTasksFlag {
-		for _, task := range Tasks {
+		for _, task := range SortedTasks() {
 			if !task.Disabled && !task.Hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(task.Name), ColonEscape(task.DescriptionOrDefault()))
 			}
@@ -580,23 +578,32 @@ func Start() (exitStatus int) {
 		}
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "SCOPE", "HIDDEN"})
+			if allFlag {
+				tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "SCOPE", "HIDDEN"})
+			} else {
+				tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY"})
+			}
+
 		}
 		for _, host := range hosts {
 			if (!host.Hidden && !host.Private) || allFlag {
 				if quietFlag {
 					tb.Append([]string{host.Name})
 				} else {
-					//
-					hidden := "false"
-					if host.Hidden {
-						hidden = "true"
+					if allFlag {
+						hidden := "false"
+						if host.Hidden {
+							hidden = "true"
+						}
+						scope := "public"
+						if host.Private {
+							scope = "private"
+						}
+						tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString(), scope, hidden})
+					} else {
+						tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString()})
 					}
-					scope := "public"
-					if host.Private {
-						scope = "private"
-					}
-					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString(), scope, hidden})
+
 				}
 			}
 		}
@@ -627,14 +634,23 @@ func Start() (exitStatus int) {
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "DISABLED", "HIDDEN"})
+			if allFlag {
+				tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "DISABLED", "HIDDEN"})
+			} else {
+				tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY"})
+			}
 		}
+
 		for _, t := range SortedTasks() {
 			if (!t.Hidden && !t.Disabled) || allFlag {
 				if quietFlag {
 					tb.Append([]string{t.Name})
 				} else {
-					tb.Append([]string{t.Name, t.Description, t.Registry.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
+					if allFlag {
+						tb.Append([]string{t.Name, t.Description, t.Registry.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
+					} else {
+						tb.Append([]string{t.Name, t.Description, t.Registry.TypeString()})
+					}
 				}
 			}
 		}
@@ -684,7 +700,6 @@ func Start() (exitStatus int) {
 		task := NewTask()
 		task.Name = "--exec"
 		task.Pty = ptyFlag
-		task.Lock = false
 		task.Parallel = parallelFlag
 		task.Privileged = privilegedFlag
 		task.Driver = driverVar
@@ -1128,7 +1143,7 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	}
 
 	// run before_connect hook
-	if before := hooks["before_connect"]; before != nil && len(before) > 0{
+	if before := hooks["before_connect"]; before != nil && len(before) > 0 {
 		if debugFlag {
 			fmt.Printf("[essh debug] run before_connect hook\n")
 		}
@@ -1147,7 +1162,7 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	// register after_disconnect hook
 	defer func() {
 		// after hook
-		if after := hooks["after_disconnect"]; after != nil && len(after) > 0{
+		if after := hooks["after_disconnect"]; after != nil && len(after) > 0 {
 			if debugFlag {
 				fmt.Printf("[essh debug] run after_disconnect hook\n")
 			}
@@ -1286,7 +1301,7 @@ func validateConfig() error {
 		names[host.Name] = true
 	}
 
-	for _, task := range Tasks {
+	for _, task := range SortedTasks() {
 		if _, ok := names[task.Name]; ok {
 			return fmt.Errorf("Task '%s' is duplicated", task.Name)
 		}

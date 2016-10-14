@@ -12,7 +12,9 @@ type Registry struct {
 	DataDir       string
 	LoadedModules map[string]*Module
 	Hosts         map[string]*Host
-	Type          int
+	Tasks         map[string]*Task
+
+	Type int
 }
 
 const (
@@ -30,6 +32,7 @@ func NewRegistry(dataDir string, registryType int) *Registry {
 		DataDir:       dataDir,
 		LoadedModules: map[string]*Module{},
 		Hosts:         map[string]*Host{},
+		Tasks:         map[string]*Task{},
 		Type:          registryType,
 	}
 
