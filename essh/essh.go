@@ -817,6 +817,7 @@ func runTask(config string, task *Task, payload string) error {
 
 	// re generate config (task).
 	if task.Registry == nil {
+		// this is "--exec" command mode. use only public hosts
 		_, err := UpdateSSHConfig(config, SortedPublicHosts())
 		if err != nil {
 			return err
@@ -937,9 +938,9 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, payload string, host 
 	}
 
 	// generate commands by using driver
-	driver := Drivers[BuiltinDefaultDriverName]
+	driver := DefaultDriver
 	if task.Driver != "" {
-		driver = Drivers[task.Driver]
+		driver = FindDriverInRegistry(task.Driver, task.Registry)
 		if driver == nil {
 			return fmt.Errorf("invalid driver name '%s'", task.Driver)
 		}
@@ -1029,9 +1030,9 @@ func runLocalTaskScript(sshConfigPath string, task *Task, payload string, host *
 	}
 
 	// generate commands by using driver
-	driver := Drivers[BuiltinDefaultDriverName]
+	driver := DefaultDriver
 	if task.Driver != "" {
-		driver = Drivers[task.Driver]
+		driver = FindDriverInRegistry(task.Driver, task.Registry)
 		if driver == nil {
 			return fmt.Errorf("invalid driver name '%s'", task.Driver)
 		}

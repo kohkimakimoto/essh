@@ -12,6 +12,7 @@ driver "docker-centos6" {
     engine = docker.driver,
     image = "centos:centos6",
     privileged = true,
+    remove_terminated_containers = true,
 }
 
 task "example" {
@@ -21,21 +22,5 @@ task "example" {
     script = {
         "echo hello",
     },
-}
-```
-
-Experimental:
-
-Building docker image before running if it doesn't exist (only local task).
-
-
-```lua
-driver "docker" {
-    engine = docker.driver,
-    image = "my-custom-image",
-    build = {
-        -- using current directory Dockerfile.
-        url = ".",
-    }
 }
 ```

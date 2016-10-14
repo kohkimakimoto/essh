@@ -330,7 +330,7 @@ func registerDriver(L *lua.LState, name string) *Driver {
 	d := NewDriver()
 	d.Name = name
 
-	Drivers[d.Name] = d
+	CurrentRegistry.Drivers[d.Name] = d
 
 	return d
 }
