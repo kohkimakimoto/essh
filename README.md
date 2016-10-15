@@ -4,7 +4,7 @@
 
 Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation will become more efficient and convenient.
 
-The key features of Essh are the following:
+## Features
 
 * **Simple**: Essh is a single binary CLI tool and simply wraps `ssh` command. You can use it in the same way as `ssh`.
 
