@@ -5,13 +5,9 @@ Thumbs.db
 *.iml
 /vendor
 .vagrant
-
 /_work
-
 /_build/dev/*
 /_build/dist/*
-
-!.gitkeep
 
 .essh
 esshconfig.lua
