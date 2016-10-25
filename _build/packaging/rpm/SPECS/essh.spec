@@ -1,12 +1,7 @@
 Name:           %{_product_name}
 Version:        %{_product_version}
 
-%if 0%{?rhel} >= 5
-Release:        1.el%{?rhel}
-%else
-Release:        1%{?dist}
-%endif
-
+Release:        1.el%{_rhel_version}
 Summary:        Essh is an extended ssh command.
 Group:          Development/Tools
 License:        MIT

@@ -31,16 +31,23 @@ fi
 
 source ./_build/config
 
-echo "--> Building packages..."
-
+echo "--> Building RPM packages..."
+# building PRMs by using docker.
 cd _build/packaging/rpm
-vagrant status | grep running > /dev/null &&:
-if [ $? -eq 0 ]; then
-    vagrant provision | indent
-else
-    vagrant up --provision | indent
-fi
-vagrant halt
+for image in 'kohkimakimoto/rpmbuild-el5' 'kohkimakimoto/rpmbuild-el6' 'kohkimakimoto/rpmbuild-el7'; do
+    docker run \
+        --env DOCKER_IMAGE=${image}  \
+        --env PRODUCT_NAME=${PRODUCT_NAME}  \
+        --env PRODUCT_VERSION=${PRODUCT_VERSION}  \
+        --env COMMIT_HASH=${COMMIT_HASH}  \
+        -v $DIR:/tmp/repo \
+        -w /tmp/repo \
+        ${image} \
+        bash ./_build/packaging/rpm/run.sh
+done
+
+echo "    Removing tarminated containers..."
+docker rm `docker ps -a -q -f status=exited` | indent
 
 cd "$DIR"
 
