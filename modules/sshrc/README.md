@@ -5,16 +5,13 @@ This module provides `after_connect` hook for using [sshrc](https://github.com/R
 ## Usage Example
 
 ```lua
-local sshrc = essh.require "github.com/kohkimakimoto/essh/modules/sshrc"
+local sshrc = import "github.com/kohkimakimoto/essh/modules/sshrc"
 
 host "your-server" {
    HostName = "192.168.56.12",
    Port = "22",
-   hooks = {
-      after_connect = {
+   hooks_after_connect = {
          sshrc,
-         -- and your custome hooks...
-      },
    },
 }
 ```
