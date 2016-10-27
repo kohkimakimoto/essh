@@ -5,7 +5,7 @@ Essh uses Lua for configuration and also has several built-in Lua libraries. You
 Example:
 
 ```lua
-local question = require "glua.question"
+local question = require "question"
 
 task "example" {
     prepare = function ()

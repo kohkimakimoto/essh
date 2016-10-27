@@ -19,6 +19,7 @@ The following are the built-in libraries that are included in Essh.
 * `json`: [layeh/gopher-json](https://github.com/layeh/gopher-json).
 * `fs`: [kohkimakimoto/gluafs](https://github.com/kohkimakimoto/gluafs).
 * `yaml`: [kohkimakimoto/gluayaml](https://github.com/kohkimakimoto/gluayaml).
+* `question`: [kohkimakimoto/question](https://github.com/kohkimakimoto/gluaquestion).
 * `template`: [kohkimakimoto/gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
 * `env`: [kohkimakimoto/gluaenv](https://github.com/kohkimakimoto/gluaenv).
 * `http`: [cjoudrey/gluahttp](https://github.com/cjoudrey/gluahttp).

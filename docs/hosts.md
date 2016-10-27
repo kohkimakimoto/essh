@@ -17,11 +17,9 @@ host "web01.localhost" {
     private = false,
     props = {},
     tags = {},
-    hooks = {
-        before_connect = "",
-        after_connect = "",
-        after_disconnect = "",
-    },
+    hooks_before_connect = {},
+    hooks_after_connect = {},
+    hooks_after_disconnect = {},
 }
 ```
 
