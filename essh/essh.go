@@ -136,19 +136,6 @@ func Start() (exitStatus int) {
 			allFlag = true
 		} else if arg == "--tasks" {
 			tasksFlag = true
-
-		} else if arg == "--filter" {
-			// filter is deprecated. use select instead of it.
-			if len(osArgs) < 2 {
-				printError("--filter reguires an argument.")
-				return ExitErr
-			}
-
-			selectVar = append(selectVar, osArgs[1])
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--filter=") {
-			selectVar = append(selectVar, strings.Split(arg, "=")[1])
-
 		} else if arg == "--select" {
 			if len(osArgs) < 2 {
 				printError("--select reguires an argument.")
