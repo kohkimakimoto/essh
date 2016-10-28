@@ -21,6 +21,7 @@ func InitLuaState(L *lua.LState) {
 	// custom type.
 	registerTaskClass(L)
 	registerHostClass(L)
+	registerHostQueryClass(L)
 	registerDriverClass(L)
 
 	registerTaskContextClass(L)
@@ -206,91 +207,20 @@ func esshImport(L *lua.LState) int {
 }
 
 func esshFindHosts(L *lua.LState) int {
+	hostQuery := NewHostQuery()
 	if L.GetTop() > 1 {
 		panic("find_hosts can receive max 1 argument.")
-	}
-
-	var condTb *lua.LTable
-	if L.GetTop() == 1 {
-		condTb = L.CheckTable(1)
-
-	}
-
-	lhosts := L.NewTable()
-
-	for _, host := range SortedHosts() {
-		if condTb == nil {
-			lhost := newLHost(L, host)
-			lhosts.Append(lhost)
-		} else {
-			var notfound bool
-
-			condTb.ForEach(func(k, v lua.LValue) {
-				if notfound {
-					return
-				}
-
-				ks, ok := toString(k)
-				if !ok {
-					panic("find_hosts condition must be a table, the key of which is a string")
-				}
-
-				if ks == "tag" {
-					ks = "tags"
-				}
-				if ks == "prop" {
-					ks = "props"
-				}
-
-				if hv := host.LValues[ks]; hv != nil {
-					if ks == "tags" {
-						if tagsValues, ok := toLTable(hv); ok {
-							var found bool
-							tagsValues.ForEach(func(_, tag lua.LValue) {
-								if found == false && tag == v {
-									found = true
-								}
-							})
-							if !found {
-								notfound = true
-								return
-							}
-						} else {
-							notfound = true
-						}
-					} else if ks == "props" {
-						if propsValues, ok := toLTable(hv); ok {
-							var found bool
-							propsValues.ForEach(func(_, prop lua.LValue) {
-								if found == false && prop == v {
-									found = true
-								}
-							})
-
-							if !found {
-								notfound = true
-								return
-							}
-						} else {
-							notfound = true
-						}
-					} else if hv != v {
-						notfound = true
-					}
-				} else {
-					notfound = true
-				}
-			})
-
-			if !notfound {
-				lhost := newLHost(L, host)
-				lhosts.Append(lhost)
-			}
-
+	} else if L.GetTop() == 1 {
+		condTb := L.CheckTable(1)
+		tag := condTb.RawGetString("tag")
+		tagStr, ok := toString(tag)
+		if !ok {
+			panic("tag value must be string")
 		}
+		hostQuery.AppendTag(tagStr)
 	}
 
-	L.Push(lhosts)
+	L.Push(newLHostQuery(L, hostQuery))
 	return 1
 }
 
@@ -929,6 +859,95 @@ func hostNewindex(L *lua.LState) int {
 	updateHost(L, host, index, value)
 
 	return 0
+}
+
+const LHostQueryClass = "HostQuery*"
+
+func registerHostQueryClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LHostQueryClass)
+	mt.RawSetString("__index", L.NewFunction(hostQueryIndex))
+}
+
+func newLHostQuery(L *lua.LState, hostQuery *HostQuery) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = hostQuery
+	L.SetMetatable(ud, L.GetTypeMetatable(LHostQueryClass))
+	return ud
+}
+
+func checkHostQuery(L *lua.LState) *HostQuery {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*HostQuery); ok {
+		return v
+	}
+	L.ArgError(1, "HostQuery object expected")
+	return nil
+}
+
+func hostQueryIndex(L *lua.LState) int {
+	//_ := checkHostQuery(L)
+	//_ := L.CheckUserData(1)
+	index := L.CheckString(2)
+
+	switch index {
+	case "filter":
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			hostQuery := checkHostQuery(L)
+			ud := L.CheckUserData(1)
+			if L.GetTop() != 2 {
+				panic("filter must receive max 2 argument.")
+			} else {
+				condTb := L.CheckTable(2)
+				tag := condTb.RawGetString("tag")
+				tagStr, ok := toString(tag)
+				if !ok {
+					panic("tag value must be string")
+				}
+				hostQuery.AppendTag(tagStr)
+			}
+
+			ud.Value = hostQuery
+			L.Push(ud)
+			return 1
+		}))
+
+		return 1
+	case "get":
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			hostQuery := checkHostQuery(L)
+
+			lhosts := L.NewTable()
+			for _, host := range hostQuery.GetHosts() {
+				lhost := newLHost(L, host)
+				lhosts.Append(lhost)
+			}
+
+			L.Push(lhosts)
+			return 1
+		}))
+
+		return 1
+	case "first":
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			L.Push(L.NewFunction(func(L *lua.LState) int {
+				hostQuery := checkHostQuery(L)
+
+				hosts := hostQuery.GetHosts()
+				if len(hosts) > 0 {
+					L.Push(newLHost(L, hosts[0]))
+					return 1
+				}
+				L.Push(lua.LNil)
+				return 1
+			}))
+			return 1
+		}))
+		L.Push(lua.LNil)
+		return 1
+	default:
+		L.Push(lua.LNil)
+		return 1
+	}
 }
 
 const LDriverClass = "Driver*"
