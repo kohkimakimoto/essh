@@ -1,0 +1,5 @@
+# http://gohugo.io/overview/configuration/
+baseurl =  "/"
+title = "Essh - Extended ssh command"
+uglyURLs = true
+disableHugoGeneratorInject = true
