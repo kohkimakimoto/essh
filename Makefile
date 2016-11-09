@@ -1,4 +1,4 @@
-.PHONY: default dev dist packaging packaging_destroy fmt test testv deps deps_update
+.PHONY: default dev dist packaging packaging_destroy fmt test testv deps deps_update website
 
 default: dev
 
@@ -28,3 +28,9 @@ deps:
 
 deps_update:
 	rm Gomfile.lock; rm -rf vendor; gom install && gom lock
+
+website:
+	cd website && hugo
+
+website_dev:
+	cd website && hugo server

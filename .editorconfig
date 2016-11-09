@@ -4,6 +4,12 @@ root = true
 indent_style = space
 end_of_line = lf
 charset = utf-8
+indent_size = 4
+
+[*.html]
+indent_style = space
+indent_size = 2
 
 [*.go]
 indent_style = tab
+indent_size = 4
