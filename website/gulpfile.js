@@ -19,9 +19,10 @@ gulp.task('hugo', shell.task([
 
 // css
 gulp.task('css', function () {
-    gulp.src('src/**/*.scss').
-    pipe(sass().on('error', sass.logError)).
-    pipe(gulp.dest(destDir))
+    gulp.src('src/**/*.scss')
+    .pipe(sass().on('error', sass.logError))
+    .pipe(cleanCSS())
+    .pipe(gulp.dest(destDir))
     ;
 });
 
