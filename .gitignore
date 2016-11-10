@@ -8,7 +8,6 @@ Thumbs.db
 /_work
 /_build/dev/*
 /_build/dist/*
-/website/public
 
 .essh
 esshconfig.lua

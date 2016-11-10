@@ -1,0 +1,9 @@
+.DS_Store
+Thumbs.db
+.tags*
+._*
+*.iml
+/public
+/node_modules
+
+!.gitkeep

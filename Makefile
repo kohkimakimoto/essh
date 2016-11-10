@@ -30,7 +30,4 @@ deps_update:
 	rm Gomfile.lock; rm -rf vendor; gom install && gom lock
 
 website:
-	cd website && hugo
-
-website_dev:
-	cd website && hugo server
+	cd website && make
