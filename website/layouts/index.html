@@ -6,6 +6,10 @@
   {{ partial "meta.html" . }}
   <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
   <link href="/style.css" rel="stylesheet">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/github.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/languages/lua.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
@@ -81,7 +85,7 @@
                 <div class="feature-item">
                   <i class="icon-settings text-primary"></i>
                   <h3>Configuration As Code</h3>
-                  <p class="text-muted">You can write SSH client configuration (aka:~/.ssh/config) in Lua code. So your ssh_config can become more dynamic.</p>
+                  <p class="text-muted">You can write SSH client configuration (aka: <code>~/.ssh/config</code>) in Lua code. So your ssh_config can become more dynamic.</p>
                 </div>
               </div>
               <div class="col-md-4">
@@ -126,6 +130,79 @@
         </div>
       </div>
     </div>
+  </section>
+
+
+  <section class="example">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <div class="section-heading">
+            <h2>Examples</h2>
+            <p class="text-muted">
+              Essh configuration is written in <a href="https://www.lua.org/">Lua</a>. <br />
+              You can also use DSL syntax that is more human-readable. See below examples:
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <h3>Defining Hosts</h3>
+<pre><code class="language-lua">host "webserver-01" {
+    HostName = "192.168.0.11",
+    Port = "22",
+    User = "kohkimakimoto",
+    tags = {
+        "web",
+    },
+}
+
+host "webserver-02" {
+    HostName = "192.168.0.12",
+    Port = "22",
+    User = "kohkimakimoto",
+    tags = {
+        "web",
+    },
+}
+
+host "dbserver-01" {
+    HostName = "192.168.0.13",
+    Port = "22",
+    User = "kohkimakimoto",
+    tags = {
+        "db",
+    },
+}
+</code></pre>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <h3>Defining Tasks</h3>
+<pre><code class="language-lua">task "hello" {
+    description = "say hello",
+    prefix = true,
+    backend = "remote",
+    targets = "web",
+    script = [=[
+        echo "hello on $(hostname)"
+    ]=],
+}
+</code></pre>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <section>
+            <a href="/intro/index.html" class="btn btn-outline btn-green btn-xl">Get Started</a>
+          </section>
+        </div>
+      </div>
+    </div>
+
   </section>
 
   <footer>
