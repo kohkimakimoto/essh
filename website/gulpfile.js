@@ -62,7 +62,7 @@ gulp.task('font', () => {
 
 
 gulp.task('webserver', function() {
-  gulp.watch(['content/**/*', 'layout/**/*', 'src/**/*', 'static/**/*'], ['build']);
+  gulp.watch(['content/**/*', 'layouts/**/*', 'src/**/*', 'static/**/*'], ['build']);
   gulp.src(destDir)
     .pipe(webserver({
       livereload: true,
