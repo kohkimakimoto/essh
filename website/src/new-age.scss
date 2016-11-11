@@ -35,7 +35,9 @@ a {
   -moz-transition: all 0.35s;
   transition: all 0.35s;
   color: #aaaaaa;
-  &:hover, &:focus {
+
+  &:focus,
+  &:hover {
     color: #ffffff;
   }
 }
@@ -45,12 +47,18 @@ hr {
   margin: 25px auto 0;
   border-width: 1px;
   border-color: rgba(34, 34, 34, 0.1);
+
   &.light {
     border-color: white;
   }
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Catamaran', 'Helvetica', 'Arial', 'sans-serif';
   font-weight: 200;
   letter-spacing: 1px;
@@ -63,27 +71,28 @@ p {
 }
 
 pre {
-    display: block;
-    padding: 0;
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.42857;
-    word-break: break-all;
-    word-wrap: break-word;
-    background-color: #fafafa;
-    border: 1px solid #ccc;
-    border-radius: 2px;
+  display: block;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.42857;
+  word-break: break-all;
+  word-wrap: break-word;
+  background-color: #fafafa;
+  border: 1px solid #ccc;
+  border-radius: 2px;
 }
 
 pre code {
-    padding: 0;
-    margin: 0;
+  padding: 0;
+  margin: 0;
 }
 
 code.hljs {
-    background: none;
-    padding: 10px;
+  background: none;
+  padding: 10px;
 }
+
 .navbar-default {
   background-color: white;
   border-color: rgba(34, 34, 34, 0.05);
@@ -93,22 +102,27 @@ code.hljs {
   font-family: 'Catamaran', 'Helvetica', 'Arial', 'sans-serif';
   font-weight: 200;
   letter-spacing: 1px;
+
   .navbar-header {
     .navbar-brand {
       font-family: 'Catamaran', 'Helvetica', 'Arial', 'sans-serif';
       font-weight: 200;
       letter-spacing: 1px;
       color: #222222;
-      &:hover, &:focus {
+
+      &:focus,
+      &:hover {
         color: #aaaaaa;
       }
     }
+
     .navbar-toggle {
       font-size: 12px;
       color: #222222;
       padding: 8px 10px;
     }
   }
+
   .nav > li {
     > a {
       font-family: 'Lato', 'Helvetica', 'Arial', 'sans-serif';
@@ -116,61 +130,111 @@ code.hljs {
       letter-spacing: 2px;
       font-size: 11px;
       color: #222222;
+
       &:focus {
         color: #222222;
       }
-      &:hover, &:focus:hover {
+
+      &:focus:hover,
+      &:hover {
         color: #aaaaaa;
       }
     }
+
     &.active > a {
       color: #aaaaaa !important;
       background-color: transparent;
+
       &:focus {
         color: #aaaaaa !important;
         background-color: transparent;
       }
-      &:hover, &:focus:hover {
+
+      &:focus:hover,
+      &:hover {
         background-color: transparent;
       }
     }
   }
 }
 
+.layout-single {
+  .affix-top {
+    background-color: white;
+    border-color: rgba(34, 34, 34, 0.1);
+
+    .navbar-header .navbar-brand {
+      color: #222222;
+
+      &:focus,
+      &:hover {
+        color: #aaaaaa;
+      }
+    }
+
+    .nav > li > a {
+      color: #222222;
+
+      &:focus {
+        color: #222222;
+      }
+
+      &:focus:hover,
+      &:hover {
+        color: #aaaaaa;
+      }
+    }
+  }
+}
 @media (min-width: 768px) {
   .navbar-default {
     background-color: transparent;
     border-color: transparent;
+
     .navbar-header .navbar-brand {
       color: #ffffff;
-      &:hover, &:focus {
+
+      &:focus,
+      &:hover {
         color: white;
       }
     }
+
     .nav > li > a {
       color: rgba(255, 255, 255, 0.7);
+
       &:focus {
         color: rgba(255, 255, 255, 0.7);
       }
-      &:hover, &:focus:hover {
+
+      &:focus:hover,
+      &:hover {
         color: white;
       }
     }
+
     &.affix {
       background-color: white;
       border-color: rgba(34, 34, 34, 0.1);
+
       .navbar-header .navbar-brand {
         color: #222222;
-        &:hover, &:focus {
+
+        &:focus,
+        &:hover {
           color: #aaaaaa;
         }
       }
+
       .nav > li > a {
         color: #222222;
+
         &:focus {
           color: #222222;
         }
-        &:hover, &:focus:hover {
+
+        &:focus:hover,
+        &:hover {
           color: #aaaaaa;
         }
       }
@@ -190,21 +254,26 @@ header {
   background: url("../images/bg-pattern.png"), linear-gradient(to left, #20470e, #0dad1b);
   /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   color: white;
+
   .header-content {
     text-align: center;
     padding: 100px 0 50px;
     position: relative;
+
     .header-content-inner {
       position: relative;
       max-width: 720px;
       margin: 0 auto;
+
       h1 {
         margin-top: 0;
         margin-bottom: 30px;
         font-size: 30px;
       }
+
       .list-badges {
         margin-bottom: 25px;
+
         img {
           height: 50px;
           margin-bottom: 25px;
@@ -213,18 +282,19 @@ header {
     }
   }
 }
-
 @media (min-width: 768px) {
   header {
     .header-content {
       text-align: center;
       padding: 0;
       height: 450px;
+
       .header-content-inner {
         max-width: 720px;
         margin: 0 auto;
         position: relative;
         top: 35%;
+
         h1 {
           font-size: 35px;
         }
@@ -232,7 +302,6 @@ header {
     }
   }
 }
-
 @media (min-width: 992px) {
   header .header-content .header-content-inner h1 {
     font-size: 35px;
@@ -241,34 +310,45 @@ header {
 
 section {
   padding: 60px 0;
+
   h2 {
     font-size: 43px;
     margin-bottom: 20px;
   }
+
   &.features {
     background-color: #f9f9f9;
+
     .section-heading {
       margin-bottom: 50px;
+
       h2 {
         margin-top: 0;
       }
+
       p {
         margin-bottom: 0;
       }
     }
-    .device-container, .feature-item {
+
+    .device-container,
+    .feature-item {
       max-width: 300px;
       margin: 0 auto;
     }
+
     .device-container {
       margin-bottom: 100px;
     }
+
     .feature-item {
       text-align: center;
       margin-bottom: 70px;
+
       h3 {
         font-size: 25px;
       }
+
       i {
         font-size: 50px;
         background: -webkit-linear-gradient(to left, #20470e, #0dad1b);
@@ -278,60 +358,59 @@ section {
       }
     }
   }
+
   &.example {
     background-color: #ffffff;
+
     .section-heading {
       margin-bottom: 50px;
+
       h2 {
         margin-top: 0;
       }
+
       p {
         margin-bottom: 0;
       }
     }
+
     .example-item {
       margin-bottom: 40px;
+
       h3 {
         font-size: 25px;
       }
     }
   }
+
   &.download {
     background-color: #f9f9f9;
+
     .section-heading {
       margin-bottom: 50px;
+
       h2 {
         margin-top: 0;
       }
+
       p {
         margin-bottom: 0;
       }
     }
+
     .download-item {
       margin-bottom: 40px;
+
       h3 {
         font-size: 25px;
       }
     }
   }
 }
-
-@media (min-width: 768px) {
-
-}
-
-@media (min-width: 768px) {
-
-}
-
-@media (min-width: 992px) {
-
-}
-
-@media (min-width: 992px) {
-
-}
-
+@media (min-width: 768px) {}
+@media (min-width: 768px) {}
+@media (min-width: 992px) {}
+@media (min-width: 992px) {}
 @media (min-width: 768px) {
   section.cta .cta-content h2 {
     font-size: 80px;
@@ -343,16 +422,23 @@ footer {
   padding: 25px 0;
   color: rgba(255, 255, 255, 0.3);
   text-align: center;
+
   p {
     font-size: 12px;
     margin: 0;
   }
+
   ul {
     margin-bottom: 0;
+
     li a {
       font-size: 12px;
       color: rgba(255, 255, 255, 0.3);
-      &:hover, &:focus, &:active, &.active {
+
+      &.active,
+      &:active,
+      &:focus,
+      &:hover {
         text-decoration: none;
       }
     }
@@ -376,7 +462,11 @@ footer {
   color: white;
   border-color: white;
   border: 1px solid;
-  &:hover, &:focus, &:active, &.active {
+
+  &.active,
+  &:active,
+  &:focus,
+  &:hover {
     color: white;
     background-color: rgba(255, 255, 255, 0.7);
   }
@@ -386,7 +476,11 @@ footer {
   color: #0ea81a;
   border-color: #0ea81a;
   border: 1px solid;
-  &:hover, &:focus, &:active, &.active {
+
+  &.active,
+  &:active,
+  &:focus,
+  &:hover {
     color: #ffffff;
     background-color: rgba(14, 168, 26, 0.7);
   }
@@ -404,14 +498,16 @@ footer {
   font-size: 12px;
 }
 
-::-moz-selection, ::selection {
+::-moz-selection,
+::selection {
   color: white;
   text-shadow: none;
   background: #222222;
 }
 
 img {
-  &::selection, &::-moz-selection {
+  &::-moz-selection,
+  &::selection {
     color: white;
     background: transparent;
   }

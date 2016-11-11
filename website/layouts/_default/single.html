@@ -1,14 +1,29 @@
-<!DOCTYPE html>
-{{ .Scratch.Add "title" "" }}{{ if isset .Site.Data.titles .Title }}{{ .Scratch.Set "title" (index .Site.Data.titles .Title).title }}{{ else }}{{ .Scratch.Set "title" .Title}}{{end -}}
-<html lang="en" class="js csstransforms3d">
-  <head>
-    <title>{{ .Scratch.Get "title" }}</title>
-    {{ partial "meta.html" . }}
-    <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
-    <link href="/style.css" rel="stylesheet">
-  </head>
-  <body>
-    {{ .Content }}
-    <script type="text/javascript" src="/bundle.js"></script>
-  </body>
+<!DOCTYPE html> {{ .Scratch.Add "title" "" }}{{ if isset .Site.Data.titles .Title }}{{ .Scratch.Set "title" (index .Site.Data.titles .Title).title }}{{ else }}{{ .Scratch.Set "title" .Title}}{{end -}}
+<html lang="en">
+
+<head>
+  <title>{{ .Scratch.Get "title" }}</title>
+  {{ partial "meta.html" . }}
+  <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  {{ partial "style.html" . }}
+</head>
+
+<body id="page-top" class="layout-single">
+  {{ partial "navbar.html" . }}
+  <section class="single">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-3">
+
+        </div>
+        <div class="col-sm-9">
+          {{ .Content }}
+        </div>
+      </div>
+    </div>
+  </section>
+  {{ partial "footer.html" . }}
+  {{ partial "script.html" . }}
+</body>
+
 </html>

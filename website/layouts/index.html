@@ -5,50 +5,11 @@
   <title>{{ .Scratch.Get "title" }}</title>
   {{ partial "meta.html" . }}
   <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
-  <link href="/style.css" rel="stylesheet">
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/github.min.css">
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/languages/lua.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-  <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-  <![endif]-->
+  {{ partial "style.html" . }}
 </head>
 
-<body id="page-top">
-
-  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-      <!-- Brand and toggle get grouped for better mobile display -->
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
-                </button>
-        <a class="navbar-brand page-scroll" href="#page-top">Essh</a>
-      </div>
-
-      <!-- Collect the nav links, forms, and other content for toggling -->
-      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-        <ul class="nav navbar-nav navbar-right">
-          <li>
-            <a class="page-scroll" href="/intro/index.html">Intro</a>
-          </li>
-          <li>
-            <a class="page-scroll" href="/docs/index.html">Documents</a>
-          </li>
-          <li>
-            <a class="page-scroll" href="https://github.com/kohkimakimoto/essh">Github</a>
-          </li>
-        </ul>
-      </div>
-      <!-- /.navbar-collapse -->
-    </div>
-    <!-- /.container-fluid -->
-  </nav>
-
+<body id="page-top" class="layout-index">
+  {{ partial "navbar.html" . }}
   <header>
     <div class="container">
       <div class="row">
@@ -72,7 +33,7 @@
             <h2>Features</h2>
             <p class="text-muted">
               Essh is a single binary CLI tool and simply wraps ssh command. <br />
-              You can use it in the same way as ssh.And it has useful features over ssh.
+              You can use it in the same way as ssh. And it has useful features over ssh.
             </p>
           </div>
         </div>
@@ -213,26 +174,13 @@ host "dbserver-01" {
       </div>
       <div class="row">
         <div class="col-md-12 text-center">
-            <a href="https://github.com/kohkimakimoto/essh/releases/latest" class="btn btn-outline btn-green btn-xl">Download Latest Version</a>
+            <a href="https://github.com/kohkimakimoto/essh/releases/latest" class="btn btn-outline btn-green btn-xl">Download</a>
         </div>
       </div>
     </div>
   </section>
-
-  <footer>
-    <div class="container">
-      <p>Copyright (c) 2016 Kohki Makimoto</p>
-      <ul class="list-inline">
-        <li>
-          <a href="https://github.com/kohkimakimoto/essh">Github</a>
-        </li>
-        <li>
-          <a href="https://github.com/kohkimakimoto/essh/issues">Issues</a>
-        </li>
-      </ul>
-    </div>
-  </footer>
-  <script type="text/javascript" src="/bundle.js"></script>
+  {{ partial "footer.html" . }}
+  {{ partial "script.html" . }}
 </body>
 
 </html>
