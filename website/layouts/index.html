@@ -132,7 +132,6 @@
     </div>
   </section>
 
-
   <section class="example">
     <div class="container">
       <div class="row">
@@ -148,7 +147,8 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-          <h3>Defining Hosts</h3>
+          <div class="example-item">
+            <h3>Defining Hosts</h3>
 <pre><code class="language-lua">host "webserver-01" {
     HostName = "192.168.0.11",
     Port = "22",
@@ -176,11 +176,13 @@ host "dbserver-01" {
     },
 }
 </code></pre>
+          </div>
         </div>
       </div>
       <div class="row">
         <div class="col-md-12">
-          <h3>Defining Tasks</h3>
+          <div class="example-item">
+            <h3>Defining Tasks</h3>
 <pre><code class="language-lua">task "hello" {
     description = "say hello",
     prefix = true,
@@ -191,18 +193,30 @@ host "dbserver-01" {
     ]=],
 }
 </code></pre>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-lg-12 text-center">
-          <section>
-            <a href="/intro/index.html" class="btn btn-outline btn-green btn-xl">Get Started</a>
-          </section>
+          </div>
         </div>
       </div>
     </div>
+  </section>
 
+  <section class="download">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <div class="section-heading">
+            <h2>Download</h2>
+            <p class="text-muted">
+              Essh is provided as a single binary. You can download it and drop it in your $PATH.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 text-center">
+            <a href="https://github.com/kohkimakimoto/essh/releases/latest" class="btn btn-outline btn-green btn-xl">Download Latest Version</a>
+        </div>
+      </div>
+    </div>
   </section>
 
   <footer>

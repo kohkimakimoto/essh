@@ -265,7 +265,7 @@ section {
     }
     .feature-item {
       text-align: center;
-      margin-bottom: 100px;
+      margin-bottom: 70px;
       h3 {
         font-size: 25px;
       }
@@ -289,55 +289,47 @@ section {
         margin-bottom: 0;
       }
     }
-    .device-container, .feature-item {
-      max-width: 300px;
-      margin: 0 auto;
-    }
-    .device-container {
-      margin-bottom: 100px;
-    }
-    .feature-item {
-      text-align: center;
-      margin-bottom: 100px;
+    .example-item {
+      margin-bottom: 40px;
       h3 {
         font-size: 25px;
       }
-      i {
-        font-size: 50px;
-        background: -webkit-linear-gradient(to left, #20470e, #0dad1b);
-        background: linear-gradient(to left, #20470e, #0dad1b);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+    }
+  }
+  &.download {
+    background-color: #f9f9f9;
+    .section-heading {
+      margin-bottom: 50px;
+      h2 {
+        margin-top: 0;
+      }
+      p {
+        margin-bottom: 0;
+      }
+    }
+    .download-item {
+      margin-bottom: 40px;
+      h3 {
+        font-size: 25px;
       }
     }
   }
 }
 
 @media (min-width: 768px) {
-  section.download .badges .badge-link {
-    display: inline-block;
-    margin-bottom: 0;
-  }
+
 }
 
 @media (min-width: 768px) {
-  section.download h2 {
-    font-size: 70px;
-  }
+
 }
 
 @media (min-width: 992px) {
-  section.features .device-container {
-    margin-bottom: 0;
-  }
+
 }
 
 @media (min-width: 992px) {
-  section.features {
-    .device-container, .feature-item {
-      max-width: none;
-    }
-  }
+
 }
 
 @media (min-width: 768px) {
