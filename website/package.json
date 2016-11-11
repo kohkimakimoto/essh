@@ -9,12 +9,17 @@
   "devDependencies": {
     "bootstrap-sass": "^3.3.7",
     "browserify": "^13.1.1",
+    "font-awesome": "^4.7.0",
     "gulp": "^3.9.1",
     "gulp-clean-css": "^2.0.13",
     "gulp-concat": "^2.6.0",
     "gulp-sass": "^2.3.2",
     "gulp-shell": "^0.5.2",
+    "gulp-uglify": "^2.0.0",
     "gulp-webserver": "^0.9.1",
+    "jquery": "^3.1.1",
+    "jquery-easing": "0.0.1",
+    "simple-line-icons": "^2.4.1",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   },

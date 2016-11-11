@@ -1,14 +1,143 @@
-<!DOCTYPE html>
-{{ .Scratch.Add "title" "" }}{{ if isset .Site.Data.titles .Title }}{{ .Scratch.Set "title" (index .Site.Data.titles .Title).title }}{{ else }}{{ .Scratch.Set "title" .Title}}{{end -}}
-<html lang="en" class="js csstransforms3d">
-  <head>
-    <title>{{ .Scratch.Get "title" }}</title>
-    {{ partial "meta.html" . }}
-    <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
-    <link href="/style.css" rel="stylesheet">
-  </head>
-  <body>
-    WIP...
-    <script type="text/javascript" src="/bundle.js"></script>
-  </body>
+<!DOCTYPE html> {{ .Scratch.Add "title" "" }}{{ if isset .Site.Data.titles .Title }}{{ .Scratch.Set "title" (index .Site.Data.titles .Title).title }}{{ else }}{{ .Scratch.Set "title" .Title}}{{end -}}
+<html lang="en">
+
+<head>
+  <title>{{ .Scratch.Get "title" }}</title>
+  {{ partial "meta.html" . }}
+  <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  <link href="/style.css" rel="stylesheet">
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body id="page-top">
+
+  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+                </button>
+        <a class="navbar-brand page-scroll" href="#page-top">Essh - Extended SSH Command</a>
+      </div>
+
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <a class="page-scroll" href="/intro/index.html">Intro</a>
+          </li>
+          <li>
+            <a class="page-scroll" href="/docs/index.html">Documents</a>
+          </li>
+          <li>
+            <a class="page-scroll" href="https://github.com/kohkimakimoto/essh">Github</a>
+          </li>
+        </ul>
+      </div>
+      <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container-fluid -->
+  </nav>
+
+  <header>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="header-content">
+            <div class="header-content-inner">
+              <h1>Your SSH operation will become more efficient and convenient.</h1>
+              <a href="/intro/index.html" class="btn btn-outline btn-xl page-scroll">Get Started</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="features" class="features">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <div class="section-heading">
+            <h2>Features</h2>
+            <p class="text-muted">Essh is a single binary CLI tool and simply wraps ssh command. You can use it in the same way as ssh.</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-settings text-primary"></i>
+                  <h3>Configuration As Code</h3>
+                  <p class="text-muted">You can write SSH client configuration (aka:~/.ssh/config) in Lua code. So your ssh_config can become more dynamic.</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-fire text-primary"></i>
+                  <h3>Hooks</h3>
+                  <p class="text-muted">Essh supports hooks that execute commands when it connects a remote server.</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-list text-primary"></i>
+                  <h3>Servers List Management</h3>
+                  <p class="text-muted">Essh provides utilities for managing hosts, that list and classify servers by using tags.</p>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-folder text-primary"></i>
+                  <h3>Per-Project Configuration</h3>
+                  <p class="text-muted">Essh supports per-project configuration. This allows you to change SSH hosts config by changing current working directory.</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-rocket text-primary"></i>
+                  <h3>Task Runner</h3>
+                  <p class="text-muted">Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-grid text-primary"></i>
+                  <h3>Modules</h3>
+                  <p class="text-muted">Essh provides modular system that allows you to use, create and share reusable Lua code easily.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>Copyright (c) 2016 Kohki Makimoto</p>
+      <ul class="list-inline">
+        <li>
+          <a href="https://github.com/kohkimakimoto/essh">Github</a>
+        </li>
+        <li>
+          <a href="https://github.com/kohkimakimoto/essh/issues">Issues</a>
+        </li>
+      </ul>
+    </div>
+  </footer>
+  <script type="text/javascript" src="/bundle.js"></script>
+</body>
+
 </html>
