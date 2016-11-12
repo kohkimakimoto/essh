@@ -35,11 +35,12 @@ a {
   -webkit-transition: all 0.35s;
   -moz-transition: all 0.35s;
   transition: all 0.35s;
-  color: #aaaaaa;
+  color: #00c600;
 
   &:focus,
   &:hover {
-    color: #ffffff;
+    color: #00c600;
+    text-decoration: underline;
   }
 }
 
@@ -52,6 +53,15 @@ hr {
   &.light {
     border-color: white;
   }
+}
+
+ul {
+
+}
+
+li {
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 h1,
@@ -75,7 +85,7 @@ p {
 pre {
   display: block;
   padding: 0;
-  margin: 0;
+  margin: 0 0 20px 0;
   font-size: 13px;
   line-height: 1.42857;
   word-break: break-all;
