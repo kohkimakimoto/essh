@@ -3,7 +3,7 @@
 This section covers the basic features of Essh. If you are beginner of Essh, I recommend you to read it at first.
 
 * [Installation](installation.html)
-* [Using As SSH Client](using-as-ssh-client.html)
+* [Using As A SSH Client](using-as-a-ssh-client.html)
 * [Zsh Completion](zsh-completion.html)
 * [Using Hooks](using-hooks.html)
 * [Managing Hosts](managing-hosts.html)
