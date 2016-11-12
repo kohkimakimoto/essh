@@ -10,7 +10,7 @@
 }
 
 .body-font {
-  font-family: 'Muli', 'Helvetica', 'Arial', 'sans-serif';
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .alt-font {
@@ -27,7 +27,8 @@ html {
 body {
   height: 100%;
   width: 100%;
-  font-family: 'Muli', 'Helvetica', 'Arial', 'sans-serif';
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #444444;
 }
 
 a {
@@ -65,6 +66,7 @@ h6 {
 }
 
 p {
+  color: #888;
   font-size: 16px;
   line-height: 1.5;
   margin-bottom: 20px;
@@ -182,6 +184,23 @@ code.hljs {
       &:focus:hover,
       &:hover {
         color: #aaaaaa;
+      }
+    }
+  }
+
+  section.main-content {
+    h1 {
+        margin-bottom: 20px;
+    }
+    a {
+      -webkit-transition: all 0.35s;
+      -moz-transition: all 0.35s;
+      transition: all 0.35s;
+      color: #00c600;
+
+      &:focus,
+      &:hover {
+        text-decoration: underline;
       }
     }
   }
