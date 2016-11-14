@@ -8,7 +8,9 @@ basename = "configuration-files.html"
 
 #  Configuration Files
 
-Essh configuration is written in [Lua](https://www.lua.org/). In the configuration files, you can also use DSL syntax that is more human-readable. Here is an example:
+Essh configuration is written in [Lua](https://www.lua.org/). In the configuration files, you can also use DSL syntax that is more human-readable.
+
+Here is an example:
 
 ~~~lua
 host "web01.localhost" {
@@ -37,6 +39,13 @@ task "uptime" {
     script = "uptime",
 }
 ~~~
+
+## Another Syntax
+
+The above example of configuration is written in Lua DSL style. You can also use plain Lua functions styles. The following examples are valid config code.
+
+WIP...
+
 
 ## Evaluating Orders
 

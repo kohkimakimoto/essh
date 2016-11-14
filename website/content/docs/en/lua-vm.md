@@ -10,6 +10,10 @@ basename = "lua-vm.html"
 
 Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM to load configuration files written in Lua.
 
+## Built-in Functions
+
+WIP...
+
 ## Libraries
 
 Essh provides built-in Lua libraries that you can use in your configuration files.
