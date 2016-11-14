@@ -1,0 +1,38 @@
+<!DOCTYPE html> {{ .Scratch.Add "title" "" }}{{ if isset .Site.Data.titles .Title }}{{ .Scratch.Set "title" (index .Site.Data.titles .Title).title }}{{ else }}{{ .Scratch.Set "title" .Title}}{{end -}}
+<html lang="en">
+
+<head>
+  <title>{{ .Scratch.Get "title" }}</title>
+  {{ partial "meta.html" . }}
+  <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  {{ partial "style.html" . }}
+</head>
+
+<body class="layout-docs-single">
+  {{ partial "navbar.html" . }}
+  <section class="single">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-3">
+
+        </div>
+        <div class="col-sm-9">
+          <div class="pull-right lang-list">
+            <span>Language:</span>
+            <ul>
+              <li><a href="#">en</a></li>
+              <li><a href="#">ja</a></li>
+            </ul>
+          </div>
+          <section class="main-content">
+            {{ .Content }}
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+  {{ partial "footer.html" . }}
+  {{ partial "script.html" . }}
+</body>
+
+</html>
