@@ -196,6 +196,13 @@ code.hljs {
   }
 }
 
+.layout-index {
+    h2 {
+      font-size: 41px;
+      margin-bottom: 20px;
+    }
+}
+
 .layout-docs-single {
   .affix-top {
     background-color: white;
@@ -226,7 +233,15 @@ code.hljs {
 
   section.main-content {
     h1 {
-        margin-bottom: 20px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 30px;
+      margin-top: 40px;
+    }
+    h3 {
+      font-size: 23px;
+      margin-top: 40px;
     }
     a {
       -webkit-transition: all 0.35s;
@@ -384,7 +399,7 @@ section {
   padding: 60px 0;
 
   h2 {
-    font-size: 43px;
+    font-size: 30px;
     margin-bottom: 20px;
   }
 
