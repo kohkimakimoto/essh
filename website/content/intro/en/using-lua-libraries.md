@@ -3,6 +3,7 @@ title = "Using Lua Libraries"
 type = "docs"
 category = "intro"
 lang = "en"
+basename = "using-lua-libraries.html"
 +++
 
 # Using Lua Libraries

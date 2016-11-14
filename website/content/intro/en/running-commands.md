@@ -3,6 +3,7 @@ title = "Running Commands"
 type = "docs"
 category = "intro"
 lang = "en"
+basename = "running-commands.html"
 +++
 
 # Running Commands

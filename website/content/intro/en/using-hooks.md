@@ -3,6 +3,7 @@ title = "Using Hooks"
 type = "docs"
 category = "intro"
 lang = "en"
+basename = "using-hooks.html"
 +++
 
 # Using Hooks

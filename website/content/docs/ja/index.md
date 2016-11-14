@@ -3,7 +3,7 @@ title = "Documentation"
 type = "docs"
 category = "docs"
 lang = "ja"
-basename = "documentation.html"
+basename = "index.html"
 +++
 
 

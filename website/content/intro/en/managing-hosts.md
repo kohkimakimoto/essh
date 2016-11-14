@@ -3,6 +3,7 @@ title = "Managing Hosts"
 type = "docs"
 category = "intro"
 lang = "en"
+basename = "managing-hosts.html"
 +++
 
 # Managing Hosts

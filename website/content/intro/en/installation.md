@@ -3,6 +3,7 @@ title = "Installation"
 type = "docs"
 category = "intro"
 lang = "en"
+basename = "installation.html"
 +++
 
 # Installation
