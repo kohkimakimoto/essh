@@ -1,8 +1,7 @@
-<!DOCTYPE html> {{ .Scratch.Add "title" "" }}{{ if isset .Site.Data.titles .Title }}{{ .Scratch.Set "title" (index .Site.Data.titles .Title).title }}{{ else }}{{ .Scratch.Set "title" .Title}}{{end -}}
 <html lang="en">
 
 <head>
-  <title>{{ .Scratch.Get "title" }}</title>
+  <title>{{ .Site.Title }}</title>
   {{ partial "meta.html" . }}
   <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
   {{ partial "style.html" . }}

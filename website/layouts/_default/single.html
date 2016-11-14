@@ -1,4 +1,6 @@
-<!DOCTYPE html> {{ .Scratch.Add "title" "" }}{{ if isset .Site.Data.titles .Title }}{{ .Scratch.Set "title" (index .Site.Data.titles .Title).title }}{{ else }}{{ .Scratch.Set "title" .Title}}{{end -}}
+{{ if .Title }}{{ .Scratch.Set "title" .Title }}{{end -}}
+{{ if .Site.Title }}{{ .Scratch.Add "title" " | " }}{{ .Scratch.Add "title" .Site.Title }}{{end -}}
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,9 +10,9 @@
   {{ partial "style.html" . }}
 </head>
 
-<body id="page-top" class="layout-single">
+<body class="layout-single">
   {{ partial "navbar.html" . }}
-  <section class="single">
+  <section class="single content-wrapper">
     <div class="container">
       <div class="row">
         <div class="col-sm-3">

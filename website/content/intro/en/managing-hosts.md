@@ -1,11 +1,13 @@
 +++
+title = "Managing Hosts"
 type = "docs"
+category = "intro"
 lang = "en"
 +++
 
 # Managing Hosts
 
-Hosts in Essh can have tags. The tags allow you to classify hosts.
+Hosts in Essh can have tags. The tags allow you to classify the hosts.
 
 For instance, edit `esshconfig.lua` to add some hosts and set tags.
 

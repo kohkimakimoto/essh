@@ -1,5 +1,7 @@
 +++
+title = "Using Hooks"
 type = "docs"
+category = "intro"
 lang = "en"
 +++
 
@@ -15,9 +17,15 @@ host "web01.localhost" {
     Port = "22",
     User = "kohkimakimoto",
 
-    hooks_before_connect = {"echo before_connect"},
-    hooks_after_connect = {"echo after_connect"},
-    hooks_after_disconnect = {"echo after_disconnect"},
+    hooks_before_connect = {
+        "echo before_connect",
+    },
+    hooks_after_connect = {
+        "echo after_connect",
+    },
+    hooks_after_disconnect = {
+        "echo after_disconnect",
+    },
 }
 ~~~
 

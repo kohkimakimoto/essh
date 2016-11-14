@@ -1,7 +1,9 @@
 +++
 title = "Documentation"
 type = "docs"
+category = "docs"
 lang = "en"
+basename = "documentation.html"
 +++
 
 # Documentation

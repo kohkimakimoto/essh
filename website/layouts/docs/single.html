@@ -1,4 +1,6 @@
-<!DOCTYPE html> {{ .Scratch.Add "title" "" }}{{ if isset .Site.Data.titles .Title }}{{ .Scratch.Set "title" (index .Site.Data.titles .Title).title }}{{ else }}{{ .Scratch.Set "title" .Title}}{{end -}}
+{{ if .Title }}{{ .Scratch.Set "title" .Title }}{{end -}}
+{{ if .Site.Title }}{{ .Scratch.Add "title" " | " }}{{ .Scratch.Add "title" .Site.Title }}{{end -}}
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -10,7 +12,7 @@
 
 <body class="layout-docs-single">
   {{ partial "navbar.html" . }}
-  <section class="single">
+  <section class="single content-wrapper">
     <div class="container">
       <div class="row">
         <div class="col-sm-3">
@@ -18,10 +20,10 @@
         </div>
         <div class="col-sm-9">
           <div class="pull-right lang-list">
-            <span>Language:</span>
+            <span>Change Language:</span>
             <ul>
-              <li><a href="#">en</a></li>
-              <li><a href="#">ja</a></li>
+              <li><a href="/{{ .Params.category }}/en/{{ .Params.basename }}" class="{{ if eq .Params.lang "en" }}disabled{{end}}">en</a></li>
+              <li><a href="/{{ .Params.category }}/ja/{{ .Params.basename }}" class="{{ if eq .Params.lang "ja" }}disabled{{end}}">ja</a></li>
             </ul>
           </div>
           <section class="main-content">

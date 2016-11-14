@@ -1,5 +1,7 @@
 +++
+title = "Installation"
 type = "docs"
+category = "intro"
 lang = "en"
 +++
 
@@ -24,4 +26,4 @@ Usage: essh [<options>] [<ssh options and args...>]
 ...
 ~~~
 
-Let's read next section: [Using As SSH Client](using-as-ssh-client.html).
+Let's read next section: [Using As A SSH Client](using-as-a-ssh-client.html).

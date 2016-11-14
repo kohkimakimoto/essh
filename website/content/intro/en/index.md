@@ -1,6 +1,9 @@
 +++
+title = "Introduction"
 type = "docs"
+category = "intro"
 lang = "en"
+basename = "index.html"
 +++
 
 # Introduction

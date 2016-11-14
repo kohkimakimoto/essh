@@ -1,5 +1,7 @@
 +++
+title = "Zsh Completion"
 type = "docs"
+category = "intro"
 lang = "en"
 +++
 

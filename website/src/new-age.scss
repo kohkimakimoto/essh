@@ -18,6 +18,9 @@
   text-transform: uppercase;
   letter-spacing: 2px;
 }
+.content-wrapper {
+    background-color: #ffffff;
+}
 
 html {
   height: 100%;
@@ -29,6 +32,7 @@ body {
   width: 100%;
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #444444;
+  background-color: #222;
 }
 
 a {
@@ -36,6 +40,13 @@ a {
   -moz-transition: all 0.35s;
   transition: all 0.35s;
   color: #00c600;
+
+  &.disabled {
+    pointer-events: none;
+    cursor: default;
+    text-decoration:none;
+    color: #666;
+  }
 
   &:focus,
   &:hover {
