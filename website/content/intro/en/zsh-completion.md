@@ -1,3 +1,8 @@
++++
+type = "docs"
+lang = "en"
++++
+
 # Zsh Completion
 
 Essh supports zsh completion that lists SSH hosts. If you want to use it, add the following code in your `~/.zshrc`

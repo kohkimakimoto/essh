@@ -1,3 +1,8 @@
++++
+type = "docs"
+lang = "en"
++++
+
 # Using As A SSH Client
 
 Essh is implemented as a wrapper of `ssh` command. That means you can use Essh in the same way as `ssh`. Try to connect a remote server by using Essh instead of `ssh` command.

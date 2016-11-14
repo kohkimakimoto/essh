@@ -1,3 +1,8 @@
++++
+type = "docs"
+lang = "en"
++++
+
 # Installation
 
 Essh is provided as a single binary. You can download it and drop it in your $PATH.

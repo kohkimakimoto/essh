@@ -1,3 +1,8 @@
++++
+type = "docs"
+lang = "en"
++++
+
 # Managing Hosts
 
 Hosts in Essh can have tags. The tags allow you to classify hosts.

@@ -1,3 +1,8 @@
++++
+type = "docs"
+lang = "en"
++++
+
 # Using Hooks
 
 Hooks in Essh are scripts executed before and after connecting remote servers.

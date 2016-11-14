@@ -1,3 +1,8 @@
++++
+type = "docs"
+lang = "en"
++++
+
 # Running Commands
 
 Essh allow you to run commands on the selected remote hosts by using `--exec`, `--backend` and `--target` options.
