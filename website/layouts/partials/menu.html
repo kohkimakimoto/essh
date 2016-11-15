@@ -13,6 +13,23 @@
 </section>
 {{ end -}}
 {{ if eq .Params.category "intro" -}}
+{{ if eq .Params.lang "ja" -}}
+<section class="side-menu">
+<ul>
+<li><a href="index.html">イントロダクション</a></li>
+<li><a href="installation.html">インストール</a></li>
+<li><a href="using-as-a-ssh-client.html">SSHクライアントとして使う</a></li>
+<li><a href="zsh-completion.html">Zsh補完</a></li>
+<li><a href="using-hooks.html">フックを使う</a></li>
+<li><a href="managing-hosts.html">ホストの管理</a></li>
+<li><a href="running-commands.html">コマンドを実行する</a></li>
+<li><a href="running-tasks.html">タスクを実行する</a></li>
+<li><a href="using-lua-libraries.html">Luaライブラリを使う</a></li>
+<li><a href="using-modules.html">モジュールを使う</a></li>
+<li><a href="using-drivers.html">ドライバを使う</a></li>
+</ul>
+</section>
+{{ else -}}
 <section class="side-menu">
 <ul>
 <li><a href="index.html">Introduction</a></li>
@@ -28,4 +45,5 @@
 <li><a href="using-drivers.html">Using Drivers</a></li>
 </ul>
 </section>
+{{ end -}}
 {{ end -}}
