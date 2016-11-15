@@ -765,13 +765,12 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		}
 	case "prepare":
 		if prepareFn, ok := value.(*lua.LFunction); ok {
-			task.Prepare = func(ctx *TaskContext) error {
-				lctx := newLTaskContext(L, ctx)
+			task.Prepare = func() error {
 				err := L.CallByParam(lua.P{
 					Fn:      prepareFn,
 					NRet:    1,
 					Protect: false,
-				}, lctx)
+				})
 				if err != nil {
 					return err
 				}
