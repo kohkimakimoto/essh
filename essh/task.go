@@ -20,6 +20,7 @@ type Task struct {
 	Disabled    bool
 	Hidden      bool
 	Prefix      string
+	UsePrefix  bool
 	Registry    *Registry
 
 	LValues map[string]lua.LValue

@@ -701,15 +701,11 @@ func Start() (exitStatus int) {
 		}
 		task.Targets = targetVar
 
-		if prefixStringVar == "" {
-			if prefixFlag {
-				if task.IsRemoteTask() {
-					task.Prefix = DefaultPrefixRemote
-				} else {
-					task.Prefix = DefaultPrefixLocal
-				}
-			}
-		} else {
+		if prefixFlag || prefixStringVar != "" {
+			task.UsePrefix = true
+		}
+
+		if prefixStringVar != "" {
 			task.Prefix = prefixStringVar
 		}
 
@@ -966,7 +962,16 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 	}
 
 	prefix := ""
-	if task.Prefix != "" {
+	if task.UsePrefix {
+		prefixTmp := task.Prefix
+		if prefixTmp == "" {
+			if task.IsRemoteTask() {
+				prefixTmp = DefaultPrefixRemote
+			} else {
+				prefixTmp = DefaultPrefixLocal
+			}
+		}
+
 		funcMap := template.FuncMap{
 			"ShellEscape":         ShellEscape,
 			"ToUpper":             strings.ToUpper,
@@ -979,7 +984,7 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 			"Host": host,
 			"Task": task,
 		}
-		tmpl, err := template.New("T").Funcs(funcMap).Parse(task.Prefix)
+		tmpl, err := template.New("T").Funcs(funcMap).Parse(prefixTmp)
 		if err != nil {
 			return err
 		}
@@ -1070,12 +1075,21 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 	}
 
 	prefix := ""
-	if task.Prefix == DefaultPrefixLocal && host == nil {
+	if host == nil && task.UsePrefix {
 		// simple local task (does not specify the hosts)
 		// prevent to use invalid text template.
 		// replace prefix string to the string that is not included "{{.Host}}"
 		prefix = "[local] "
-	} else if task.Prefix != "" {
+	} else if task.UsePrefix  {
+		prefixTmp := task.Prefix
+		if prefixTmp == "" {
+			if task.IsRemoteTask() {
+				prefixTmp = DefaultPrefixRemote
+			} else {
+				prefixTmp = DefaultPrefixLocal
+			}
+		}
+
 		funcMap := template.FuncMap{
 			"ShellEscape":         ShellEscape,
 			"ToUpper":             strings.ToUpper,
@@ -1088,7 +1102,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 			"Host": host,
 			"Task": task,
 		}
-		tmpl, err := template.New("T").Funcs(funcMap).Parse(task.Prefix)
+		tmpl, err := template.New("T").Funcs(funcMap).Parse(prefixTmp)
 		if err != nil {
 			return err
 		}

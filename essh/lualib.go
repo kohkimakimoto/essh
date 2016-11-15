@@ -716,14 +716,9 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		}
 	case "prefix":
 		if prefixBool, ok := toBool(value); ok {
-			if prefixBool {
-				if task.IsRemoteTask() {
-					task.Prefix = DefaultPrefixRemote
-				} else {
-					task.Prefix = DefaultPrefixLocal
-				}
-			}
+			task.UsePrefix = prefixBool
 		} else if prefixStr, ok := toString(value); ok {
+			task.UsePrefix = true
 			task.Prefix = prefixStr
 		} else {
 			panic("invalid value of a task's field '" + key + "'.")
