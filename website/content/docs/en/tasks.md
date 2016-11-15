@@ -34,20 +34,6 @@ You can run a task below command.
 $ essh example
 ~~~
 
-You can pass an arbitrary string data to the task. This is called payload. See the example:
-
-~~~
-$ essh example hogehoge
-~~~
-
-In the task, You can get the payload from standard input.
-
-~~~lua
-task "example" {
-    script = "cat -",
-}
-~~~
-
 ## Properties
 
 * `description` (string): Description of the task.
@@ -73,17 +59,12 @@ task "example" {
 * `prepare` (function): Prepare is a function to be executed when the task starts. See example:
 
   ~~~lua
-  prepare = function (ctx)
-      -- get a payload
-      print(ctx:payload())
-      -- set a payload
-      ctx:payload("new value")
+  prepare = function ()
       -- cancel the task execution by returns false.
       return false
   end,
   ~~~
 
-  Prepare function can have a argument. This argument is a context object of the task. You can get and change the payload by using this context object.
   By the prepare function returns false, you can cancel to execute the task.
 
 * `script` (string|table): Script is an executed code. Example:

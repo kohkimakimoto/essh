@@ -128,20 +128,3 @@ exit $__essh_var_status
 end
 
 return docker
-
-
--- Experimental:
---
--- Building docker image before running if it doesn't exist (only local task).
---
---
--- ```lua
--- driver "docker" {
--- engine = docker.driver,
--- image = "my-custom-image",
--- build = {
--- -- using current directory Dockerfile.
--- url = ".",
--- }
--- }
---```

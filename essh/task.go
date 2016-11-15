@@ -8,7 +8,7 @@ import (
 type Task struct {
 	Name        string
 	Description string
-	Prepare     func(task *TaskContext) error
+	Prepare     func() error
 	Driver      string
 	Pty         bool
 	Script      []map[string]string

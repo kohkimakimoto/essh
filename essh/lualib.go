@@ -24,7 +24,6 @@ func InitLuaState(L *lua.LState) {
 	registerHostQueryClass(L)
 	registerDriverClass(L)
 
-	registerTaskContextClass(L)
 	registerRegistryClass(L)
 
 	// global functions
@@ -34,6 +33,7 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 	L.SetGlobal("import", L.NewFunction(esshImport))
 	L.SetGlobal("find_hosts", L.NewFunction(esshFindHosts))
+	L.SetGlobal("registry", L.NewFunction(esshRegistry))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -60,13 +60,13 @@ func InitLuaState(L *lua.LState) {
 		"driver":       esshDriver,
 		"import":       esshImport,
 		"find_hosts":   esshFindHosts,
+		"registry":     esshRegistry,
 
 		// deprecated
 		"require":  esshImport,   // deprecated
 		"debug":    esshDebug,    // deprecated
 		"gethosts": esshGethosts, // deprecated
 		"hosts":    esshGethosts, // deprecated
-		"registry": esshRegistry, // deprecated
 	})
 }
 
@@ -559,41 +559,6 @@ func toLTable(v lua.LValue) (*lua.LTable, bool) {
 	}
 }
 
-const LTaskContextClass = "TaskContext*"
-
-func newLTaskContext(L *lua.LState, ctx *TaskContext) *lua.LUserData {
-	ud := L.NewUserData()
-	ud.Value = ctx
-	L.SetMetatable(ud, L.GetTypeMetatable(LTaskContextClass))
-	return ud
-}
-
-func registerTaskContextClass(L *lua.LState) {
-	mt := L.NewTypeMetatable(LTaskContextClass)
-	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
-		"payload": taskContextPayload,
-	}))
-}
-
-func taskContextPayload(L *lua.LState) int {
-	ctx := checkTaskContext(L)
-	if L.GetTop() == 2 {
-		ctx.Payload = L.CheckString(2)
-		return 0
-	}
-	L.Push(lua.LString(ctx.Payload))
-	return 1
-}
-
-func checkTaskContext(L *lua.LState) *TaskContext {
-	ud := L.CheckUserData(1)
-	if v, ok := ud.Value.(*TaskContext); ok {
-		return v
-	}
-	L.ArgError(1, "TaskContext object expected")
-	return nil
-}
-
 const LTaskClass = "Task*"
 
 func registerTaskClass(L *lua.LState) {
@@ -765,13 +730,12 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		}
 	case "prepare":
 		if prepareFn, ok := value.(*lua.LFunction); ok {
-			task.Prepare = func(ctx *TaskContext) error {
-				lctx := newLTaskContext(L, ctx)
+			task.Prepare = func() error {
 				err := L.CallByParam(lua.P{
 					Fn:      prepareFn,
 					NRet:    1,
 					Protect: false,
-				}, lctx)
+				})
 				if err != nil {
 					return err
 				}
