@@ -50,7 +50,7 @@ $ essh example
 
 * `hidden` (boolean): If it is true, this task is not displayed in tasks list.
 
-* `targets` (string|table): Host names and tags that the task's scripts is executed for. You can use only hosts and tags which defined by same configuration registry of the task. If you defines a task in `/var/tmp/esshconfig.lua`, this task can not use hosts defined in `~/.essh/config.lua`. The first configuration file is **local** registry. But the second configuration file is **global** registry.
+* `targets` (string|table): Host names and tags that the task's scripts is executed for. You can use only hosts and tags which defined by same configuration registry of the task. If you define a task in `/var/tmp/esshconfig.lua`, this task can not use hosts defined in `~/.essh/config.lua`. The first configuration file is **local** registry. But the second configuration file is **global** registry.
 
 * `backend` (string): You can set value only `remote` or `local`.
 
@@ -58,39 +58,39 @@ $ essh example
 
 * `prepare` (function): Prepare is a function to be executed when the task starts. See example:
 
-  ~~~lua
-  prepare = function ()
-      -- cancel the task execution by returns false.
-      return false
-  end,
-  ~~~
+    ~~~lua
+    prepare = function ()
+        -- cancel the task execution by returns false.
+        return false
+    end,
+    ~~~
 
-  By the prepare function returns false, you can cancel to execute the task.
+    By the prepare function returns false, you can cancel to execute the task.
 
 * `script` (string|table): Script is an executed code. Example:
 
-  ~~~lua
-  script = [=[
-      echo aaa
-      echo bbb
-      echo ccc
-  ]=]
-  ~~~
+    ~~~lua
+    script = [=[
+        echo aaa
+        echo bbb
+        echo ccc
+    ]=]
+    ~~~
 
-  or
+    or
 
-  ~~~lua
-  script = {
-      "echo aaa",
-      "echo bbb",
-      "echo ccc",
-  }
-  ~~~
+    ~~~lua
+    script = {
+        "echo aaa",
+        "echo bbb",
+        "echo ccc",
+    }
+    ~~~
 
-  If you set it as a table, Essh concatenates strings in the table with newline code. And Essh runs the script as a bash script.
-  But this is just default behavior. You can change it by [Drivers](drivers.html).
+    If you set it as a table, Essh concatenates strings in the table with newline code. And Essh runs the script as a bash script.
+    But this is just default behavior. You can change it by [Drivers](drivers.html).
 
-  You can use predefined environment variables in your script, See below:
+    You can use predefined environment variables in your script, See below:
 
   * `ESSH_TASK_NAME`: task name.
 

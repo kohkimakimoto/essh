@@ -12,9 +12,58 @@ Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM to load co
 
 ## Built-in Functions
 
-WIP...
+As you already seen `host` and `task` functions, Essh core features consist of built-in functions. All the functions are listed below.
 
-## Libraries
+* `host`: Defines a host. See [Hosts](/docs/en/hosts.html).
+
+* `private_host`: Defines a private host. See [Hosts](/docs/en/hosts.html).
+
+* `task`: Defines a task. See [Tasks](/docs/en/tasks.html).
+
+* `driver`: Defines a driver. See [Drivers](/docs/en/drivers.html).
+
+* `import`: Imports a module. See [Modules](/docs/en/modules.html).
+
+* `find_hosts`: Gets defined hosts. It is useful for overriding host config and set default values. For example, if you want to set a default ssh config: `ForwardAgent = yes`, you can achieve it the below code:
+
+    ~~~lua
+    -- ~/.essh/config_override.lua
+    for _, h in pairs(find_hosts():get()) do
+        if h.ForwardAgent == nil then
+            h.ForwardAgent = "yes"
+        end
+    end
+    ~~~
+
+    Above example sets the default value to the all hosts. If you want to set the value to some hosts you selected, You can also use the below code:
+
+    ~~~lua
+    -- ~/.essh/config_override.lua
+    -- Getting only the hosts that has `web` tag.
+    for _, h in pairs(find_hosts({ tag = "web" }):get()) do
+        if h.ForwardAgent == nil then
+            h.ForwardAgent = "yes"
+        end
+    end
+
+    -- You can set filter multiple times.
+    -- Getting only the hosts that has `web` and `production` tag.
+    for _, h in pairs(find_hosts({ tag = "web" }):filter({ tag = "production" }):get()) do
+        if h.ForwardAgent == nil then
+            h.ForwardAgent = "yes"
+        end
+    end
+
+    -- Getting only the first one host using `first` method.
+    local h = find_hosts({ tag = "web" }):first()
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = "yes"
+    end
+    ~~~
+
+* `registry`: Gets a current registry object.
+
+## Built-in Libraries
 
 Essh provides built-in Lua libraries that you can use in your configuration files.
 For instance, if you want to use `json` library, you should use Lua's `require` function like below.

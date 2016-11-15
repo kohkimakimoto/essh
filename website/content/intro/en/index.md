@@ -8,15 +8,6 @@ basename = "index.html"
 
 # Introduction
 
-This section covers the basic features of Essh. If you are beginner of Essh, I recommend you to read it at first.
+This section covers the basic features of Essh. If you are beginner of Essh, I recommend you to read it at first. Let's start at [Installation](installation.html), and Try to read sections step by step.
 
-* [Installation](installation.html)
-* [Using As A SSH Client](using-as-a-ssh-client.html)
-* [Zsh Completion](zsh-completion.html)
-* [Using Hooks](using-hooks.html)
-* [Managing Hosts](managing-hosts.html)
-* [Running Commands](running-commands.html)
-* [Running Tasks](running-tasks.html)
-* [Using Lua Libraries](using-lua-libraries.html)
-* [Using Modules](using-modules.html)
-* [Using Drivers](using-drivers.html)
+If you want to get in-depth information about Essh, read the [documentation](/docs/en/index.html).

@@ -12,7 +12,7 @@ Essh is implemented as a wrapper of `ssh` command. That means you can use Essh i
 
 Create `esshconfig.lua` in your current directory. This is a default configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language. Now edit this file as the following.
 
-> Replace the `HostName` and some parameters for your environment.
+> Replace the `HostName`, `User` and some parameters for your environment.
 
 ~~~lua
 host "web01.localhost" {

@@ -8,7 +8,7 @@ basename = "hosts.html"
 
 # Hosts
 
-Hosts in Essh are managed SSH servers. Using hosts configuration, Essh dynamically generates SSH config, provides hook functions, classify the hosts by tags.
+Hosts in Essh are SSH servers that you manage. Using hosts configuration, Essh dynamically generates SSH config, provides hook functions, classify the hosts by tags.
 
 ## Example
 
@@ -45,22 +45,34 @@ They are used for special purpose of Essh functions, not ssh_config.
 
 All the properties of this type are listed below.
 
-* `description` (string): Description is a description of the host.
+* `description` (string): Description of the host. This is used for displaying hosts list and zsh completion.
 
 * `hidden` (boolean): If you set it true, zsh completion doesn't show the host.
 
 * `private` (boolean): If you set it true, This host can be only used to the tasks. See also [scope](#scope)
 
-* `hooks_before_connect` (table): Hooks Before Connect
+* `hooks_before_connect` (table): Hooks fire before connect. The hook is defined as a lua table. This table can have mulitple functions or strings. See the example:
 
     ~~~lua
     hooks_before_connect = {
-        -- function or string.
+        -- function
+        function()
+            print("foo")
+        end,
+
+        -- string (commands)
+        "echo bar",
+
+        -- If the function returns a string, Essh run the string as a command.
+        function()
+            return "echo foobar"
+        end,
     }
     ~~~
-* `hooks_after_connect` (table): Hooks After Connect
 
-* `hooks_after_disconnect` (table): Hooks After Disconnect
+* `hooks_after_connect` (table): Hooks fire after connect.
+
+* `hooks_after_disconnect` (table): Hooks fire after disconnect.
 
 * `tags` (array table): Tags classifys hosts.
 

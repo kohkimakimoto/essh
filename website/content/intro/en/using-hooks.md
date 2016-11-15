@@ -32,10 +32,8 @@ host "web01.localhost" {
 
 Essh supports below type of hooks:
 
-* `hooks_before_connect` (table): fires on the localhost before you connect a server via SSH.
-
-* `hooks_after_connect` (table): fires on the remote host after you connect a server via SSH.
-
-* `hooks_after_disconnect` (table): fires on the local host after you disconnect from a SSH server.
+* `hooks_before_connect`
+* `hooks_after_connect`
+* `hooks_after_disconnect`
 
 Let's read next section: [Managing Hosts](managing-hosts.html).
