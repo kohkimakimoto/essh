@@ -27,8 +27,8 @@ Run the task.
 
 ~~~
 $ essh hello
-[web01.localhost] hello on web01.localhost
-[web02.localhost] hello on web02.localhost
+[remote:web01.localhost] hello on web01.localhost
+[remote:web02.localhost] hello on web02.localhost
 ~~~
 
 If you set `local` at `backend` property, Essh runs a task locally.
@@ -46,7 +46,7 @@ task "hello" {
 
 ~~~
 $ essh hello
-[Local] hello on your-hostname
+[local] hello on your-hostname
 ~~~
 
 For more information on tasks, see the [Tasks](/docs/en/tasks.html) section.
