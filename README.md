@@ -2,19 +2,17 @@
 
 > **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
-Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation will become more efficient and convenient.
+Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation becomes more efficient and convenient.
 
 ## Features
 
-* **Simple**: Essh is a single binary CLI tool and simply wraps `ssh` command. You can use it in the same way as `ssh`.
+Essh is a single binary CLI tool and simply wraps ssh command. You can use it in the same way as ssh. And it has useful features over ssh.
 
 * **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in [Lua](https://www.lua.org/) code. So your ssh_config can become more dynamic.
 
 * **Hooks**: Essh supports hooks that execute commands when it connects a remote server.
 
 * **Servers List Management**: Essh provides utilities for managing hosts, that list and classify servers by using tags.
-
-* **Zsh Completion**: Essh provides built-in zsh completion.
 
 * **Per-Project Configuration**: Essh supports per-project configuration. This allows you to change SSH hosts config by changing current working directory.
 
@@ -28,9 +26,13 @@ Essh is provided as a single binary. You can download it and drop it in your $PA
 
 [Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
 
+## Gettting Started
+
+See [Introduction](https://essh.sitespread.net/intro/en/index.html)
+
 ## Documentation
 
-See [Documentation](./docs/README.md)
+See [Documentation](https://essh.sitespread.net/docs/en/index.html)
 
 ## Developing
 
