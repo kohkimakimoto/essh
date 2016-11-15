@@ -23,7 +23,7 @@ func InitLuaState(L *lua.LState) {
 	registerHostClass(L)
 	registerHostQueryClass(L)
 	registerDriverClass(L)
-	
+
 	registerRegistryClass(L)
 
 	// global functions
@@ -33,6 +33,7 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 	L.SetGlobal("import", L.NewFunction(esshImport))
 	L.SetGlobal("find_hosts", L.NewFunction(esshFindHosts))
+	L.SetGlobal("registry", L.NewFunction(esshRegistry))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -59,13 +60,13 @@ func InitLuaState(L *lua.LState) {
 		"driver":       esshDriver,
 		"import":       esshImport,
 		"find_hosts":   esshFindHosts,
+		"registry":     esshRegistry,
 
 		// deprecated
 		"require":  esshImport,   // deprecated
 		"debug":    esshDebug,    // deprecated
 		"gethosts": esshGethosts, // deprecated
 		"hosts":    esshGethosts, // deprecated
-		"registry": esshRegistry, // deprecated
 	})
 }
 
