@@ -15,10 +15,7 @@
   <section class="single content-wrapper">
     <div class="container">
       <div class="row">
-        <div class="col-sm-3">
-          {{ partial "menu.html" . }}
-        </div>
-        <div class="col-sm-9">
+        <div class="col-sm-9 col-sm-push-3">
           <div class="pull-right lang-list change-lang">
             <span>Change Language:</span>
             <ul>
@@ -30,6 +27,10 @@
             {{ .Content }}
           </section>
         </div>
+        <div class="col-sm-3 col-sm-pull-9">
+          {{ partial "menu.html" . }}
+        </div>
+
       </div>
     </div>
   </section>
