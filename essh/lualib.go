@@ -23,8 +23,7 @@ func InitLuaState(L *lua.LState) {
 	registerHostClass(L)
 	registerHostQueryClass(L)
 	registerDriverClass(L)
-
-	registerTaskContextClass(L)
+	
 	registerRegistryClass(L)
 
 	// global functions
@@ -557,41 +556,6 @@ func toLTable(v lua.LValue) (*lua.LTable, bool) {
 	} else {
 		return nil, false
 	}
-}
-
-const LTaskContextClass = "TaskContext*"
-
-func newLTaskContext(L *lua.LState, ctx *TaskContext) *lua.LUserData {
-	ud := L.NewUserData()
-	ud.Value = ctx
-	L.SetMetatable(ud, L.GetTypeMetatable(LTaskContextClass))
-	return ud
-}
-
-func registerTaskContextClass(L *lua.LState) {
-	mt := L.NewTypeMetatable(LTaskContextClass)
-	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
-		"payload": taskContextPayload,
-	}))
-}
-
-func taskContextPayload(L *lua.LState) int {
-	ctx := checkTaskContext(L)
-	if L.GetTop() == 2 {
-		ctx.Payload = L.CheckString(2)
-		return 0
-	}
-	L.Push(lua.LString(ctx.Payload))
-	return 1
-}
-
-func checkTaskContext(L *lua.LState) *TaskContext {
-	ud := L.CheckUserData(1)
-	if v, ok := ud.Value.(*TaskContext); ok {
-		return v
-	}
-	L.ArgError(1, "TaskContext object expected")
-	return nil
 }
 
 const LTaskClass = "Task*"

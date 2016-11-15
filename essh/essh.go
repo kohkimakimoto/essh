@@ -106,6 +106,9 @@ func Start() (exitStatus int) {
 	args := []string{}
 	doesNotParseOption := false
 
+	// parsing options
+	// Essh uses only double dash options like `--print`,
+	// because of preventing conflict to the ssh options.
 	for {
 		if len(osArgs) == 0 {
 			break
