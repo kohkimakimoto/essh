@@ -82,6 +82,9 @@ All the properties of this type are listed below.
         "production",
     }
     ~~~
+
+    Tags mustn't be duplicated with any host names.
+
 * `props` (table): Props sets environment variables `ESSH_HOST_PROPS_{KEY}` when the host is used in tasks. The table key is modified to upper cased.
 
     ~~~lua

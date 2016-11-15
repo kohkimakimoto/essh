@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+	"fmt"
 )
 
 type Host struct {
@@ -269,6 +270,7 @@ func HostsByNames(names []string) []*Host {
 	B1:
 		for _, name := range names {
 			if host.Name == name {
+				fmt.Println("ok")
 				hosts = append(hosts, host)
 				break B1
 			}

@@ -39,23 +39,23 @@ As you already seen `host` and `task` functions, Essh core features consist of b
 
     ~~~lua
     -- ~/.essh/config_override.lua
-    -- Getting only the hosts that has `web` tag.
-    for _, h in pairs(find_hosts({ tag = "web" }):get()) do
+    -- Getting only the hosts that has `web` tag or name of the hosts is `web`.
+    for _, h in pairs(find_hosts("web"):get()) do
         if h.ForwardAgent == nil then
             h.ForwardAgent = "yes"
         end
     end
 
     -- You can set filter multiple times.
-    -- Getting only the hosts that has `web` and `production` tag.
-    for _, h in pairs(find_hosts({ tag = "web" }):filter({ tag = "production" }):get()) do
+    -- Getting only the hosts filtered by `web` and `production`.
+    for _, h in pairs(find_hosts("web"):filter("production"):get()) do
         if h.ForwardAgent == nil then
             h.ForwardAgent = "yes"
         end
     end
 
     -- Getting only the first one host using `first` method.
-    local h = find_hosts({ tag = "web" }):first()
+    local h = find_hosts("web"):first()
     if h.ForwardAgent == nil then
         h.ForwardAgent = "yes"
     end

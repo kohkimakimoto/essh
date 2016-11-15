@@ -211,13 +211,7 @@ func esshFindHosts(L *lua.LState) int {
 	if L.GetTop() > 1 {
 		panic("find_hosts can receive max 1 argument.")
 	} else if L.GetTop() == 1 {
-		condTb := L.CheckTable(1)
-		tag := condTb.RawGetString("tag")
-		tagStr, ok := toString(tag)
-		if !ok {
-			panic("tag value must be string")
-		}
-		hostQuery.AppendTag(tagStr)
+		hostQuery.AppendFilter(L.CheckString(1))
 	}
 
 	L.Push(newLHostQuery(L, hostQuery))
@@ -856,13 +850,7 @@ func hostQueryIndex(L *lua.LState) int {
 			if L.GetTop() != 2 {
 				panic("filter must receive max 2 argument.")
 			} else {
-				condTb := L.CheckTable(2)
-				tag := condTb.RawGetString("tag")
-				tagStr, ok := toString(tag)
-				if !ok {
-					panic("tag value must be string")
-				}
-				hostQuery.AppendTag(tagStr)
+				hostQuery.AppendFilter(L.CheckString(2))
 			}
 
 			ud.Value = hostQuery

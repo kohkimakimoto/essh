@@ -1,38 +1,44 @@
 package essh
 
 type HostQuery struct {
-	TagsFilter []string
+	Filters []string
 }
 
 func NewHostQuery() *HostQuery {
 	return &HostQuery{
-		TagsFilter: []string{},
+		Filters: []string{},
 	}
 }
 
-func (hostQuery *HostQuery) AppendTag(tag string) {
-	hostQuery.TagsFilter = append(hostQuery.TagsFilter, tag)
+func (hostQuery *HostQuery) AppendFilter(filter string) {
+	hostQuery.Filters = append(hostQuery.Filters, filter)
 }
 
 func (hostQuery *HostQuery) GetHosts() []*Host {
 	hosts := SortedHosts()
-	if len(hostQuery.TagsFilter) == 0 {
+	if len(hostQuery.Filters) == 0 {
 		return hosts
 	}
 
-	for _, tag := range hostQuery.TagsFilter {
-		hosts = hostQuery.filterHosts(hosts, tag)
+	for _, filter := range hostQuery.Filters {
+		hosts = hostQuery.filterHosts(hosts, filter)
 	}
 
 	return hosts
 }
 
-func (hostQuery *HostQuery) filterHosts(hosts []*Host, filterdTag string) []*Host {
+func (hostQuery *HostQuery) filterHosts(hosts []*Host, filter string) []*Host {
 	newHosts := []*Host{}
 	for _, host := range hosts {
+		if host.Name == filter {
+			newHosts = append(newHosts, host)
+			continue
+		}
+
 		for _, tag := range host.Tags {
-			if tag == filterdTag {
+			if tag == filter {
 				newHosts = append(newHosts, host)
+				break
 			}
 		}
 	}

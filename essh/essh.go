@@ -1375,26 +1375,24 @@ func runCommand(command string) error {
 
 func validateConfig() error {
 	// check duplication of the host, task and tag names
-	names := map[string]bool{}
+	hostnames := map[string]bool{}
 	for _, host := range SortedPublicHosts() {
-		if _, ok := names[host.Name]; ok {
+		if _, ok := hostnames[host.Name]; ok {
 			return fmt.Errorf("Host '%s' is duplicated", host.Name)
 		}
-		names[host.Name] = true
+		hostnames[host.Name] = true
 	}
 
 	for _, task := range SortedTasks() {
-		if _, ok := names[task.Name]; ok {
-			return fmt.Errorf("Task '%s' is duplicated", task.Name)
+		if _, ok := hostnames[task.Name]; ok {
+			return fmt.Errorf("Task '%s' is duplicated with hostname.", task.Name)
 		}
-		names[task.Name] = true
 	}
 
 	for _, tag := range Tags() {
-		if _, ok := names[tag]; ok {
-			return fmt.Errorf("Tag '%s' is duplicated", tag)
+		if _, ok := hostnames[tag]; ok {
+			return fmt.Errorf("Tag '%s' is duplicated with hostname.", tag)
 		}
-		names[tag] = true
 	}
 
 	return nil

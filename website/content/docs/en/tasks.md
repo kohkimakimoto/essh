@@ -34,6 +34,8 @@ You can run a task below command.
 $ essh example
 ~~~
 
+Notice: Task name mustn't be duplicated with any host names.
+
 ## Properties
 
 * `description` (string): Description of the task.
