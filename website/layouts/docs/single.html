@@ -19,7 +19,7 @@
           {{ partial "menu.html" . }}
         </div>
         <div class="col-sm-9">
-          <div class="pull-right lang-list">
+          <div class="pull-right lang-list change-lang">
             <span>Change Language:</span>
             <ul>
               <li><a href="/{{ .Params.category }}/en/{{ .Params.basename }}" class="{{ if eq .Params.lang "en" }}disabled{{end}}">en</a></li>
