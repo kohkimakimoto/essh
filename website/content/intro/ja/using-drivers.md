@@ -16,6 +16,6 @@ Esshは通常、組み込みのデフォルトドライバを使ってタスク�
 
 ## 次のステップ
 
-この[Introduction](/intro/ja/index.html)ガイドでは、Esshの基本的な機能について説明しました。 Esshに関する詳細な情報を知りたい場合は、[documentation](/docs/ja/index.html)を参照してください。
+この[イントロダクション](/intro/ja/index.html)ガイドでは、Esshの基本的な機能について説明しました。 Esshに関する詳細な情報を知りたい場合は、[ドキュメント](/docs/ja/index.html)を参照してください。
 
 それでは。
