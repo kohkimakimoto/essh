@@ -44,6 +44,6 @@ foo
 ~~~
 
 
-モジュールの詳細については[Modules](/docs/ja/modules.html)セクションを参照してください。
+モジュールの詳細については[モジュール](/docs/ja/modules.html)セクションを参照してください。
 
 次のセクション: [ドライバを使う](using-drivers.html)

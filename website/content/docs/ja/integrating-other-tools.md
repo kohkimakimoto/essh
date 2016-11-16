@@ -1,12 +1,12 @@
 +++
-title = "Integrating Other Tools | Documentation"
+title = "他のツールとの統合 | ドキュメント"
 type = "docs"
 category = "docs"
 lang = "ja"
 basename = "integrating-other-tools.html"
 +++
 
-# Integrating Other Tools
+# 他のツールとの統合
 
 Essh can be used with `scp`, `rsync` and `git`.
 

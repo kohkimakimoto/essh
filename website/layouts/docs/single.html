@@ -17,11 +17,19 @@
       <div class="row">
         <div class="col-sm-9 col-sm-push-3">
           <div class="pull-right lang-list change-lang">
+            {{ if eq .Params.lang "ja" -}}
+            <span>言語の選択:</span>
+            <ul>
+              <li><a href="/{{ .Params.category }}/en/{{ .Params.basename }}" class="{{ if eq .Params.lang "en" }}disabled{{end}}">英語</a></li>
+              <li><a href="/{{ .Params.category }}/ja/{{ .Params.basename }}" class="{{ if eq .Params.lang "ja" }}disabled{{end}}">日本語</a></li>
+            </ul>
+            {{ else -}}
             <span>Change Language:</span>
             <ul>
               <li><a href="/{{ .Params.category }}/en/{{ .Params.basename }}" class="{{ if eq .Params.lang "en" }}disabled{{end}}">en</a></li>
               <li><a href="/{{ .Params.category }}/ja/{{ .Params.basename }}" class="{{ if eq .Params.lang "ja" }}disabled{{end}}">ja</a></li>
             </ul>
+            {{ end -}}
           </div>
           <section class="main-content">
             {{ .Content }}

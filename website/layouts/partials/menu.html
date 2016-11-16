@@ -1,4 +1,18 @@
 {{ if eq .Params.category "docs" -}}
+{{ if eq .Params.lang "ja" -}}
+<section class="side-menu">
+<ul>
+<li><a href="index.html">ドキュメント</a></li>
+<li><a href="configuration-files.html">設定ファイル</a></li>
+<li><a href="hosts.html">ホスト</a></li>
+<li><a href="tasks.html">タスク</a></li>
+<li><a href="lua-vm.html">Lua VM</a></li>
+<li><a href="modules.html">モジュール</a></li>
+<li><a href="drivers.html">ドライバ</a></li>
+<li><a href="integrating-other-tools.html">他のツールとの統合</a></li>
+</ul>
+</section>
+{{ else -}}
 <section class="side-menu">
 <ul>
 <li><a href="index.html">Documentation</a></li>
@@ -11,6 +25,7 @@
 <li><a href="integrating-other-tools.html">Integrating Other Tools</a></li>
 </ul>
 </section>
+{{ end -}}
 {{ end -}}
 {{ if eq .Params.category "intro" -}}
 {{ if eq .Params.lang "ja" -}}

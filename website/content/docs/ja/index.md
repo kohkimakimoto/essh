@@ -1,13 +1,13 @@
 +++
-title = "Documentation"
+title = "ドキュメント"
 type = "docs"
 category = "docs"
 lang = "ja"
 basename = "index.html"
 +++
 
-# Documentation
+# ドキュメント
 
-Welcome to the Essh documentation. This documentation explains detail of Essh configuration.
+Esshのドキュメントへようこそ。このドキュメントでは、Esshの設定の詳細について説明します。
 
-If you're just getting started with Essh, please start to read [Introduction](/intro/ja/index.html).
+Esshを使い始めたばかりの方は、最初に[イントロダクション](/intro/ja/index.html)を読んでください。

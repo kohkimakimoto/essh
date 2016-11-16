@@ -6,7 +6,7 @@ lang = "en"
 basename = "configuration-files.html"
 +++
 
-#  Configuration Files
+# Configuration Files
 
 Essh configuration is written in [Lua](https://www.lua.org/). In the configuration files, you can use DSL syntax that is more human-readable.
 
@@ -82,7 +82,7 @@ Essh loads configuration files from several different places. All configuration 
 
 ## Registries
 
-Each configuration files have a **registry**. The registry is a logical space which contains resources as hosts and tasks that are defined by evaluating configuration.
+Each configuration files have a **registry**. The registry is a logical space which contains resources like hosts and tasks that are defined by evaluating configuration.
 
 Essh provides two registries: **local** and **global**.
 

@@ -1,12 +1,12 @@
 +++
-title = "Drivers | Documentation"
+title = "ドライバ | ドキュメント"
 type = "docs"
 category = "docs"
 lang = "ja"
 basename = "drivers.html"
 +++
 
-# Dirvers
+# ドライバ
 
 Drivers are templates to construct script in tasks execution.
 If you don't specify the driver in the task configuration, Essh uses default built-in driver.

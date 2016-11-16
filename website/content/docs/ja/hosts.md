@@ -1,12 +1,12 @@
 +++
-title = "Hosts | Documentation"
+title = "ホスト | ドキュメント"
 type = "docs"
 category = "docs"
 lang = "ja"
 basename = "hosts.html"
 +++
 
-# Hosts
+# ホスト
 
 Hosts in Essh are SSH servers that you manage. Using hosts configuration, Essh dynamically generates SSH config, provides hook functions, classify the hosts by tags.
 

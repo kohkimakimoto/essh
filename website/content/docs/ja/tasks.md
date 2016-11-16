@@ -1,12 +1,12 @@
 +++
-title = "Tasks | Documentation"
+title = "タスク | ドキュメント"
 type = "docs"
 category = "docs"
 lang = "ja"
 basename = "tasks.html"
 +++
 
-# Tasks
+# タスク
 
 Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
 

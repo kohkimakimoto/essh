@@ -1,12 +1,12 @@
 +++
-title = "Modules | Documentation"
+title = "モジュール | ドキュメント"
 type = "docs"
 category = "docs"
 lang = "ja"
 basename = "modules.html"
 +++
 
-# Modules
+# モジュール
 
 Module allows you to use, create and share reusable code easily for Essh configuration.
 

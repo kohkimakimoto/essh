@@ -1,5 +1,5 @@
 +++
-title = "Lua VM | Documentation"
+title = "Lua VM | ドキュメント"
 type = "docs"
 category = "docs"
 lang = "ja"

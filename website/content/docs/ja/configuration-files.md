@@ -1,16 +1,16 @@
 +++
-title = "configuration Files | Documentation"
+title = "設定ファイル | ドキュメント"
 type = "docs"
 category = "docs"
 lang = "ja"
 basename = "configuration-files.html"
 +++
 
-#  Configuration Files
+# 設定ファイル
 
-Essh configuration is written in [Lua](https://www.lua.org/). In the configuration files, you can use DSL syntax that is more human-readable.
+Esshの設定は[Lua](https://www.lua.org/)で書きます。設定ファイルではより人間に読みやすい形式のDSL構文を使用できます。
 
-Here is an example:
+以下は例です:
 
 ~~~lua
 host "web01.localhost" {
@@ -40,9 +40,9 @@ task "uptime" {
 }
 ~~~
 
-## Another Syntax
+## 別の構文
 
-The above example of configuration is written in Lua DSL style. You can also use plain Lua functions styles. The following examples are valid config code.
+上記の設定例は、LuaのDSLスタイルで書かれています。プレーンなLua関数のスタイルを使うこともできます。以下の例も有効な設定コードです。
 
 ~~~lua
 host("web01.localhost", {
@@ -56,7 +56,7 @@ host("web01.localhost", {
 })
 ~~~
 
-or
+または
 
 ~~~lua
 local web01 = host "web01.localhost"
@@ -69,39 +69,39 @@ web01.tags = {
 }
 ~~~
 
-## Evaluating Orders
+## 評価の順序
 
-Essh loads configuration files from several different places. All configuration files are not required. Essh loads these if they exist. Configuration are applied in the following order:
+Esshはいくつかの異なる場所から設定ファイルを読み込みます。必須である設定ファイルはありません。Esshはこれらが存在する場合のみロードします。設定は次の順序で適用されます。
 
-1. Loads `/etc/essh/config.lua` (`global` registry).
-1. Loads `~/.essh/config.lua` (`global` registry).
-1. Loads `esshconfig.lua` in the current directory or loads a file specified by `--config` command line option (`local` registry).
-1. Loads `esshconfig_override.lua` in the current directory or loads a file the name of which end in `_override`, that specified by `--config` command line option. ex) If you use `--config=myconfig.lua`, valid file name is `myconfig_override.lua` (`local` registry).
-1. Loads `~/.essh/config_override.lua` (`global` registry).
-1. Load `/etc/essh/config_override.lua` (`global` registry).
+1. `/etc/essh/config.lua` (`global`レジストリ)。
+1. `~/.essh/config.lua` (`global` レジストリ)。
+1. カレントディレクトリの`esshconfig.lua`またはコマンドラインオプションの`--config`で指定したファイル (`local` レジストリ).
+1. カレントディレクトリの`esshconfig_override.lua`またはコマンドラインオプションの`--config`で指定したファイル名の最後に`_override`をつけたファイル。例)`--config=myconfig.lua`なら`myconfig_override.lua` (`local` レジストリ)。
+1. `~/.essh/config_override.lua` (`global` レジストリ)。
+1. `/etc/essh/config_override.lua` (`global` レジストリ)。
 
-## Registries
+## レジストリ
 
-Each configuration files have a **registry**. The registry is a logical space which contains resources as hosts and tasks that are defined by evaluating configuration.
+各設定ファイルには**レジストリ**という概念があります。レジストリは、設定がロードされることによって定義されるホストやタスクなどのリソースを保持する論理空間です。
 
-Essh provides two registries: **local** and **global**.
+Esshには**local**と**global**の2つのレジストリがあります。
 
-### Example
+### 例
 
-If you define a host in the `/etc/essh/config.lua`, this host config is stored in the `global` registry.
+`/etc/essh/config.lua`にホストを定義すると、このホストの設定は`global`レジストリに格納されます。
 
-### Constraints
+### 制約
 
-Registries provides some constraints about resources. For example (and the most important constraint) is the following:
+レジストリはリソースに関するいくつかの制約を提供します。たとえば（最も重要な制約）は次のとおりです。
 
-> Hosts used by tasks must be defined in a same registry.
+> タスクによって使用されるホストは、同じレジストリに定義する必要がある。
 
-If you define a task in the `global` registry, this task can not use hosts which are defined in the `local` registry.
+`global`レジストリでタスクを定義した場合、このタスクは`local`レジストリで定義されたホストを使用できません。
 
-For more information, see [Hosts](hosts.html).
+詳細については、[ホスト](hosts.html)を参照してください。
 
 ## Lua
 
-Essh provides built-in Lua libraries that can be used in the configuration files.
+Esshは、設定ファイルで使用できる組み込みのLuaライブラリを提供しています。
 
-Please see [Lua VM](lua-vm.html).
+[Lua VM](lua-vm.html)を参照してください。
