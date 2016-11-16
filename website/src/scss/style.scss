@@ -1,0 +1,9 @@
+@import "../../node_modules/bootstrap-sass/assets/stylesheets/_bootstrap.scss";
+
+$fa-font-path: "./fonts";
+@import "../../node_modules/font-awesome/scss/font-awesome.scss";
+
+$simple-line-font-path: "./fonts/";
+@import "../../node_modules/simple-line-icons/scss/simple-line-icons.scss";
+
+@import "./new-age.scss";

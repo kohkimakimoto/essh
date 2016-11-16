@@ -1,0 +1,346 @@
+{
+  "stdout": [
+    [
+      0.100792,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto/src/github.com/kohkimakimoto/essh\u0007"
+    ],
+    [
+      1.785167,
+      "\u001b[1m\u001b[7m%\u001b[27m\u001b[1m\u001b[0m                                                                                                                                 \r \r"
+    ],
+    [
+      0.119266,
+      "\u001b]2;kohkimakimoto@hakoniwa-macbookpro\u0007\u001b]1;..makimoto/essh\u0007"
+    ],
+    [
+      0.002958,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto/src/github.com/kohkimakimoto/essh\u0007"
+    ],
+    [
+      0.059252,
+      "\r\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32messh \u001b[01;36m\u001b[32m[\u001b[36mmaster\u001b[32m] \u001b[33m⚡\u001b[00m\u001b[00m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      8.9e-05,
+      "\u001b[?1h\u001b="
+    ],
+    [
+      5.5e-05,
+      "\u001b[?2004h"
+    ],
+    [
+      0.692163,
+      "e"
+    ],
+    [
+      0.231038,
+      "\bes"
+    ],
+    [
+      0.142955,
+      "s"
+    ],
+    [
+      0.15229,
+      "h"
+    ],
+    [
+      0.087823,
+      " "
+    ],
+    [
+      0.352208,
+      "h"
+    ],
+    [
+      0.136303,
+      "e"
+    ],
+    [
+      0.160193,
+      "l"
+    ],
+    [
+      0.159752,
+      "l"
+    ],
+    [
+      0.208437,
+      "o"
+    ],
+    [
+      0.333658,
+      "\u001b[?1l\u001b>"
+    ],
+    [
+      3.2e-05,
+      "\u001b[?2004l\r\r\n"
+    ],
+    [
+      0.00128,
+      "\u001b]2;essh hello\u0007\u001b]1;essh\u0007"
+    ],
+    [
+      0.207926,
+      "\u001b[36;1m[remote:webserver-01] \u001b[0mhello on webserver-01\r\n"
+    ],
+    [
+      0.206409,
+      "\u001b[36;1m[remote:webserver-02] \u001b[0mhello on webserver-02\r\n"
+    ],
+    [
+      0.004731,
+      "\u001b[1m\u001b[7m%\u001b[27m\u001b[1m\u001b[0m                                                                                                                                 \r \r"
+    ],
+    [
+      0.116071,
+      "\u001b]2;kohkimakimoto@hakoniwa-macbookpro\u0007\u001b]1;..makimoto/essh\u0007"
+    ],
+    [
+      0.002787,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto/src/github.com/kohkimakimoto/essh\u0007"
+    ],
+    [
+      0.050157,
+      "\r\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32messh \u001b[01;36m\u001b[32m[\u001b[36mmaster\u001b[32m] \u001b[33m⚡\u001b[00m\u001b[00m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      3.8e-05,
+      "\u001b[?1h\u001b="
+    ],
+    [
+      5.3e-05,
+      "\u001b[?2004h"
+    ],
+    [
+      0.5729,
+      "e"
+    ],
+    [
+      0.431092,
+      "\bes"
+    ],
+    [
+      0.152048,
+      "s"
+    ],
+    [
+      0.120916,
+      "h"
+    ],
+    [
+      0.151437,
+      " "
+    ],
+    [
+      0.559878,
+      "h"
+    ],
+    [
+      0.12007,
+      "e"
+    ],
+    [
+      0.160322,
+      "l"
+    ],
+    [
+      0.159845,
+      "l"
+    ],
+    [
+      0.183407,
+      "o"
+    ],
+    [
+      0.440107,
+      "-"
+    ],
+    [
+      0.481012,
+      "\u0007\u001b[34m\u001b[39mafter-confirm\u001b[1m \u001b[0m"
+    ],
+    [
+      0.661657,
+      "\b\u001b[0m \b"
+    ],
+    [
+      0.000121,
+      "\u001b[?1l\u001b>"
+    ],
+    [
+      6.1e-05,
+      "\u001b[?2004l\r\r\n"
+    ],
+    [
+      0.001106,
+      "\u001b]2;essh hello-after-confirm\u0007\u001b]1;essh\u0007"
+    ],
+    [
+      0.014865,
+      "Are you OK? [y/N]: "
+    ],
+    [
+      1.241303,
+      "N"
+    ],
+    [
+      0.558024,
+      "\r\n"
+    ],
+    [
+      8.8e-05,
+      "\u001b[31;1messh error: returned false from the prepare function.\r\n\u001b[0m"
+    ],
+    [
+      0.002822,
+      "\u001b[1m\u001b[7m%\u001b[27m\u001b[1m\u001b[0m                                                                                                                                 \r \r"
+    ],
+    [
+      0.117446,
+      "\u001b]2;kohkimakimoto@hakoniwa-macbookpro\u0007\u001b]1;..makimoto/essh\u0007"
+    ],
+    [
+      0.002906,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto/src/github.com/kohkimakimoto/essh\u0007"
+    ],
+    [
+      0.048815,
+      "\r\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32messh \u001b[01;36m\u001b[32m[\u001b[36mmaster\u001b[32m] \u001b[33m⚡\u001b[00m\u001b[00m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      7.8e-05,
+      "\u001b[?1h\u001b="
+    ],
+    [
+      2.1e-05,
+      "\u001b[?2004h"
+    ],
+    [
+      0.766055,
+      "e"
+    ],
+    [
+      0.240214,
+      "\bes"
+    ],
+    [
+      0.128027,
+      "s"
+    ],
+    [
+      0.127369,
+      "h"
+    ],
+    [
+      0.159841,
+      " "
+    ],
+    [
+      0.247929,
+      "h"
+    ],
+    [
+      0.136307,
+      "e"
+    ],
+    [
+      0.151655,
+      "l"
+    ],
+    [
+      0.159968,
+      "l"
+    ],
+    [
+      0.191997,
+      "o"
+    ],
+    [
+      0.472869,
+      "-"
+    ],
+    [
+      0.275986,
+      "\u0007\u001b[34m\u001b[39mafter-confirm\u001b[1m \u001b[0m"
+    ],
+    [
+      1.074282,
+      "\b\u001b[0m \b"
+    ],
+    [
+      5.9e-05,
+      "\u001b[?1l\u001b>\u001b[?2004l"
+    ],
+    [
+      3.9e-05,
+      "\r\r\n"
+    ],
+    [
+      0.000901,
+      "\u001b]2;essh hello-after-confirm\u0007\u001b]1;essh\u0007"
+    ],
+    [
+      0.013957,
+      "Are you OK? [y/N]: "
+    ],
+    [
+      0.929836,
+      "y"
+    ],
+    [
+      0.850685,
+      "\r\n"
+    ],
+    [
+      0.195713,
+      "\u001b[36;1m[remote:webserver-01] \u001b[0mhello on webserver-01\r\n"
+    ],
+    [
+      0.195805,
+      "\u001b[36;1m[remote:webserver-02] \u001b[0mhello on webserver-02\r\n"
+    ],
+    [
+      0.005362,
+      "\u001b[1m\u001b[7m%\u001b[27m\u001b[1m\u001b[0m                                                                                                                                 \r \r"
+    ],
+    [
+      0.116638,
+      "\u001b]2;kohkimakimoto@hakoniwa-macbookpro\u0007\u001b]1;..makimoto/essh\u0007"
+    ],
+    [
+      0.003074,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto/src/github.com/kohkimakimoto/essh\u0007"
+    ],
+    [
+      0.048783,
+      "\r\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32messh \u001b[01;36m\u001b[32m[\u001b[36mmaster\u001b[32m] \u001b[33m⚡\u001b[00m\u001b[00m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      6.8e-05,
+      "\u001b[?1h\u001b="
+    ],
+    [
+      2.3e-05,
+      "\u001b[?2004h"
+    ],
+    [
+      2.031806,
+      "\u001b[H\u001b[2J\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32messh \u001b[01;36m\u001b[32m[\u001b[36mmaster\u001b[32m] \u001b[33m⚡\u001b[00m\u001b[00m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      1.726557,
+      "\u001b[?2004l\r\r\n"
+    ]
+  ],
+  "command": null,
+  "width": 130,
+  "env": {
+    "TERM": "xterm-256color",
+    "SHELL": "/bin/zsh"
+  },
+  "height": 40,
+  "duration": 21.779534,
+  "version": 1,
+  "title": null
+}

@@ -20,7 +20,7 @@ gulp.task('hugo', shell.task([
 
 // css
 gulp.task('css', function () {
-    gulp.src('src/**/*.scss')
+    gulp.src('src/scss/style.scss')
     .pipe(sass().on('error', sass.logError))
     .pipe(cleanCSS())
     .pipe(gulp.dest(destDir))
@@ -31,7 +31,7 @@ gulp.task('css', function () {
 gulp.task('js', function () {
     // bundle.js
     browserify({
-            entries: ['src/index.js'],
+            entries: ['src/js/index.js'],
             extensions: ['.js', '.jsx'],
             debug: true,
         })
