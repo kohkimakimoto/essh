@@ -477,7 +477,7 @@ section {
   }
 
   &.download {
-    background-color: #f9f9f9;
+    background-color: #ffffff;
 
     .section-heading {
       margin-bottom: 50px;
@@ -499,6 +499,23 @@ section {
       }
     }
   }
+
+  &.open-source {
+    background-color: #f9f9f9;
+
+    .section-heading {
+      margin-bottom: 50px;
+
+      h2 {
+        margin-top: 0;
+      }
+
+      p {
+        margin-bottom: 0;
+      }
+    }
+  }
+
 }
 @media (min-width: 768px) {}
 @media (min-width: 768px) {}
