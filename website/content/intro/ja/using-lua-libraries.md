@@ -29,7 +29,7 @@ task "example" {
 }
 ~~~
 
-`question`はEsshの組み込みライブラリで[gluaquestion]（https://github.com/kohkimakimoto/gluaquestion）によって実装されています。これはターミナルからのユーザ入力を取得する機能を提供します。
+`question`はEsshの組み込みライブラリで[gluaquestion](https://github.com/kohkimakimoto/gluaquestion)によって実装されています。これはターミナルからのユーザ入力を取得する機能を提供します。
 タスクのプロパティ`prepare`は、タスクの開始時に実行される関数を定義する設定です。
 
 タスクを実行すると、Esshはメッセージを表示し、入力を待ちます。

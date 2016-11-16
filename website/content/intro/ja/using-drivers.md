@@ -8,13 +8,14 @@ basename = "using-drivers.html"
 
 # ドライバを使う
 
-Drivers in Essh are templates to construct script in tasks execution.
-Essh usually executes tasks by using built-in default driver. But you can also use your custom drivers.
+Esshのドライバは、タスク実行時にスクリプトを構築するためのテンプレートです。
+Esshは通常、組み込みのデフォルトドライバを使ってタスクを実行します。ただし、カスタムドライバを使用することもできます。
 
-This is an advanced topic. For more information on drivers, see the [Drivers](/docs/ja/drivers.html) section.
 
-## Next Steps
+これは高度なトピックです。ドライバの詳細については[ドライバ](/docs/ja/drivers.html)セクションを参照してください。
 
-In the [Introduction](/intro/ja/index.html) guide, I have explained the basic features of Essh. If you want to get in-depth information about Essh, read the [documentation](/docs/ja/index.html).
+## 次のステップ
 
-Enjoy!
+この[Introduction](/intro/ja/index.html)ガイドでは、Esshの基本的な機能について説明しました。 Esshに関する詳細な情報を知りたい場合は、[documentation](/docs/ja/index.html)を参照してください。
+
+それでは。

@@ -8,11 +8,12 @@ basename = "using-modules.html"
 
 # モジュールを使う
 
-Essh has a modular system that allows you to use reusable code easily for Essh configuration.
-For instance, I provide [bash module](https://github.com/kohkimakimoto/essh/tree/master/modules/bash) for example, that is a collection of bash scripts for using in your Essh tasks.
-You can use `import` function to load a module.
 
-Example:
+Esshには設定のための再利用可能なコードを簡単に使用できるモジュラーシステムがあります。
+たとえば、Esshタスクで使用するbashスクリプトのコレクションである[bash module](https://github.com/kohkimakimoto/essh/tree/master/modules/bash)があります。
+モジュールは`import`関数を使ってロードすることができます。
+
+例:
 
 ~~~lua
 local bash = import "github.com/kohkimakimoto/essh/modules/bash"
@@ -25,10 +26,10 @@ task "example" {
 }
 ~~~
 
-`bash.version` is a variable that actually is a simple string `bash --version`. So this task prints bash version and then runs `echo foo`.
+`bash.version`は実際には単純な文字列`bash --version`です。このタスクはbash版を出力し`echo foo`を実行します。
 
-The modules are installed automatically, when you run Essh.
-You run the task, you will get as below.
+モジュールはEssh実行時に自動的にインストールされます。
+タスクを実行すると、以下のようになります。
 
 ~~~
 $ essh example
@@ -42,6 +43,7 @@ There is NO WARRANTY, to the extent permitted by law.
 foo
 ~~~
 
-For more information on Modules, see the [Modules](/docs/ja/modules.html) section.
 
-Let's read next section: [Using Drivers](using-drivers.html)
+モジュールの詳細については[Modules](/docs/ja/modules.html)セクションを参照してください。
+
+次のセクション: [ドライバを使う](using-drivers.html)

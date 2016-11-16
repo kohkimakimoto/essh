@@ -9,7 +9,7 @@ basename = "using-modules.html"
 # Using Modules
 
 Essh has a modular system that allows you to use reusable code easily for Essh configuration.
-For instance, I provide [bash module](https://github.com/kohkimakimoto/essh/tree/master/modules/bash) for example, that is a collection of bash scripts for using in your Essh tasks.
+For instance, I provide [bash module](https://github.com/kohkimakimoto/essh/tree/master/modules/bash) that is a collection of bash scripts for using in your Essh tasks.
 You can use `import` function to load a module.
 
 Example:
