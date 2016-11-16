@@ -949,7 +949,7 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 	script += content
 
 	if task.Privileged {
-		script = "sudo su - <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
+		script = "sudo su <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
 	}
 
 	// inspired by https://github.com/laravel/envoy
@@ -1066,7 +1066,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 
 	if task.Privileged {
 		script = "cd " + WorkingDir + "\n" + script
-		script = "sudo su - <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
+		script = "sudo su <<\\EOF-ESSH-PRIVILEGED\n" + script + "\n" + "EOF-ESSH-PRIVILEGED"
 	}
 
 	cmd := exec.Command(shell, flag, script)
