@@ -999,7 +999,7 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 		prefix = b.String()
 	}
 
-	cmd.Stdin = os.Stdin
+	// cmd.Stdin = os.Stdin
 
 	// see https://github.com/kohkimakimoto/essh/issues/38
 	//if stdinCh == nil {
@@ -1131,7 +1131,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 		prefix = b.String()
 	}
 
-	cmd.Stdin = os.Stdin
+	// cmd.Stdin = os.Stdin
 
 	// see https://github.com/kohkimakimoto/essh/issues/38
 	//if stdinCh == nil {
@@ -1192,7 +1192,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 // I tried to comment out `processStdin` method. The task runs correctly.
 // I guess that `io.ReadAtLeast(os.Stdin, buf, 1)` affects `bash -s`
 //
-// So now, Essh task just set os.Stdin to cmd.Stdin.
+// So now, Essh task does not use STDIN
 //
 
 //// this code is borrowed from https://github.com/fujiwara/nssh/blob/master/nssh.go
