@@ -1184,7 +1184,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 }
 
 //
-// 2016-11-17: It is very hard to use STDIN in Essh tasks.
+// 2016-11-17: It is very hard to use STDIN in Essh tasks for muliple targets.
 // https://github.com/kohkimakimoto/essh/issues/38
 //
 // Essh runs remote tasks by using ssh with `bash -s` command that loads a script from STDIN.
