@@ -8,9 +8,9 @@ basename = "tasks.html"
 
 # タスク
 
-Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
+タスクは、リモートサーバーとローカルサーバーで実行されるスクリプトです。これを使用してシステム管理タスクを自動化することができます。
 
-## Example
+例:
 
 ~~~lua
 task "example" {
@@ -28,15 +28,15 @@ task "example" {
 }
 ~~~
 
-You can run a task below command.
+以下のコマンドでタスクを実行できます。
 
 ~~~
 $ essh example
 ~~~
 
-Notice: Task name mustn't be duplicated with any host names.
+注意：タスク名はホスト名と重複して定義することはできません。
 
-## Properties
+## プロパティ
 
 * `description` (string): Description of the task.
 

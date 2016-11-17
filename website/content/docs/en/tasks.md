@@ -10,7 +10,7 @@ basename = "tasks.html"
 
 Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
 
-## Example
+Example:
 
 ~~~lua
 task "example" {

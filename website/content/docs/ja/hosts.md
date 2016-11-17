@@ -8,9 +8,9 @@ basename = "hosts.html"
 
 # ホスト
 
-Hosts in Essh are SSH servers that you manage. Using hosts configuration, Essh dynamically generates SSH config, provides hook functions, classify the hosts by tags.
+Esshのホストとは、あなたが管理するSSHサーバーです。ホスト設定を使用して、Esshは動的にSSHコンフィグを生成し、フック機能を提供し、タグでホストを分類します。
 
-## Example
+例:
 
 ~~~lua
 host "web01.localhost" {
@@ -31,27 +31,27 @@ host "web01.localhost" {
 }
 ~~~
 
-Host is composed of two different kinds of properties. **SSH Config Properties** and **Essh Config Properties**.
+ホストは2種類のプロパティで構成されています。 **SSHコンフィグプロパティ** と **Esshコンフィグプロパティ** です。
 
-### SSH Config Properties
+## SSHコンフィグプロパティ
 
-SSH config properties require that the first character is upper case.
-For instance `HostName` and `Port`. They are used to generate **ssh_config**. You can use all ssh options to these properties. see ssh_config(5).
+SSHコンフィグプロパティは、最初の文字を大文字にする必要があります。
+例えば​​`HostName`や`Port`です。 このタイプのプロパティは**ssh_config**を生成するために使用されます。このプロパティはすべてのsshオプションを使用できます。ssh_config(5)を参照してください。
 
-### Essh Config Properties
+## Esshコンフィグプロパティ
 
-Essh config properties require that the first character is lower case.
-They are used for special purpose of Essh functions, not ssh_config.
+Esshコンフィグプロパティは、最初の文字を小文字にする必要があります。
+これらはssh_configではなくEsshの機能の特殊な目的に使用されます。
 
-All the properties of this type are listed below.
+このタイプのプロパティのすべてを以下に記載します。
 
-* `description` (string): Description of the host. This is used for displaying hosts list and zsh completion.
+* `description` (string): ホストの説明。これは、ホストのリストとzsh補完に表示するために使用されます。
 
-* `hidden` (boolean): If you set it true, zsh completion doesn't show the host.
+* `hidden` (boolean): trueに設定すると、zsh補完はこのホストを表示しません。
 
-* `private` (boolean): If you set it true, This host can be only used to the tasks. See also [scope](#scope)
+* `private` (boolean): trueに設定すると、このホストはタスクに対してのみ使用できます。[スコープ](#scope)も参照してください。
 
-* `hooks_before_connect` (table): Hooks fire before connect. The hook is defined as a lua table. This table can have mulitple functions or strings. See the example:
+* `hooks_before_connect` (table): 接続する前に発火するフック。これはローカルで実行されます。フックはLuaテーブルとして定義されています。このテーブルは、複数の関数または文字列を持つことができます。例を参照してください:
 
     ~~~lua
     hooks_before_connect = {
@@ -70,11 +70,13 @@ All the properties of this type are listed below.
     }
     ~~~
 
-* `hooks_after_connect` (table): Hooks fire after connect.
+    Lua関数で実装されたフックはすべてローカルで実行されます。
 
-* `hooks_after_disconnect` (table): Hooks fire after disconnect.
+* `hooks_after_connect` (table): 接続後に発火するフック。これはリモートサーバで実行されます。
 
-* `tags` (array table): Tags classifys hosts.
+* `hooks_after_disconnect` (table): 切断後に発火するフック。これはローカルで実行されます。
+
+* `tags` (array table): タグはホストを分類します。
 
     ~~~lua
     tags = {
@@ -83,9 +85,9 @@ All the properties of this type are listed below.
     }
     ~~~
 
-    Tags mustn't be duplicated with any host names.
+    タグをホスト名と重複させることはできません。
 
-* `props` (table): Props sets environment variables `ESSH_HOST_PROPS_{KEY}` when the host is used in tasks. The table key is modified to upper cased.
+* `props` (table): Propsはホストがタスクで使用されるときの環境変数を`ESSH_HOST_PROPS_ {KEY}`で設定します。テーブルキーは大文字に変更されます。
 
     ~~~lua
     props = {
@@ -95,13 +97,13 @@ All the properties of this type are listed below.
     -- ESSH_HOST_PROPS_FOO=bar
     ~~~
 
-## Scope
+## スコープ {#scope}
 
-Hosts in Essh have scope: **private** or **public**.
+Esshのホストには、**プライベート** または **パブリック** のスコープがあります。
 
-Private hosts can be only used to the tasks. The hosts of this type can't be used by ssh login, and does not suggest by zsh-completion. also they can't be used with `--exec` option.
+プライベートホストはタスクにしか使用できません。このタイプのホストはsshログインでは使用できません。また、zsh補完ではサジェストされません。`--exec`オプションでも使用できません。
 
-You can use `private_host` function as an alias to define a private host. See the below example:
+`private_host`関数をエイリアスとして使用して、プライベートホストを定義することができます。以下の例を参照してください。
 
 ~~~lua
 private_host "example" {
@@ -111,7 +113,7 @@ private_host "example" {
 }
 ~~~
 
-This is same the following:
+これは以下と同じです。
 
 ~~~lua
 host "example" {
@@ -122,12 +124,12 @@ host "example" {
 }
 ~~~
 
-## Constraints
+## 制約
 
-There are constraints about [scope](#scope) and [registries](configuration-files.html#registries).
+[スコープ](#scope)と[レジストリ](configuration-files.html#registries)に関する制約があります。これは主にプロジェクト固有のタスクとホストをグローバルにSSH接続に使用したいホストと混在させないために、役に立ちます。
 
-* Each public hosts must be unique. (You can NOT define public hosts by the same name in the local and global registry.)
-* Any hosts must be unique in a same registry. (You can NOT define hosts by the same name in the same registry.)
-* Hosts used by task must be defined in a same registry. (Tasks can refer to only hosts defined in the same registry.)
-* Private hosts is only used by tasks.
-* There can be duplicated hosts in the entire registries. (You can define private hosts even if you define same name public hosts.)
+* **各パブリックホストは一意でなければなりません。**(パブリックホストはローカルレジストリとグローバルレジストリで同じ名前で定義することはできません)
+* **すべてのホストは、同じレジストリ内で一意でなければなりません。**(同じレジストリ内で同じ名前でホストを定義することはできません)
+* **タスクによって使用されるホストは、同じレジストリに定義する必要があります。**(タスクは、同じレジストリで定義されたホストのみを参照できます)
+* **プライベートホストはタスクによってのみ使用されます。**
+* **レジストリ全体には重複したホストが存在する可能性があります。**(同じ名前のパブリックホストを定義していてもプライベートホストを定義できます)

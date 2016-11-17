@@ -95,7 +95,7 @@ task "example" {
 ~~~
 
 `driver` configuration needs the required parameter `engine`. This is the template text.
-To use you custom driver, you need to set task's `driver` property.
+To use your custom driver, you need to set task's `driver` property.
 
 See more the example implementation:
 
