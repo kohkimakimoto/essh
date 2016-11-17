@@ -39,6 +39,8 @@ bash.errexit_on = "set -e"
 
 bash.version = "bash --version"
 
+bash.load_profile = ". /etc/profile"
+
 bash.lock = [=[
 essh_bash_lockdir=${TMPDIR:-/tmp}
 essh_bash_lockdir=${essh_bash_lockdir%/}/essh_lock.${ESSH_TASK_NAME:-unknown}
