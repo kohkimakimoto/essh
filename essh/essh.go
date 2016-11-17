@@ -829,22 +829,23 @@ func runTask(config string, task *Task) error {
 			return fmt.Errorf("There are not hosts to run the command. you must specify the valid hosts.")
 		}
 
-		// handle stdin
-		stdinChs := make([]chan ([]byte), len(hosts))
-		for i, _ := range hosts {
-			stdinChs[i] = make(chan []byte, 256)
-		}
-		go func() {
-			processStdin(stdinChs)
-		}()
+		// see https://github.com/kohkimakimoto/essh/issues/38
+		//// handle stdin
+		//stdinChs := make([]chan ([]byte), len(hosts))
+		//for i, _ := range hosts {
+		//	stdinChs[i] = make(chan []byte, 256)
+		//}
+		//go func() {
+		//	processStdin(stdinChs)
+		//}()
 
 		wg := &sync.WaitGroup{}
 		m := new(sync.Mutex)
-		for i, host := range hosts {
+		for _, host := range hosts {
 			if task.Parallel {
 				wg.Add(1)
 				go func(host *Host) {
-					err := runRemoteTaskScript(config, task, host, hosts, stdinChs[i], m)
+					err := runRemoteTaskScript(config, task, host, hosts, nil, m)
 					if err != nil {
 						fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
 						panic(err)
@@ -853,7 +854,7 @@ func runTask(config string, task *Task) error {
 					wg.Done()
 				}(host)
 			} else {
-				err := runRemoteTaskScript(config, task, host, hosts, stdinChs[i], m)
+				err := runRemoteTaskScript(config, task, host, hosts, nil, m)
 				if err != nil {
 					return err
 				}
@@ -886,20 +887,21 @@ func runTask(config string, task *Task) error {
 			return nil
 		}
 
+		// see https://github.com/kohkimakimoto/essh/issues/38
 		// handle stdin
-		stdinChs := make([]chan ([]byte), len(hosts))
-		for i, _ := range hosts {
-			stdinChs[i] = make(chan []byte, 256)
-		}
-		go func() {
-			processStdin(stdinChs)
-		}()
+		//stdinChs := make([]chan ([]byte), len(hosts))
+		//for i, _ := range hosts {
+		//	stdinChs[i] = make(chan []byte, 256)
+		//}
+		//go func() {
+		//	processStdin(stdinChs)
+		//}()
 
-		for i, host := range hosts {
+		for _, host := range hosts {
 			if task.Parallel {
 				wg.Add(1)
 				go func(host *Host) {
-					err := runLocalTaskScript(config, task, host, hosts, stdinChs[i], m)
+					err := runLocalTaskScript(config, task, host, hosts, nil, m)
 					if err != nil {
 						fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
 						panic(err)
@@ -908,7 +910,7 @@ func runTask(config string, task *Task) error {
 					wg.Done()
 				}(host)
 			} else {
-				err := runLocalTaskScript(config, task, host, hosts, stdinChs[i], m)
+				err := runLocalTaskScript(config, task, host, hosts, nil, m)
 				if err != nil {
 					return err
 				}
@@ -997,16 +999,20 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 		prefix = b.String()
 	}
 
-	if stdinCh == nil {
-		cmd.Stdin = os.Stdin
-	} else {
-		stdin, err := cmd.StdinPipe()
-		if err != nil {
-			return err
-		}
-		go handleInput(stdinCh, stdin)
-	}
+	cmd.Stdin = os.Stdin
 
+	// see https://github.com/kohkimakimoto/essh/issues/38
+	//if stdinCh == nil {
+	//	cmd.Stdin = os.Stdin
+	//} else {
+	//	stdin, err := cmd.StdinPipe()
+	//	if err != nil {
+	//		return err
+	//	}
+	//	go handleInput(stdinCh, stdin)
+	//}
+
+	wg := &sync.WaitGroup{}
 	if len(hosts) <= 1 && prefix == "" {
 		cmd.Stdout = os.Stdout
 	} else {
@@ -1014,7 +1020,11 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 		if err != nil {
 			return err
 		}
-		go scanLines(stdout, os.Stdout, prefix, m)
+		wg.Add(1)
+		go func () {
+			scanLines(stdout, os.Stdout, prefix, m)
+			wg.Done()
+		}()
 	}
 
 	if len(hosts) <= 1 && prefix == "" {
@@ -1024,13 +1034,19 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 		if err != nil {
 			return err
 		}
-		go scanLines(stderr, os.Stderr, prefix, m)
+		wg.Add(1)
+		go func () {
+			scanLines(stderr, os.Stderr, prefix, m)
+			wg.Done()
+		}()
 	}
 
 	err = cmd.Start()
 	if err != nil {
 		return err
 	}
+
+	wg.Wait()
 
 	return cmd.Wait()
 }
@@ -1115,16 +1131,20 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 		prefix = b.String()
 	}
 
-	if stdinCh == nil {
-		cmd.Stdin = os.Stdin
-	} else {
-		stdin, err := cmd.StdinPipe()
-		if err != nil {
-			return err
-		}
-		go handleInput(stdinCh, stdin)
-	}
+	cmd.Stdin = os.Stdin
 
+	// see https://github.com/kohkimakimoto/essh/issues/38
+	//if stdinCh == nil {
+	//	cmd.Stdin = os.Stdin
+	//} else {
+	//	stdin, err := cmd.StdinPipe()
+	//	if err != nil {
+	//		return err
+	//	}
+	//	go handleInput(stdinCh, stdin)
+	//}
+
+	wg := &sync.WaitGroup{}
 	if len(hosts) <= 1 && prefix == "" {
 		cmd.Stdout = os.Stdout
 	} else {
@@ -1132,7 +1152,11 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 		if err != nil {
 			return err
 		}
-		go scanLines(stdout, os.Stdout, prefix, m)
+		wg.Add(1)
+		go func () {
+			scanLines(stdout, os.Stdout, prefix, m)
+			wg.Done()
+		}()
 	}
 
 	if len(hosts) <= 1 && prefix == "" {
@@ -1142,7 +1166,11 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 		if err != nil {
 			return err
 		}
-		go scanLines(stderr, os.Stderr, prefix, m)
+		wg.Add(1)
+		go func () {
+			scanLines(stderr, os.Stderr, prefix, m)
+			wg.Done()
+		}()
 	}
 
 	err = cmd.Start()
@@ -1150,62 +1178,85 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 		return err
 	}
 
+	wg.Wait()
+
 	return cmd.Wait()
 }
 
-// this code is borrowed from https://github.com/fujiwara/nssh/blob/master/nssh.go
-func processStdin(chs []chan []byte) {
-	buf := make([]byte, 1024)
-	for {
-		n, err := io.ReadAtLeast(os.Stdin, buf, 1)
-		if err != nil {
-			if err != io.EOF {
-				fmt.Fprintf(os.Stderr, color.FgRB("essh error in reading stdin: %v\n", err))
-			}
-			break
-		}
-		for _, ch := range chs {
-			ch <- buf[0:n]
-		}
-	}
+//
+// 2016-11-17: It is very hard to use STDIN in Essh tasks.
+// https://github.com/kohkimakimoto/essh/issues/38
+//
+// Essh runs remote tasks by using ssh with `bash -s` command that loads a script from STDIN.
+// I don't understand correctly, but when I run a task in an another task, It is failure.
+// I tried to comment out `processStdin` method. The task runs correctly.
+// I guess that `io.ReadAtLeast(os.Stdin, buf, 1)` affects `bash -s`
+//
+// So now, Essh task just set os.Stdin to cmd.Stdin.
+//
 
-	// STDIN is EOF. close channels
-	for _, ch := range chs {
-		close(ch)
-	}
-}
+//// this code is borrowed from https://github.com/fujiwara/nssh/blob/master/nssh.go
+//func processStdin(chs []chan []byte) {
+//	buf := make([]byte, 1024)
+//	for {
+//		n, err := io.ReadAtLeast(os.Stdin, buf, 1)
+//		if err != nil {
+//			if err != io.EOF {
+//				fmt.Fprintf(os.Stderr, color.FgRB("essh error in reading stdin: %v\n", err))
+//			}
+//			break
+//		}
+//		for _, ch := range chs {
+//			ch <- buf[0:n]
+//		}
+//	}
+//
+//	// STDIN is EOF. close channels
+//	for _, ch := range chs {
+//		close(ch)
+//	}
+//}
 
-// this code is borrowed from https://github.com/fujiwara/nssh/blob/master/nssh.go
-func handleInput(stdinCh chan []byte, dest io.WriteCloser) {
-	for {
-		b, more := <-stdinCh
-		if more {
-			_, err := dest.Write(b)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, color.FgRB("essh error in writing stdin: %v\n", err))
-				dest.Close()
-				break
-			}
-		} else {
-			dest.Close()
-			break
-		}
-	}
-}
+//// this code is borrowed from https://github.com/fujiwara/nssh/blob/master/nssh.go
+//func handleInput(stdinCh chan []byte, dest io.WriteCloser) {
+//	for {
+//		b, more := <-stdinCh
+//		if more {
+//			_, err := dest.Write(b)
+//			if err != nil {
+//				if e, ok := err.(*os.PathError); ok && e.Err == syscall.EPIPE {
+//					// broken pipe. suppress and ignore this error.
+//					dest.Close()
+//					break
+//				} else {
+//					fmt.Fprintf(os.Stderr, color.FgRB("essh error in writing stdin: %v (data: %v)\n", err, b))
+//					dest.Close()
+//					break
+//				}
+//			}
+//		} else {
+//			dest.Close()
+//			break
+//		}
+//	}
+//}
 
 // this code is borrowed from https://github.com/fujiwara/nssh/blob/master/nssh.go
 func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) {
 	scanner := bufio.NewScanner(src)
 	for scanner.Scan() {
-		func(m *sync.Mutex) {
-			m.Lock()
-			defer m.Unlock()
-			if prefix != "" {
-				fmt.Fprintf(dest, "%s%s\n", color.FgCB(prefix), scanner.Text())
-			} else {
-				fmt.Fprintf(dest, "%s\n", scanner.Text())
-			}
-		}(m)
+		// prevent mixing data in a line.
+		m.Lock()
+		if prefix != "" {
+			fmt.Fprintf(dest, "%s%s\n", color.FgCB(prefix), scanner.Text())
+		} else {
+			fmt.Fprintf(dest, "%s\n", scanner.Text())
+		}
+		m.Unlock()
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, color.FgRB("essh error: scanner.Scan() returns error: %v\n", err))
 	}
 }
 
