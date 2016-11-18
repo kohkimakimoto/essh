@@ -27,7 +27,7 @@ task "example" {
 ~~~
 $ essh example --debug
 [essh debug] ...
-[essh debug] real local command: [bash -c
+[essh debug] real local command: [bin/sh -c
 export ESSH_TASK_NAME='example'
 export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh_config.544434412
 
@@ -36,7 +36,7 @@ echo bbb
 ]
 ~~~
 
-デバッグメッセージによれば、タスクは次のようなbashスクリプトを実行しました:
+デバッグメッセージによれば、タスクは次のようなshスクリプトを実行しました:
 
 ~~~
 export ESSH_TASK_NAME='example'
@@ -68,7 +68,7 @@ echo aaa
 echo bbb
 ~~~
 
-結論：ドライバはbashスクリプトを出力するためのテンプレートです。
+結論：ドライバはシェルスクリプトを出力するためのテンプレートです。
 
 ## カスタムドライバ
 

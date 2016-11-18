@@ -27,7 +27,7 @@ Try to run this task with `--debug` option to display the actual script.
 ~~~
 $ essh example --debug
 [essh debug] ...
-[essh debug] real local command: [bash -c
+[essh debug] real local command: [bin/sh -c
 export ESSH_TASK_NAME='example'
 export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh_config.544434412
 
@@ -36,7 +36,7 @@ echo bbb
 ]
 ~~~
 
-According to the debug messages, the task ran the bash script:
+According to the debug messages, the task ran the sh script:
 
 ~~~
 export ESSH_TASK_NAME='example'
@@ -68,7 +68,7 @@ echo aaa
 echo bbb
 ~~~
 
-Conclusion: Drivers are templates for outputting bash script.
+Conclusion: Drivers are templates for outputting shell script.
 
 ## Custom Drivers
 
