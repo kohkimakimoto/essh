@@ -1,2 +1,5 @@
 /.esshconfig
 /.vagrant
+/.essh
+
+!/Vagrantfile
