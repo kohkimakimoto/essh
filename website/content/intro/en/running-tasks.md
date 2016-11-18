@@ -8,7 +8,7 @@ basename = "running-tasks.html"
 
 # Running Tasks
 
-You can define tasks that are executed on remote and local servers.
+Task is a script that runs on remote and local servers.
 For example, edit your `esshconfig.lua`.
 
 ~~~lua

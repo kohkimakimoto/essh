@@ -68,7 +68,7 @@ web01.localhost        web01 development server        web         local
 web02.localhost        web02 development server        web         local
 ~~~
 
-あなたは`web`タグでフィルタリングされたホストを取得します。`--select`は複数回指定できます。各フィルタはOR条件で適用されます。
+`web`タグでフィルタリングされたホストを取得できたでしょう。`--select`は複数回指定できます。各フィルタはOR条件で適用されます。
 
 ~~~sh
 $ essh --hosts --select=web --select=db
