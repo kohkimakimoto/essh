@@ -25,7 +25,10 @@ Vagrant.configure(2) do |config|
         curl \
         unzip \
         vim-enhanced \
+        docker \
         git
+
+      systemctl start docker
 EOT
   end
 
@@ -50,7 +53,10 @@ EOT
         curl \
         unzip \
         vim-enhanced \
+        docker \
         git
+
+      systemctl start docker
 EOT
   end
 
