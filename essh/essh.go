@@ -952,7 +952,7 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 	script += content
 
 	if task.Privileged {
-		script = "sudo sh -c " + ShellEscape(script)
+		script = "sudo sh -l -c " + ShellEscape(script)
 	}
 
 	sshCommandArgs = append(sshCommandArgs, "sh", "-c", ShellEscape(script))
@@ -1081,7 +1081,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 
 	if task.Privileged {
 		script = "cd " + WorkingDir + "\n" + script
-		script = "sudo sh -c " + ShellEscape(script)
+		script = "sudo sh -l -c " + ShellEscape(script)
 	}
 
 	cmd := exec.Command(shell, flag, script)
