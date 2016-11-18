@@ -46,6 +46,9 @@ vagrant ssh-config | perl -pe 's/Host (.+)$/s = private_host "$1" /; s/^(  )(\w)
 
 # add tasks
 cat << 'EOF' >> esshconfig.lua
+
+local bash = import "github.com/kohkimakimoto/essh/modules/bash"
+
 task "list-hosts" {
     backend = "local",
     targets = {"webserver-01", "webserver-02"},
@@ -66,6 +69,22 @@ task "echo-on-remote" {
       ]=],
     },
 }
+
+task "user-bash-module" {
+    backend = "remote",
+    prefix = true,
+    targets = {"webserver-01", "webserver-02"},
+    script = {
+      bash.indent,
+      bash.prefix,
+      bash.upper,
+      bash.lock,
+      [=[
+      echo "foobar" | indent
+      echo $(upper "foobar")
+      ]=],
+    },
+}
 EOF
 
 
@@ -75,10 +94,10 @@ EOF
 # start testing...
 # ----------------------------------------------------------------
 echo "tested binary is: $(which essh)"
-# echo "tasks:"
-# essh --tasks
+echo "tasks:"
+essh --tasks
 
-# --------
+# ----
 echo "==> test-1:"
 ret=`essh list-hosts`
 exp=`cat << 'EOF'
@@ -91,12 +110,27 @@ else
     testfail "$ret"
 fi
 
-# --------
+# ----
 echo "==> test-2:"
 ret=`essh echo-on-remote`
 exp=`cat << 'EOF'
 [remote:webserver-01] foobar
 [remote:webserver-02] foobar
+EOF`
+if [ "$ret" = "$exp" ]; then
+    testok "$ret"
+else
+    testfail "$ret"
+fi
+
+# ----
+echo "==> test-3:"
+ret=`essh user-bash-module`
+exp=`cat << 'EOF'
+[remote:webserver-01]     foobar
+[remote:webserver-01] FOOBAR
+[remote:webserver-02]     foobar
+[remote:webserver-02] FOOBAR
 EOF`
 if [ "$ret" = "$exp" ]; then
     testok "$ret"
