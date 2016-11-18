@@ -87,13 +87,13 @@ print(jsontext)
 * `re`: [yuin/gluare](https://github.com/yuin/gluare)
 * `sh`:[otm/gluash](https://github.com/otm/gluash)
 
-## Predefined Variables
+## 定義済みの変数
 
-Essh provides predefined variables. In the recent version of Essh, there is one predefined varilable: `essh`.
+Esshは事前定義された変数を提供します。 最新のEsshのバージョンには、定義済みの変数が1つあります。`essh`です。
 
-`essh` is a table that has some functions and variables. see below
+`essh`はいくつかの関数と変数を持つテーブルです。下記を参照してください
 
-* `ssh_config` (string): ssh_config is ssh_config file path. At default, it is a temporary file that is generated automatically when you run Essh. You can overwrite this value for generating ssh_config to a static destination. If you use a gateway host that is a server between your client computer and a target server, you may use this variable to specify `ProxyCommand`. See below example:
+* `ssh_config` (string): ssh_configはssh_configファイルのパスです。デフォルトでは、Esshを実行すると自動的に生成される一時ファイルです。 ssh_configを静的な宛先に生成するために、この値を上書きすることができます。クライアントコンピュータとターゲットサーバの間のサーバであるゲートウェイホストを使用する場合は、この変数を使用して `ProxyCommand`を指定することができます。以下の例を参照してください：
 
     ~~~lua
     --

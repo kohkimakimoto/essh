@@ -89,7 +89,7 @@ The following are the built-in libraries that are included in Essh.
 
 ## Predefined Variables
 
-Essh provides predefined variables. In the recent version of Essh, there is one predefined varilable: `essh`.
+Essh provides predefined variables. In the recent version of Essh, there is one predefined variable: `essh`.
 
 `essh` is a table that has some functions and variables. see below
 
