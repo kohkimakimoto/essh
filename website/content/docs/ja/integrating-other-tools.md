@@ -8,11 +8,11 @@ basename = "integrating-other-tools.html"
 
 # 他のツールとの統合
 
-Essh can be used with `scp`, `rsync` and `git`.
+Esshは `scp`、`rsync`、`git`と一緒に使うことができます。
 
 ## git
 
-To use Essh inside of the git command. Write the following line in your `~/.zshrc`.
+gitコマンドの中でEsshを使うには`~/.zshrc`次の行を書いてください
 
 ~~~
 export GIT_SSH=essh
@@ -20,13 +20,13 @@ export GIT_SSH=essh
 
 ## scp
 
-Essh support to use with scp.
+Esshはscpで使用することをサポートしています。
 
 ~~~
 $ essh --exec 'scp -F $ESSH_SSH_CONFIG <scp command args...>'
 ~~~
 
-For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+もっと使いやすくするため`〜/.zshrc`で`eval "$(essh --aliases)"`を実行すると、上記のコードは以下のように書くことができます。
 
 ~~~
 $ escp <scp command args...>
@@ -34,13 +34,13 @@ $ escp <scp command args...>
 
 ## rsync
 
-Essh support to use with rsync.
+Esshはrsyncで使用することをサポートしています。
 
 ~~~
 $ essh --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG" <rsync command args...>'
 ~~~
 
-For more easy to use, you can run `eval "$(essh --aliases)"` in your `~/.zshrc`, the above code can be written as the following.
+もっと使いやすくするため`〜/.zshrc`で`eval "$(essh --aliases)"`を実行すると、上記のコードは以下のように書くことができます。
 
 ~~~
 $ ersync <rsync command args...>

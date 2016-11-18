@@ -12,7 +12,7 @@ Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM to load co
 
 ## Built-in Functions
 
-As you already seen `host` and `task` functions, Essh core features consist of built-in functions. All the functions are listed below.
+As you already seen `host` and `task` functions, Essh core features consist of built-in functions. All the functions that Essh provides are listed below.
 
 * `host`: Defines a host. See [Hosts](/docs/en/hosts.html).
 

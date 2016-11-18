@@ -8,21 +8,21 @@ basename = "lua-vm.html"
 
 # Lua VM
 
-Essh uses [GopherLua](https://github.com/yuin/gopher-lua) as a Lua VM to load configuration files written in Lua.
+EsshはLuaで書かれた設定ファイルを読み込むために[GopherLua](https://github.com/yuin/gopher-lua)をLua VMとして使っています。
 
-## Built-in Functions
+## ビルトイン関数
 
-As you already seen `host` and `task` functions, Essh core features consist of built-in functions. All the functions are listed below.
+すでに`host`と`task`関数を見てきたように、Esshのコア機能はビルトイン関数で構成されています。Esshが提供しているすべての関数は以下の通りです。
 
-* `host`: Defines a host. See [Hosts](/docs/en/hosts.html).
+* `host`: Defines a host. See [Hosts](/docs/ja/hosts.html).
 
-* `private_host`: Defines a private host. See [Hosts](/docs/en/hosts.html).
+* `private_host`: Defines a private host. See [Hosts](/docs/ja/hosts.html).
 
-* `task`: Defines a task. See [Tasks](/docs/en/tasks.html).
+* `task`: Defines a task. See [Tasks](/docs/ja/tasks.html).
 
-* `driver`: Defines a driver. See [Drivers](/docs/en/drivers.html).
+* `driver`: Defines a driver. See [Drivers](/docs/ja/drivers.html).
 
-* `import`: Imports a module. See [Modules](/docs/en/modules.html).
+* `import`: Imports a module. See [Modules](/docs/ja/modules.html).
 
 * `find_hosts`: Gets defined hosts. It is useful for overriding host config and set default values. For example, if you want to set a default ssh config: `ForwardAgent = yes`, you can achieve it the below code:
 
@@ -63,10 +63,10 @@ As you already seen `host` and `task` functions, Essh core features consist of b
 
 * `registry`: Gets a current registry object.
 
-## Built-in Libraries
+## ビルトインライブラリ
 
-Essh provides built-in Lua libraries that you can use in your configuration files.
-For instance, if you want to use `json` library, you should use Lua's `require` function like below.
+Esshには、設定ファイルで使用できるビルトインLuaライブラリが用意されています。
+たとえば、`json`ライブラリを使いたい場合は、以下のようにLuaの`require`関数を使います。
 
 ~~~lua
 local json = require("json")
@@ -75,7 +75,7 @@ local jsontext = json.encode({aaa = "bbb", ccc = "ddd"})
 print(jsontext)
 ~~~
 
-The following are the built-in libraries that are included in Essh.
+以下は、Esshに組み込まれているビルトインライブラリです。
 
 * `json`: [layeh/gopher-json](https://github.com/layeh/gopher-json).
 * `fs`: [kohkimakimoto/gluafs](https://github.com/kohkimakimoto/gluafs).

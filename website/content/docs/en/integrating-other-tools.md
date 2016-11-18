@@ -20,7 +20,7 @@ export GIT_SSH=essh
 
 ## scp
 
-Essh support to use with scp.
+Essh supports to use with scp.
 
 ~~~
 $ essh --exec 'scp -F $ESSH_SSH_CONFIG <scp command args...>'
@@ -34,7 +34,7 @@ $ escp <scp command args...>
 
 ## rsync
 
-Essh support to use with rsync.
+Essh supports to use with rsync.
 
 ~~~
 $ essh --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG" <rsync command args...>'
