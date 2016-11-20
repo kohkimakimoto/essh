@@ -1619,7 +1619,7 @@ func init() {
 
 var ZSH_COMPLETION = `# This is zsh completion code.
 # If you want to use it. write the following code in your '.zshrc'
-#   eval "$({{.Executable}} --zsh-completion)"
+#   eval "$(essh --zsh-completion)"
 _essh_hosts() {
     local -a __essh_hosts
     PRE_IFS=$IFS
@@ -1829,7 +1829,7 @@ compdef _essh essh
 
 var ALIASES_CODE = `# This is aliases code.
 # If you want to use it. write the following code in your '.zshrc'
-#   eval "$({{.Executable}} --aliases)"
+#   eval "$(essh --aliases)"
 function escp() {
     {{.Executable}} --exec 'scp -F $ESSH_SSH_CONFIG' "$@"
 }
