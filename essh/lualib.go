@@ -211,7 +211,22 @@ func esshFindHosts(L *lua.LState) int {
 	if L.GetTop() > 1 {
 		panic("find_hosts can receive max 1 argument.")
 	} else if L.GetTop() == 1 {
-		hostQuery.AppendFilter(L.CheckString(1))
+		value := L.CheckAny(1)
+		selections := []string{}
+
+		if selectionsStr, ok := toString(value); ok {
+			selections = []string{selectionsStr}
+		} else if selectionsSlice, ok := toSlice(value); ok {
+			for _, selection := range selectionsSlice {
+				if selectionStr, ok := selection.(string); ok {
+					selections = append(selections, selectionStr)
+				}
+			}
+		} else {
+			panic("find_hosts can receive string or array table of strings.")
+		}
+
+		hostQuery.AppendSelection(L.CheckString(1))
 	}
 
 	L.Push(newLHostQuery(L, hostQuery))
@@ -862,6 +877,20 @@ func hostQueryIndex(L *lua.LState) int {
 			if L.GetTop() != 2 {
 				panic("filter must receive max 2 argument.")
 			} else {
+				filters := []string{}
+				value := L.CheckAny(2)
+				if filtersStr, ok := toString(value); ok {
+					filters = []string{filtersStr}
+				} else if filtersSlice, ok := toSlice(value); ok {
+					for _, filter := range filtersSlice {
+						if filterStr, ok := filter.(string); ok {
+							filters = append(filters, filterStr)
+						}
+					}
+				} else {
+					panic("filter can receive string or array table of strings.")
+				}
+
 				hostQuery.AppendFilter(L.CheckString(2))
 			}
 
