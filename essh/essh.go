@@ -72,6 +72,8 @@ var (
 	configVar              string
 	selectVar              []string = []string{}
 	targetVar              []string = []string{}
+	scopeVar               string
+	registryVar            string
 	backendVar             string
 	prefixStringVar        string
 	driverVar              string
@@ -242,6 +244,24 @@ func Start() (exitStatus int) {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--backend=") {
 			backendVar = strings.Split(arg, "=")[1]
+		} else if arg == "--scope" {
+			if len(osArgs) < 2 {
+				printError("--scope reguires an argument.")
+				return ExitErr
+			}
+			scopeVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--scope=") {
+			scopeVar = strings.Split(arg, "=")[1]
+		} else if arg == "--registry" {
+			if len(osArgs) < 2 {
+				printError("--registry reguires an argument.")
+				return ExitErr
+			}
+			registryVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--registry=") {
+			registryVar = strings.Split(arg, "=")[1]
 		} else if arg == "--file" {
 			fileFlag = true
 		} else if arg == "--pty" {
@@ -567,6 +587,25 @@ func Start() (exitStatus int) {
 			tb.SetHeader([]string{"SCOPE", "NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN"})
 		}
 		for _, host := range hosts {
+
+			if scopeVar != "" {
+				if scopeVar == "public" && host.Private {
+					continue
+				}
+				if scopeVar == "private" && !host.Private {
+					continue
+				}
+			}
+
+			if registryVar != "" {
+				if registryVar == "global" && host.Registry.Type != RegistryTypeGlobal {
+					continue
+				}
+				if registryVar == "local" && host.Registry.Type != RegistryTypeLocal {
+					continue
+				}
+			}
+
 			if quietFlag {
 				tb.Append([]string{host.Name})
 			} else {
@@ -1493,7 +1532,9 @@ Options:
 
   (Manage Hosts, Tags And Tasks)
   --hosts                       List hosts.
-  --select <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
+  --select <tag|host>           (Using with --hosts option) Get only the hosts filtered with a tag or a host.
+  --scope public|private        (Using with --hosts option) Get only the hosts filtered with a scope.
+  --registry local|global       (Using with --hosts option) Get only the hosts filtered with a registry.
   --tasks                       List tasks.
   --all                         (Using with --tasks option) Show all that includs hidden objects.
   --tags                        List tags.
@@ -1509,9 +1550,9 @@ Options:
   (Execute Commands)
   --exec                        Execute commands with the hosts.
   --target <tag|host>           (Using with --exec option) Target hosts to run the commands.
-  --backend <remote|local>      (Using with --exec option) Run the commands on local or remote hosts.
+  --backend remote|local        (Using with --exec option) Run the commands on local or remote hosts.
   --prefix                      (Using with --exec option) Enable outputing prefix.
-  --prefix-string [<prefix>]    (Using with --exec option) Custom string of the prefix.
+  --prefix-string <prefix>      (Using with --exec option) Custom string of the prefix.
   --privileged                  (Using with --exec option) Run by the privileged user.
   --parallel                    (Using with --exec option) Run in parallel.
   --pty                         (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
@@ -1646,7 +1687,9 @@ _essh_hosts_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
-        '--select:Use only the hosts filtered with a tag or a host.'
+        '--select:Get only the hosts filtered with a tag or a host.'
+        '--scope:Get only the hosts filtered with a scope.'
+        '--registry:Get only the hosts filtered with a registry.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1700,6 +1743,24 @@ _essh_backends() {
     __essh_options=(
         'local'
         'remote'
+     )
+    _describe -t option "option" __essh_options
+}
+
+_essh_scopes() {
+    local -a __essh_options
+    __essh_options=(
+        'public'
+        'private'
+     )
+    _describe -t option "option" __essh_options
+}
+
+_essh_registries() {
+    local -a __essh_options
+    __essh_options=(
+        'global'
+        'local'
      )
     _describe -t option "option" __essh_options
 }
@@ -1761,6 +1822,12 @@ _essh () {
                     ;;
                 --backend)
                     _essh_backends
+                    ;;
+                --scope)
+                    _essh_scopes
+                    ;;
+                --registry)
+                    _essh_registries
                     ;;
                 --clean-modules|--clean-tmp|--clean-all|--update)
                     _essh_registry_options
