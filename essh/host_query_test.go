@@ -1,9 +1,9 @@
 package essh
 
 import (
-	"testing"
-	"os"
 	"io/ioutil"
+	"os"
+	"testing"
 )
 
 func TestGetAllHosts(t *testing.T) {
@@ -22,7 +22,6 @@ func TestGetAllHosts(t *testing.T) {
 	defer func() {
 		os.Remove(tmpDir2)
 	}()
-
 
 	GlobalRegistry = NewRegistry(tmpDir, RegistryTypeGlobal)
 	LocalRegistry = NewRegistry(tmpDir2, RegistryTypeLocal)
@@ -60,12 +59,12 @@ func TestGetAllHosts(t *testing.T) {
 	LocalRegistry.Hosts[h.Name] = h
 
 	hosts := getAllHosts()
-	if len(hosts) !=4 {
+	if len(hosts) != 4 {
 		t.Errorf("host number should be 4 but %d", len(hosts))
 	}
 }
 
-func TestHostQueryGetHostsForSelectedHosts (t *testing.T) {
+func TestHostQueryGetHostsForSelectedHosts(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Errorf("should not raise error: %v", err)
@@ -81,7 +80,6 @@ func TestHostQueryGetHostsForSelectedHosts (t *testing.T) {
 	defer func() {
 		os.Remove(tmpDir2)
 	}()
-
 
 	GlobalRegistry = NewRegistry(tmpDir, RegistryTypeGlobal)
 	LocalRegistry = NewRegistry(tmpDir2, RegistryTypeLocal)

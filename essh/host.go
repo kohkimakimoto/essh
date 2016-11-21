@@ -92,7 +92,7 @@ func (h *Host) Scope() string {
 }
 
 func GetPublicHost(hostname string) *Host {
-	for _, h := range  NewHostQuery().GetPublicHostsOrderByName() {
+	for _, h := range NewHostQuery().GetPublicHostsOrderByName() {
 		if h.Name == hostname {
 			return h
 		}

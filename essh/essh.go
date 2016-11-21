@@ -18,8 +18,8 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"text/template"
 	"syscall"
+	"text/template"
 )
 
 // system configurations.
@@ -563,7 +563,7 @@ func Start() (exitStatus int) {
 
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
-		for _, host := range  NewHostQuery().GetPublicHostsOrderByName() {
+		for _, host := range NewHostQuery().GetPublicHostsOrderByName() {
 			if !host.Hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.DescriptionOrDefault()))
 			}
@@ -815,7 +815,7 @@ func runTask(config string, task *Task) error {
 	// re generate config (task).
 	if task.Registry == nil {
 		// this is "--exec" command mode. use only public hosts
-		_, err := UpdateSSHConfig(config,  NewHostQuery().GetPublicHostsOrderByName())
+		_, err := UpdateSSHConfig(config, NewHostQuery().GetPublicHostsOrderByName())
 		if err != nil {
 			return err
 		}
@@ -1053,7 +1053,7 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 			return err
 		}
 		wg.Add(1)
-		go func () {
+		go func() {
 			scanLines(stdout, os.Stdout, prefix, m)
 			wg.Done()
 		}()
@@ -1067,7 +1067,7 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 			return err
 		}
 		wg.Add(1)
-		go func () {
+		go func() {
 			scanLines(stderr, os.Stderr, prefix, m)
 			wg.Done()
 		}()
@@ -1128,7 +1128,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 		// prevent to use invalid text template.
 		// replace prefix string to the string that is not included "{{.Host}}"
 		prefix = "[local] "
-	} else if task.UsePrefix  {
+	} else if task.UsePrefix {
 		prefixTmp := task.Prefix
 		if prefixTmp == "" {
 			if task.IsRemoteTask() {
@@ -1185,7 +1185,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 			return err
 		}
 		wg.Add(1)
-		go func () {
+		go func() {
 			scanLines(stdout, os.Stdout, prefix, m)
 			wg.Done()
 		}()
@@ -1199,7 +1199,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 			return err
 		}
 		wg.Add(1)
-		go func () {
+		go func() {
 			scanLines(stderr, os.Stderr, prefix, m)
 			wg.Done()
 		}()

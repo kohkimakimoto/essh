@@ -6,13 +6,13 @@ import (
 
 type HostQuery struct {
 	Selections []string
-	Filters []string
+	Filters    []string
 }
 
 func NewHostQuery() *HostQuery {
 	return &HostQuery{
 		Selections: []string{},
-		Filters: []string{},
+		Filters:    []string{},
 	}
 }
 
@@ -141,7 +141,7 @@ func (hostQuery *HostQuery) selectHosts(hosts []*Host) []*Host {
 	for _, host := range hosts {
 		selected := false
 
-		B1:
+	B1:
 		for _, selection := range selections {
 			if host.Name == selection {
 				newHosts = append(newHosts, host)
@@ -154,7 +154,7 @@ func (hostQuery *HostQuery) selectHosts(hosts []*Host) []*Host {
 			continue
 		}
 
-		B2:
+	B2:
 		for _, tag := range host.Tags {
 			for _, selection := range selections {
 				if tag == selection {
@@ -167,7 +167,6 @@ func (hostQuery *HostQuery) selectHosts(hosts []*Host) []*Host {
 
 	return newHosts
 }
-
 
 func (hostQuery *HostQuery) filterHosts(hosts []*Host, filter string) []*Host {
 	newHosts := []*Host{}
@@ -201,4 +200,3 @@ func getAllHosts() []*Host {
 
 	return hosts
 }
-
