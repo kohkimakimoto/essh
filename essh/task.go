@@ -15,6 +15,7 @@ type Task struct {
 	File        string
 	Backend     string
 	Targets     []string
+	Filters     []string
 	Parallel    bool
 	Privileged  bool
 	Disabled    bool
@@ -39,6 +40,7 @@ const (
 func NewTask() *Task {
 	return &Task{
 		Targets: []string{},
+		Filters: []string{},
 		Backend: TASK_BACKEND_LOCAL,
 		Script:  []map[string]string{},
 		LValues: map[string]lua.LValue{},
@@ -110,6 +112,14 @@ func (t *Task) Context() *Registry {
 func (t *Task) TargetsSlice() []string {
 	if len(t.Targets) >= 1 {
 		return t.Targets
+	}
+
+	return []string{}
+}
+
+func (t *Task) FiltersSlice() []string {
+	if len(t.Filters) >= 1 {
+		return t.Filters
 	}
 
 	return []string{}

@@ -143,62 +143,6 @@ func Tags() []string {
 	return tags
 }
 
-func FindHostsInRegistry(names []string, registryType int) []*Host {
-	var hosts = []*Host{}
-
-	for _, host := range NewHostQuery().GetHostsOrderByName() {
-		if host.Registry.Type != registryType {
-			continue
-		}
-
-	B1:
-		for _, name := range names {
-			if host.Name == name {
-				hosts = append(hosts, host)
-				break B1
-			}
-		}
-
-	B2:
-		for _, tag := range host.Tags {
-			for _, name := range names {
-				if tag == name {
-					hosts = append(hosts, host)
-					break B2
-				}
-			}
-		}
-	}
-
-	return hosts
-}
-
-func FindPublicHosts(names []string) []*Host {
-	var hosts = []*Host{}
-
-	for _, host := range  NewHostQuery().GetPublicHostsOrderByName() {
-	B1:
-		for _, name := range names {
-			if host.Name == name {
-				hosts = append(hosts, host)
-				break B1
-			}
-		}
-
-	B2:
-		for _, tag := range host.Tags {
-			for _, name := range names {
-				if tag == name {
-					hosts = append(hosts, host)
-					break B2
-				}
-			}
-		}
-	}
-
-	return hosts
-}
-
 func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
 	var maxlen int
 	for _, h := range hosts {

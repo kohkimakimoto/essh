@@ -646,6 +646,18 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		} else {
 			panic("invalid value of a task's field '" + key + "'.")
 		}
+	case "filters":
+		if filtersStr, ok := toString(value); ok {
+			task.Filters = []string{filtersStr}
+		} else if filtersSlice, ok := toSlice(value); ok {
+			for _, filter := range filtersSlice {
+				if filterStr, ok := filter.(string); ok {
+					task.Filters = append(task.Filters, filterStr)
+				}
+			}
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
 	case "description":
 		if descStr, ok := toString(value); ok {
 			task.Description = descStr

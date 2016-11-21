@@ -71,9 +71,10 @@ var (
 	workindDirVar          string
 	configVar              string
 	selectVar              []string = []string{}
-	targetVar              []string = []string{}
 	scopeVar               string
 	registryVar            string
+	targetVar              []string = []string{}
+	filterVar              []string = []string{}
 	backendVar             string
 	prefixStringVar        string
 	driverVar              string
@@ -235,6 +236,15 @@ func Start() (exitStatus int) {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--target=") {
 			targetVar = append(targetVar, strings.Split(arg, "=")[1])
+		} else if arg == "--filter" {
+			if len(osArgs) < 2 {
+				printError("--filter reguires an argument.")
+				return ExitErr
+			}
+			filterVar = append(filterVar, osArgs[1])
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--filter=") {
+			filterVar = append(filterVar, strings.Split(arg, "=")[1])
 		} else if arg == "--backend" {
 			if len(osArgs) < 2 {
 				printError("--backend reguires an argument.")
@@ -704,7 +714,14 @@ func Start() (exitStatus int) {
 		if backendVar != "" {
 			task.Backend = backendVar
 		}
+
+		if len(targetVar) == 0 && len(filterVar) > 0 {
+			printError("--filter must be used with --target option.")
+			return ExitErr
+		}
+
 		task.Targets = targetVar
+		task.Filters = filterVar
 
 		if prefixFlag || prefixStringVar != "" {
 			task.UsePrefix = true
@@ -825,9 +842,15 @@ func runTask(config string, task *Task) error {
 		// run remotely.
 		var hosts []*Host
 		if task.Registry == nil {
-			hosts = FindPublicHosts(task.TargetsSlice())
+			hosts = NewHostQuery().
+				AppendSelections(task.TargetsSlice()).
+				AppendFilters(task.FiltersSlice()).
+				GetPublicHostsOrderByName()
 		} else {
-			hosts = FindHostsInRegistry(task.TargetsSlice(), task.Registry.Type)
+			hosts = NewHostQuery().
+				AppendSelections(task.TargetsSlice()).
+				AppendFilters(task.FiltersSlice()).
+				GetSameRegistryHostsOrderByName(task.Registry.Type)
 		}
 
 		if len(hosts) == 0 {
@@ -870,9 +893,15 @@ func runTask(config string, task *Task) error {
 		// run locally.
 		var hosts []*Host
 		if task.Registry == nil {
-			hosts = FindPublicHosts(task.TargetsSlice())
+			hosts = NewHostQuery().
+				AppendSelections(task.TargetsSlice()).
+				AppendFilters(task.FiltersSlice()).
+				GetPublicHostsOrderByName()
 		} else {
-			hosts = FindHostsInRegistry(task.TargetsSlice(), task.Registry.Type)
+			hosts = NewHostQuery().
+				AppendSelections(task.TargetsSlice()).
+				AppendFilters(task.FiltersSlice()).
+				GetSameRegistryHostsOrderByName(task.Registry.Type)
 		}
 
 		if len(task.Targets) >= 1 && len(hosts) == 0 {
@@ -1550,6 +1579,7 @@ Options:
   (Execute Commands)
   --exec                        Execute commands with the hosts.
   --target <tag|host>           (Using with --exec option) Target hosts to run the commands.
+  --filter <tag|host>           (Using with --exec option) Filter target hosts with tags or hosts.
   --backend remote|local        (Using with --exec option) Run the commands on local or remote hosts.
   --prefix                      (Using with --exec option) Enable outputing prefix.
   --prefix-string <prefix>      (Using with --exec option) Custom string of the prefix.
@@ -1719,6 +1749,7 @@ _essh_exec_options() {
         '--debug:Output debug log.'
         '--backend:Run the commands on local or remote hosts.'
         '--target:Target hosts to run the commands.'
+        '--filter:Filter target hosts with tags or hosts.'
         '--prefix:Disable outputing prefix.'
         '--prefix-string:Custom string of the prefix.'
         '--privileged:Run by the privileged user.'
@@ -1816,7 +1847,7 @@ _essh () {
                 --file|--config)
                     _files
                     ;;
-                --select|--target)
+                --select|--target|--filter)
                     _essh_hosts
                     _essh_tags
                     ;;
