@@ -459,7 +459,7 @@ func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 func esshGethosts(L *lua.LState) int {
 	lhosts := L.NewTable()
 
-	for _, host := range SortedHosts() {
+	for _, host := range NewHostQuery().GetHostsOrderByName() {
 		lhost := newLHost(L, host)
 		lhosts.Append(lhost)
 	}

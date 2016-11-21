@@ -533,7 +533,7 @@ func Start() (exitStatus int) {
 
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
-		for _, host := range SortedPublicHosts() {
+		for _, host := range  NewHostQuery().GetPublicHostsOrderByName() {
 			if !host.Hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.DescriptionOrDefault()))
 			}
@@ -561,41 +561,20 @@ func Start() (exitStatus int) {
 
 	// only print hosts list
 	if hostsFlag {
-		var hosts []*Host
-		if len(selectVar) > 0 {
-			hosts = HostsByNames(selectVar)
-		} else {
-			hosts = SortedHosts()
-		}
+		hosts := NewHostQuery().AppendSelections(selectVar).GetHostsOrderByScopeAndName()
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			if allFlag {
-				tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY", "SCOPE", "HIDDEN"})
-			} else {
-				tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "REGISTRY"})
-			}
-
+			tb.SetHeader([]string{"SCOPE", "NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN"})
 		}
 		for _, host := range hosts {
-			if (!host.Hidden && !host.Private) || allFlag {
-				if quietFlag {
-					tb.Append([]string{host.Name})
-				} else {
-					if allFlag {
-						hidden := "false"
-						if host.Hidden {
-							hidden = "true"
-						}
-						scope := "public"
-						if host.Private {
-							scope = "private"
-						}
-						tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString(), scope, hidden})
-					} else {
-						tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString()})
-					}
-
+			if quietFlag {
+				tb.Append([]string{host.Name})
+			} else {
+				hidden := "false"
+				if host.Hidden {
+					hidden = "true"
 				}
+				tb.Append([]string{host.Scope(), host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString(), hidden})
 			}
 		}
 		tb.Render()
@@ -607,14 +586,10 @@ func Start() (exitStatus int) {
 	if tagsFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "PUBLIC_HOSTS", "HOSTS"})
+			tb.SetHeader([]string{"NAME"})
 		}
 		for _, tag := range Tags() {
-			if quietFlag {
-				tb.Append([]string{tag})
-			} else {
-				tb.Append([]string{tag, fmt.Sprintf("%d", len(HostsByTag(tag, true))), fmt.Sprintf("%d", len(HostsByTag(tag, false)))})
-			}
+			tb.Append([]string{tag})
 		}
 		tb.Render()
 
@@ -624,24 +599,14 @@ func Start() (exitStatus int) {
 	// only print tasks list
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
-		if !quietFlag {
-			if allFlag {
-				tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "DISABLED", "HIDDEN"})
-			} else {
-				tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY"})
-			}
-		}
+		tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "DISABLED", "HIDDEN"})
 
 		for _, t := range SortedTasks() {
 			if (!t.Hidden && !t.Disabled) || allFlag {
 				if quietFlag {
 					tb.Append([]string{t.Name})
 				} else {
-					if allFlag {
-						tb.Append([]string{t.Name, t.Description, t.Registry.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
-					} else {
-						tb.Append([]string{t.Name, t.Description, t.Registry.TypeString()})
-					}
+					tb.Append([]string{t.Name, t.Description, t.Registry.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
 				}
 			}
 		}
@@ -657,7 +622,7 @@ func Start() (exitStatus int) {
 	}
 
 	// generate ssh hosts config
-	content, err := UpdateSSHConfig(outputConfig, SortedPublicHosts())
+	content, err := UpdateSSHConfig(outputConfig, NewHostQuery().GetPublicHostsOrderByName())
 	if err != nil {
 		printError(err)
 		return ExitErr
@@ -794,12 +759,12 @@ func runTask(config string, task *Task) error {
 	// re generate config (task).
 	if task.Registry == nil {
 		// this is "--exec" command mode. use only public hosts
-		_, err := UpdateSSHConfig(config, SortedPublicHosts())
+		_, err := UpdateSSHConfig(config,  NewHostQuery().GetPublicHostsOrderByName())
 		if err != nil {
 			return err
 		}
 	} else {
-		_, err := UpdateSSHConfig(config, SameRegistryHosts(task.Registry.Type))
+		_, err := UpdateSSHConfig(config, NewHostQuery().GetSameRegistryHostsOrderByName(task.Registry.Type))
 		if err != nil {
 			return err
 		}
@@ -1426,7 +1391,7 @@ func runCommand(command string) error {
 func validateConfig() error {
 	// check duplication of the host, task and tag names
 	hostnames := map[string]bool{}
-	for _, host := range SortedPublicHosts() {
+	for _, host := range NewHostQuery().GetPublicHostsOrderByName() {
 		if _, ok := hostnames[host.Name]; ok {
 			return fmt.Errorf("Host '%s' is duplicated", host.Name)
 		}
@@ -1528,10 +1493,10 @@ Options:
 
   (Manage Hosts, Tags And Tasks)
   --hosts                       List hosts.
-  --tags                        List tags.
-  --tasks                       List tasks.
   --select <tag|host>           (Using with --hosts option) Use only the hosts filtered with a tag or a host.
-  --all                         (Using with --hosts, --tasks or --tags option) Show all that includs hidden objects.
+  --tasks                       List tasks.
+  --all                         (Using with --tasks option) Show all that includs hidden objects.
+  --tags                        List tags.
   --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
 
   (Manage Modules)
@@ -1681,7 +1646,6 @@ _essh_hosts_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
-        '--all:Show all that includs hidden objects.'
         '--select:Use only the hosts filtered with a tag or a host.'
      )
     _describe -t option "option" __essh_options
@@ -1702,7 +1666,6 @@ _essh_tags_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
-        '--all:Show all that includs hidden objects.'
      )
     _describe -t option "option" __essh_options
 }
