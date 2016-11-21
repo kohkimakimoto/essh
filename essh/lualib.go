@@ -226,7 +226,7 @@ func esshFindHosts(L *lua.LState) int {
 			panic("find_hosts can receive string or array table of strings.")
 		}
 
-		hostQuery.AppendSelection(L.CheckString(1))
+		hostQuery.AppendSelections(selections)
 	}
 
 	L.Push(newLHostQuery(L, hostQuery))
@@ -891,7 +891,7 @@ func hostQueryIndex(L *lua.LState) int {
 					panic("filter can receive string or array table of strings.")
 				}
 
-				hostQuery.AppendFilter(L.CheckString(2))
+				hostQuery.AppendFilters(filters)
 			}
 
 			ud.Value = hostQuery
