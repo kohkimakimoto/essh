@@ -41,13 +41,13 @@ $ essh example
 
 ## プロパティ
 
-* `description` (string): Description of the task.
+* `description` (string): タスクの説明。
 
-* `pty` (boolean): If it is true, SSH connection allocates pseudo-terminal by running ssh command with multiple -t options like `ssh -t -t`.
+* `pty` (boolean): trueに設定すると、SSH接続は`ssh -t -t`のように複数の-tオプションを使用してsshコマンドに擬似端末を割り当てます。
 
-* `dirver` (string): driver name is used in the task. see [Drivers](drivers.html).
+* `dirver` (string): このタスクで使用するドライバ。[Drivers](drivers.html)を参照してください。
 
-* `parallel` (boolean): If it is true, runs task's script in parallel.
+* `parallel` (boolean): trueに設定すると、タスクのスクリプトを並列に実行します。
 
 * `privileged` (boolean): If it is true, runs task's script by privileged user. If you use it, you have to configure your machine to be able to be used `sudo` without password.
 

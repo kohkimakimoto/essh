@@ -27,7 +27,7 @@ Try to run this task with `--debug` option to display the actual script.
 ~~~
 $ essh example --debug
 [essh debug] ...
-[essh debug] real local command: [bin/sh -c
+[essh debug] real local command: [bash -c
 export ESSH_TASK_NAME='example'
 export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh_config.544434412
 
@@ -36,7 +36,7 @@ echo bbb
 ]
 ~~~
 
-According to the debug messages, the task ran the sh script:
+According to the debug messages, the task ran the bash script:
 
 ~~~
 export ESSH_TASK_NAME='example'
