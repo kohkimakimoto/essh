@@ -130,5 +130,4 @@ There are constraints about [scope](#scope) and [registries](configuration-files
 * **Each public hosts must be unique.** (You can NOT define public hosts by the same name in the local and global registry.)
 * **Any hosts must be unique in a same registry.** (You can NOT define hosts by the same name in the same registry.)
 * **Hosts used by task must be defined in a same registry.** (Tasks can refer to only hosts defined in the same registry.)
-* **Private hosts is only used by tasks.**
-* **There can be duplicated hosts in the entire registries.** (You can define private hosts even if you define same name public hosts.)
+* **Private hosts can be used only by tasks.**
