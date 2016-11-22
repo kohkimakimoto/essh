@@ -8,7 +8,7 @@ basename = "tasks.html"
 
 # Tasks
 
-Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
+Task is a script that runs on remote or local servers. You can use it to automate your system administration tasks.
 
 Example:
 
@@ -16,7 +16,10 @@ Example:
 task "example" {
     description = "example task",
     targets = {
-        "web"
+        "web",
+    },
+    filters = {
+        "production",
     },
     backend = "local",
     parallel = true,
@@ -53,6 +56,8 @@ Notice: Task name mustn't be duplicated with any host names.
 * `hidden` (boolean): If it is true, this task is not displayed in tasks list.
 
 * `targets` (string|table): Host names and tags that the task's scripts is executed for. You can use only hosts and tags which defined by same configuration registry of the task. If you define a task in `/var/tmp/esshconfig.lua`, this task can not use hosts defined in `~/.essh/config.lua`. The first configuration file is **local** registry. But the second configuration file is **global** registry.
+
+* `filters` (string|table): Host names and tags to filter target hosts. This property must be used with `targets`.
 
 * `backend` (string): You can set value only `remote` or `local`.
 

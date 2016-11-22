@@ -52,30 +52,30 @@ Run `essh` with `--hosts` option.
 
 ~~~sh
 $ essh --hosts
-NAME                     DESCRIPTION                     TAGS                 REGISTRY
-cache01.localhost        cache01 server                  cache,backend        local
-db01.localhost           db01 server                     db,backend           local
-web01.localhost          web01 development server        web                  local
-web02.localhost          web02 development server        web                  local
+SCOPE         NAME                     DESCRIPTION                     TAGS                 REGISTRY        HIDDEN
+public        cache01.localhost        cache01 server                  cache,backend        local           false
+public        db01.localhost           db01 server                     db,backend           local           false
+public        web01.localhost          web01 development server        web                  local           false
+public        web02.localhost          web02 development server        web                  local           false
 ~~~
 
 You will see the all hosts. Next, try to run it with `--select` option.
 
 ~~~sh
 $ essh --hosts --select=web
-NAME                   DESCRIPTION                     TAGS        REGISTRY
-web01.localhost        web01 development server        web         local
-web02.localhost        web02 development server        web         local
+SCOPE         NAME                   DESCRIPTION                     TAGS        REGISTRY        HIDDEN
+public        web01.localhost        web01 development server        web         local           false
+public        web02.localhost        web02 development server        web         local           false
 ~~~
 
 You will get filtered hosts by `web` tag. `--select` can be specified multiple times. Each filters are used in OR condition.
 
 ~~~sh
 $ essh --hosts --select=web --select=db
-NAME                   DESCRIPTION                     TAGS              REGISTRY
-db01.localhost         db01 server                     db,backend        local
-web01.localhost        web01 development server        web               local
-web02.localhost        web02 development server        web               local
+SCOPE         NAME                   DESCRIPTION                     TAGS              REGISTRY        HIDDEN
+public        db01.localhost         db01 server                     db,backend        local           false
+public        web01.localhost        web01 development server        web               local           false
+public        web02.localhost        web02 development server        web               local           false
 ~~~
 
 For more information on hosts, see the [Hosts](/docs/en/hosts.html) section.
