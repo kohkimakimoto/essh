@@ -69,7 +69,9 @@ All the properties of this type are listed below.
     }
     ~~~
 
-    All hooks implemented in Lua function runs on local.
+    All hooks (includes `hooks_after_connect`, `hooks_after_disconnect`) implemented in Lua function runs on local.
+
+    All hooks (includes `hooks_after_connect`, `hooks_after_disconnect`) only fire when your simply login with ssh. Hooks don't fire in tasks and with `--exec` option.
 
 * `hooks_after_connect` (table): Hooks that fire after connect. This hook runs on remote.
 

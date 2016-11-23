@@ -1,7 +1,7 @@
 {{ if .Title }}{{ .Scratch.Set "title" .Title }}{{end -}}
 {{ if .Site.Title }}{{ .Scratch.Add "title" " | " }}{{ .Scratch.Add "title" .Site.Title }}{{end -}}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ if .Params.lang }}{{ .Params.lang }}{{ else }}en{{ end }}">
 
 <head>
   <title>{{ .Scratch.Get "title" }}</title>

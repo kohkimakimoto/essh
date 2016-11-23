@@ -42,7 +42,7 @@ $ essh --exec --backend=remote --target=web --prefix --parallel uptime
 [remote:web02.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
 ~~~
 
-Use `--privileged` option, Essh runs commands by privileged (root) user.
+Use `--privileged` option, Essh runs commands by privileged (root) user. You have to configure your machine to be able to be used `sudo` without password.
 
 ~~~sh
 $ essh --exec --backend=remote --target=web --prefix --privileged whoami

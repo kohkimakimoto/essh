@@ -24,7 +24,7 @@ As you already seen `host` and `task` functions, Essh core features consist of b
 
 * `import`: Imports a module. See [Modules](/docs/en/modules.html).
 
-* `find_hosts`: Gets defined hosts. It is useful for overriding host config and set default values. For example, if you want to set a default ssh config: `ForwardAgent = yes`, you can achieve it the below code:
+* `find_hosts`: Gets defined hosts. It is useful for overriding host config or setting default values. For example, if you want to set a default ssh_config: `ForwardAgent = yes`, you can achieve it the below code:
 
     ~~~lua
     -- ~/.essh/config_override.lua
@@ -46,8 +46,15 @@ As you already seen `host` and `task` functions, Essh core features consist of b
         end
     end
 
-    -- You can set filter multiple times.
-    -- Getting only the hosts filtered by `web` and `production`.
+    -- Using a table, Getting the hosts both `web` or `db`
+    for _, h in pairs(find_hosts({"web", "db"}):get()) do
+        if h.ForwardAgent == nil then
+            h.ForwardAgent = "yes"
+        end
+    end
+
+    -- You can set a filter.
+    -- Getting only the `web` hosts filtered by `production`.
     for _, h in pairs(find_hosts("web"):filter("production"):get()) do
         if h.ForwardAgent == nil then
             h.ForwardAgent = "yes"
@@ -106,3 +113,17 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
         ProxyCommand = "ssh -q -F " .. essh.ssh_config .. " -W %h:%p getway-server1",
     }
     ~~~
+
+* `host` (function): An alias of `host` function.
+
+* `private_host` (function): An alias of `private_host` function.
+
+* `task` (function): An alias of `task` function.
+
+* `dirver` (function): An alias of `dirver` function.
+
+* `import` (function): An alias of `import` function.
+
+* `find_hosts` (function): An alias of `find_hosts` function.
+
+* `registry` (function): An alias of `registry` function.

@@ -14,17 +14,17 @@ EsshはLuaで書かれた設定ファイルを読み込むために[GopherLua](h
 
 すでに`host`と`task`関数を見てきたように、Esshのコア機能はビルトイン関数で構成されています。Esshが提供しているすべての関数は以下の通りです。
 
-* `host`: Defines a host. See [Hosts](/docs/ja/hosts.html).
+* `host`: ホストを定義します。[ホスト](/docs/ja/hosts.html)を参照してください。
 
-* `private_host`: Defines a private host. See [Hosts](/docs/ja/hosts.html).
+* `private_host`: プライベートホストを定義します。See [ホスト](/docs/ja/hosts.html)を参照してください。
 
-* `task`: Defines a task. See [Tasks](/docs/ja/tasks.html).
+* `task`: タスクを定義します。[タスク](/docs/ja/tasks.html)を参照してください。
 
-* `driver`: Defines a driver. See [Drivers](/docs/ja/drivers.html).
+* `driver`: ドライバを定義します。[ドライバ](/docs/ja/drivers.html)を参照してください。
 
-* `import`: Imports a module. See [Modules](/docs/ja/modules.html).
+* `import`: モジュールをインポートします。[モジュール](/docs/ja/modules.html)を参照してください。
 
-* `find_hosts`: Gets defined hosts. It is useful for overriding host config and set default values. For example, if you want to set a default ssh config: `ForwardAgent = yes`, you can achieve it the below code:
+* `find_hosts`: 定義されたホストを取得します。これは、ホスト設定のオーバライドやデフォルト値の設定に役立ちます。たとえば、デフォルトのssh_config:`ForwardAgent = yes`を設定する場合は、以下のコードで実施できます。
 
     ~~~lua
     -- ~/.essh/config_override.lua
@@ -35,7 +35,7 @@ EsshはLuaで書かれた設定ファイルを読み込むために[GopherLua](h
     end
     ~~~
 
-    Above example sets the default value to the all hosts. If you want to set the value to some hosts you selected, You can also use the below code:
+    上記の例では、すべてのホストにデフォルト値が設定されます。選択したホストに値を設定したい場合は、次のコードを使います:
 
     ~~~lua
     -- ~/.essh/config_override.lua
@@ -46,8 +46,15 @@ EsshはLuaで書かれた設定ファイルを読み込むために[GopherLua](h
         end
     end
 
-    -- You can set filter multiple times.
-    -- Getting only the hosts filtered by `web` and `production`.
+    -- Using a table, Getting the hosts both `web` or `db`
+    for _, h in pairs(find_hosts({"web", "db"}):get()) do
+        if h.ForwardAgent == nil then
+            h.ForwardAgent = "yes"
+        end
+    end
+
+    -- You can set a filter.
+    -- Getting only the `web` hosts filtered by `production`.
     for _, h in pairs(find_hosts("web"):filter("production"):get()) do
         if h.ForwardAgent == nil then
             h.ForwardAgent = "yes"
@@ -61,7 +68,7 @@ EsshはLuaで書かれた設定ファイルを読み込むために[GopherLua](h
     end
     ~~~
 
-* `registry`: Gets a current registry object.
+* `registry`: 現在のレジストリオブジェクトを取得します。
 
 ## ビルトインライブラリ
 
@@ -106,3 +113,17 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
         ProxyCommand = "ssh -q -F " .. essh.ssh_config .. " -W %h:%p getway-server1",
     }
     ~~~
+
+* `host` (function): `host`関数のエイリアス。
+
+* `private_host` `private_host`関数のエイリアス。
+
+* `task` (function): `task`関数のエイリアス。
+
+* `dirver` (function): `dirver`関数のエイリアス。
+
+* `import` (function): `import`関数のエイリアス。
+
+* `find_hosts` (function): `find_hosts`関数のエイリアス。
+
+* `registry` (function): `registry`関数のエイリアス。

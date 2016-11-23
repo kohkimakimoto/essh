@@ -8,9 +8,9 @@ basename = "modules.html"
 
 # モジュール
 
-Module allows you to use, create and share reusable code easily for Essh configuration.
+モジュールを使用すると、簡単にEssh設定のための再利用可能なコードを使用、作成、共有できます。
 
-## Using Modules
+## モジュールを使う
 
 You can use `import` function to load a Essh module.
 

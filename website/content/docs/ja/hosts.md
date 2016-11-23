@@ -70,7 +70,9 @@ Esshコンフィグプロパティは、最初の文字を小文字にする必�
     }
     ~~~
 
-    Lua関数で実装されたフックはすべてローカルで実行されます。
+    Lua関数で実装されたすべてのフック(`hooks_after_connect`, `hooks_after_disconnect`も含む)はローカルで実行されます。
+
+    すべてのフック(`hooks_after_connect`, `hooks_after_disconnect`も含む)は、単にsshでログインしたときにのみ発火します。フックはタスクや`--exec`オプションで発火しません。
 
 * `hooks_after_connect` (table): 接続後に発火するフック。これはリモートサーバで実行されます。
 

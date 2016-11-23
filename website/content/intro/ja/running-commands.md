@@ -42,7 +42,7 @@ $ essh --exec --backend=remote --target=web --prefix --parallel uptime
 [remote:web02.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
 ~~~
 
-`--privileged`オプションを使うと、特権(root)ユーザでコマンドを実行します。
+`--privileged`オプションを使うと、特権(root)ユーザでコマンドを実行します。パスワードなしでsudoを使用できるようにマシンを設定する必要があります。
 
 ~~~sh
 $ essh --exec --backend=remote --target=web --prefix --privileged whoami
@@ -50,7 +50,7 @@ $ essh --exec --backend=remote --target=web --prefix --privileged whoami
 [remote:web01.localhost] root
 ~~~
 
-`--backend=local`をセットすると, Esshはローカルでコマンドを実行します
+`--backend=local`をセットすると, Esshはローカルでコマンドを実行します。
 
 ~~~sh
 $ essh --exec --backend=local --target=web --parallel --prefix 'echo $ESSH_HOSTNAME'

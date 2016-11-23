@@ -49,21 +49,21 @@ $ essh example
 
 * `parallel` (boolean): trueに設定すると、タスクのスクリプトを並列に実行します。
 
-* `privileged` (boolean): If it is true, runs task's script by privileged user. If you use it, you have to configure your machine to be able to be used `sudo` without password.
+* `privileged` (boolean): trueに設定すると、特権ユーザーがタスクのスクリプトを実行します。これを使用する場合は、パスワードなしでsudoを使用できるようにマシンを設定する必要があります。
 
-* `disabled` (boolean): If it is true, this task does not run and is not displayed in tasks list.
+* `disabled` (boolean): trueの場合、このタスクは実行されず、タスクリストに表示されません。
 
-* `hidden` (boolean): If it is true, this task is not displayed in tasks list.
+* `hidden` (boolean): trueの場合、このタスクはタスクリストに表示されません。
 
-* `targets` (string|table): Host names and tags that the task's scripts is executed for. You can use only hosts and tags which defined by same configuration registry of the task. If you define a task in `/var/tmp/esshconfig.lua`, this task can not use hosts defined in `~/.essh/config.lua`. The first configuration file is **local** registry. But the second configuration file is **global** registry.
+* `targets` (string|table): タスクのスクリプトが実行されるホスト名またはタグ。タスクの同じ設定レジストリで定義されたホストとタグだけが使用できます。 たとえば`/var/tmp/esshconfig.lua`にタスクを定義すると、このタスクは`〜/.essh/config.lua`で定義されたホストを使うことができません。一つ目の設定ファイルは**local**レジストリで、2番目の設定ファイルは**global**レジストリだからです。
 
-* `filters` (string|table): Host names and tags to filter target hosts. This property must be used with `targets`.
+* `filters` (string|table): ターゲットホストをフィルタリングするためのホスト名またはタグ。このプロパティは`targets`と一緒に使わなければなりません。
 
-* `backend` (string): You can set value only `remote` or `local`.
+* `backend` (string): タスクのスクリプトが実行される場所。`remote`か`local`を指定できます。
 
-* `prefix` (boolean|string): If it is true, Essh displays task's output with hostname prefix. If it is string, Essh displays task's output with custom prefix. This string can be used with text/template format like `{{.Host.Name}}`.
+* `prefix` (boolean|string): trueの場合、Esshはタスクの出力にホスト名のプレフィックスをつけて表示します。文字列の場合、Esshはタスクの出力にカスタムのプレフィックスをつけて表示します。この文字列は `{{.Host.Name}}`のようなテキスト/テン​​プレート形式で使用できます。
 
-* `prepare` (function): Prepare is a function to be executed when the task starts. See example:
+* `prepare` (function): Prepareは、タスクの開始時に実行される関数です。例を参照してください:
 
     ~~~lua
     prepare = function ()
@@ -72,9 +72,9 @@ $ essh example
     end,
     ~~~
 
-    By the prepare function returns false, you can cancel to execute the task.
+    prepare関数によってfalseが返されると、タスクを実行するために取り消すことができます。
 
-* `script` (string|table): Script is an executed code. Example:
+* `script` (string|table): スクリプトは実行されるコードです。例:
 
     ~~~lua
     script = [=[
@@ -94,23 +94,22 @@ $ essh example
     }
     ~~~
 
-    If you set it as a table, Essh concatenates strings in the table with newline code. And Essh runs the script as a bash script.
-    But this is just default behavior. You can change it by [Drivers](drivers.html).
+    テーブルで設定すると、Esshはテーブルの文字列を改行コードで連結します。 Esshはスクリプトをbashスクリプトとして実行します。しかし、これはただのデフォルトの動作です。[ドライバ](drivers.html)で変更できます。
 
-    You can use predefined environment variables in your script, See below:
+    スクリプトでは、定義済みの環境変数を使用できます。以下を参照してください。
 
-  * `ESSH_TASK_NAME`: task name.
+  * `ESSH_TASK_NAME`: タスク名.
 
-  * `ESSH_SSH_CONFIG`: generated ssh_config file path.
+  * `ESSH_SSH_CONFIG`: 生成されたssh_configファイルのパス
 
-  * `ESSH_DEBUG`: If you set `--debug` option by CLI. this variable is set "1".
+  * `ESSH_DEBUG`: CLIで `--debug`オプションを設定した場合この変数は"1"に設定されます。
 
-  * `ESSH_HOSTNAME`: host name.
+  * `ESSH_HOSTNAME`: ホスト名。
 
-  * `ESSH_HOST_HOSTNAME`: host name.
+  * `ESSH_HOST_HOSTNAME`: ホスト名。
 
-  * `ESSH_HOST_SSH_{SSH_CONFIG_KEY}`: ssh_config key/value pare.
+  * `ESSH_HOST_SSH_{SSH_CONFIG_KEY}`: ssh_configのキー/バリュー ペア.
 
-  * `ESSH_HOST_TAGS_{TAG}`: tag.
+  * `ESSH_HOST_TAGS_{TAG}`: タグ.
 
-  * `ESSH_HOST_PROPS_{KEY}`: property that is set by host's props. See [Hosts](hosts.html).
+  * `ESSH_HOST_PROPS_{KEY}`: ホストのpropsによって設定されるプロパティ。[ホスト](hosts.html)を参照してください。

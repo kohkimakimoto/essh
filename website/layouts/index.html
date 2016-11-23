@@ -1,4 +1,4 @@
-<html lang="en">
+<html lang="{{ if .Params.lang }}{{ .Params.lang }}{{ else }}en{{ end }}">
 
 <head>
   <title>{{ .Site.Title }}</title>
