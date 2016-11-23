@@ -57,7 +57,7 @@ All the options are listed below.
 
 * `--clean-all`: Clean all data.
 
-* `--with-global`: Using with `--update`, `--clean-modules`, `--clean-tmp` or `--clean-all` option) Update or clean modules in the local and global both registry.
+* `--with-global`: (Using with `--update`, `--clean-modules`, `--clean-tmp` or `--clean-all` option) Update or clean modules in the local and global both registry.
 
 ## Execute Commands
 
