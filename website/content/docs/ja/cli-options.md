@@ -33,19 +33,19 @@ basename = "cli-options.html"
 
 * `--hosts`: List hosts.
 
-* `--select <tag|host>`: (Using with --hosts option) Get only the hosts filtered with a tag or a host.
+* `--select <tag|host>`: (Using with `--hosts` option) Get only the hosts filtered with a tag or a host.
 
-* `--scope public|private`: (Using with --hosts option) Get only the hosts filtered with a scope.
+* `--scope public|private`: (Using with `--hosts` option) Get only the hosts filtered with a scope.
 
-* `--registry local|global`: (Using with --hosts option) Get only the hosts filtered with a registry.
+* `--registry local|global`: (Using with `--hosts` option) Get only the hosts filtered with a registry.
 
 * `--tasks`: List tasks.
 
-* `--all`: (Using with --tasks option) Show all that includs hidden objects.
+* `--all`: (Using with `--tasks` option) Show all that includs hidden objects.
 
 * `--tags`: List tags.
 
-* `--quiet`: (Using with --hosts, --tasks or --tags option) Show only names.
+* `--quiet`: (Using with `--hosts`, `--tasks` or `--tags` option) Show only names.
 
 ## Manage Modules
 
@@ -57,31 +57,31 @@ basename = "cli-options.html"
 
 * `--clean-all`: Clean all data.
 
-* `--with-global`: Using with --update, --clean-modules, --clean-tmp or --clean-all option) Update or clean modules in the local and global both registry.
+* `--with-global`: Using with `--update`, `--clean-modules`, `--clean-tmp` or `--clean-all` option) Update or clean modules in the local and global both registry.
 
 ## Execute Commands
 
 * `--exec`: Execute commands with the hosts.
 
-* `--target <tag|host>`: (Using with --exec option) Target hosts to run the commands.
+* `--target <tag|host>`: (Using with `--exec` option) Target hosts to run the commands.
 
-* `--filter <tag|host>`: (Using with --exec option) Filter target hosts with tags or hosts.
+* `--filter <tag|host>`: (Using with `--exec` option) Filter target hosts with tags or hosts.
 
-* `--backend remote|local`: (Using with --exec option) Run the commands on local or remote hosts.
+* `--backend remote|local`: (Using with `--exec` option) Run the commands on local or remote hosts.
 
-* `--prefix`: (Using with --exec option) Enable outputing prefix.
+* `--prefix`: (Using with `--exec` option) Enable outputing prefix.
 
-* `--prefix-string <prefix>` (Using with --exec option) Custom string of the prefix.
+* `--prefix-string <prefix>` (Using with `--exec` option) Custom string of the prefix.
 
-* `--privileged`: (Using with --exec option) Run by the privileged user.
+* `--privileged`: (Using with `--exec` option) Run by the privileged user.
 
-* `--parallel`: (Using with --exec option) Run in parallel.
+* `--parallel`: (Using with `--exec` option) Run in parallel.
 
-* `--pty`: (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
+* `--pty`: (Using with `--exec` option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
 
-* `--file`: (Using with --exec option) Load commands from a file.
+* `--file`: (Using with `--exec` option) Load commands from a file.
 
-* `--driver`: (Using with --exec option) Specify a driver.
+* `--driver`: (Using with `--exec` option) Specify a driver.
 
 ## Completion
 
