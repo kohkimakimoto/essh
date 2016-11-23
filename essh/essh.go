@@ -841,7 +841,9 @@ func runTask(config string, task *Task) error {
 	if task.IsRemoteTask() {
 		// run remotely.
 		var hosts []*Host
-		if task.Registry == nil {
+		if len(task.TargetsSlice()) == 0 {
+			hosts = []*Host{}
+		} else if task.Registry == nil {
 			hosts = NewHostQuery().
 				AppendSelections(task.TargetsSlice()).
 				AppendFilters(task.FiltersSlice()).
@@ -892,7 +894,9 @@ func runTask(config string, task *Task) error {
 	} else {
 		// run locally.
 		var hosts []*Host
-		if task.Registry == nil {
+		if len(task.TargetsSlice()) == 0 {
+			hosts = []*Host{}
+		} else if task.Registry == nil {
 			hosts = NewHostQuery().
 				AppendSelections(task.TargetsSlice()).
 				AppendFilters(task.FiltersSlice()).
