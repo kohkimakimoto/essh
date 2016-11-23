@@ -19,12 +19,13 @@ $ essh
 Usage: essh [<options>] [<ssh options and args...>]
 
   Essh is an extended ssh command.
-  version 0.60.0 (e9aef55baa1c1745230fd7f80e45defeb72277a3)
+  version 0.61.0 (5478ab70355f2133ad2a38b3207be9fb4beed76f)
 
   Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
   The MIT License (MIT)
 
-...
+  See more detail, use '--help'.
+
 ~~~
 
 Let's read next section: [Using As A SSH Client](using-as-a-ssh-client.html).

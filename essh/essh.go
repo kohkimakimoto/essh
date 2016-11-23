@@ -336,7 +336,7 @@ func Start() (exitStatus int) {
 	}
 
 	if helpFlag {
-		printUsage()
+		printHelp()
 		return
 	}
 
@@ -1542,6 +1542,21 @@ func removeRegistryData() error {
 
 func printUsage() {
 	fmt.Print(`Usage: essh [<options>] [<ssh options and args...>]
+
+  Essh is an extended ssh command.
+  version ` + Version + ` (` + CommitHash + `)
+
+  Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+  The MIT License (MIT)
+
+  See more detail, use '--help'.
+
+`)
+}
+
+func printHelp() {
+	fmt.Print(`
+Usage: essh [<options>] [<ssh options and args...>]
 
   Essh is an extended ssh command.
   version ` + Version + ` (` + CommitHash + `)

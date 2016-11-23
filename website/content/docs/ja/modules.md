@@ -12,13 +12,13 @@ basename = "modules.html"
 
 ## モジュールを使う
 
-You can use `import` function to load a Essh module.
+`import`関数を使ってEsshモジュールをロードすることができます。
 
 ~~~lua
 local bash = import "github.com/kohkimakimoto/essh/modules/bash"
 ~~~
 
-`import` returns Lua value. In the above case, `bash` is Lua table that has several variables and functions. You can use `bash` in your configuration.
+`import`はLuaの値を返します。上記の場合`bash`はいくつかの変数と関数を持つLuaのテーブルです。
 
 ~~~lua
 local bash = import "github.com/kohkimakimoto/essh//modules/bash"
@@ -31,21 +31,37 @@ task "example" {
 }
 ~~~
 
-`bash.indent` is [this code snippet](https://github.com/kohkimakimoto/essh/blob/master/modules%2Fbash%2Findex.lua#L3-L17).
-So the task displays indented output.
 
-`import` is implemented by using [hashicorp/go-getter](https://github.com/hashicorp/go-getter). You can use git url and local filesystem path to specify a module path.
+`bash.indent`は[このコードスニペット](https://github.com/kohkimakimoto/essh/blob/master/modules%2Fbash%2Findex.lua#L3-L17)です。
+したがって、タスクはインデントされた出力を表示します。
 
-Modules are installed automatically when Essh runs. The installed modules are stored in `.essh` directory. If you need to update installed modules, runs `essh --update`.
+`import`は[hashicorp/go-getter](https://github.com/hashicorp/go-getter)を使って実装されています。 git urlとローカルファイルシステムパスを使用して、モジュールパスを指定することができます。例えば、以下のようなものです。
+
+* `github.com/kohkimakimoto/essh/modules/bash`
+* `git::ssh://your-private-git-server/path/to/repo.git`
+* `git::ssh://your-private-git-server/path/to/repo.git//sub/directory`
+
+詳細は[hashicorp/go-getter](https://github.com/hashicorp/go-getter)を参照してください。
+
+モジュールはEsshの実行時に自動的にインストールされます。インストールされたモジュールは`import`で書かれた設定が` local`レジストリであれば`.essh`ディレクトリに保存されます。設定が`global`レジストリの場合、モジュールは`~/.essh`ディレクトリに保存されます。
+
+インストールされたモジュールを更新する必要がある場合は`essh --update`を実行してください。
 
 ~~~
 $ essh --update
 ~~~
 
-### Creating Modules
+デフォルトでは、Esshは`local`レジストリ内のモジュールのみを更新します。`global`レジストリのモジュールを更新するには、次のコマンドを実行します：
 
-Creating new modules is easy. A minimum module is a directory that includes only `index.lua`.
-Try to create `my_module` directory and `index.lua` file in the directory.
+
+~~~
+$ essh --update --with-global
+~~~
+
+### モジュールの作成
+
+新しいモジュールの作成は簡単です。最小のモジュールは`index.lua`だけを含むディレクトリです。
+`my_module`ディレクトリと` index.lua`ファイルをディレクトリに作成してみてください。
 
 ~~~lua
 -- my_module/index.lua
@@ -56,7 +72,7 @@ m.hello = "echo hello"
 return m
 ~~~
 
-`index.lua` is the entry-point that have to return Lua value. This example returns a table that has `hello` variable. That's it. To use this module, write below config.
+`index.lua`はLuaの値を返さなければならないエントリポイントです。この例では`hello`変数を持つテーブルを返します。これだけです。このモジュールを使用するには、あなたの設定に次のコードを書いてください。
 
 ~~~lua
 local my_module = import "./my_module"
@@ -68,14 +84,14 @@ task "example" {
 }
 ~~~
 
-Run it.
+実行しましょう。
 
 ~~~
 $ essh example
 hello
 ~~~
 
-If you want to share the module, create a git repository from the module directory and push it to a remote repository as github.com. To use the module of git repository, you update `import` path to the url.
+モジュールを共有する場合は、モジュールディレクトリからgitリポジトリを作成し、github.comなどのリモートリポジトリにプッシュします。 gitリポジトリのモジュールを使用するには、URLへ`import`パスを更新します。
 
 ~~~lua
 local my_module = import "github.com/your_account/my_module"

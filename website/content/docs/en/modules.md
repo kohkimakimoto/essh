@@ -18,7 +18,7 @@ You can use `import` function to load a Essh module.
 local bash = import "github.com/kohkimakimoto/essh/modules/bash"
 ~~~
 
-`import` returns Lua value. In the above case, `bash` is Lua table that has several variables and functions. You can use `bash` in your configuration.
+`import` returns Lua value. In the above case, `bash` is Lua table that has several variables and functions.
 
 ~~~lua
 local bash = import "github.com/kohkimakimoto/essh//modules/bash"
@@ -34,12 +34,27 @@ task "example" {
 `bash.indent` is [this code snippet](https://github.com/kohkimakimoto/essh/blob/master/modules%2Fbash%2Findex.lua#L3-L17).
 So the task displays indented output.
 
-`import` is implemented by using [hashicorp/go-getter](https://github.com/hashicorp/go-getter). You can use git url and local filesystem path to specify a module path.
+`import` is implemented by using [hashicorp/go-getter](https://github.com/hashicorp/go-getter). You can use git url and local filesystem path to specify a module path. For example:
 
-Modules are installed automatically when Essh runs. The installed modules are stored in `.essh` directory. If you need to update installed modules, runs `essh --update`.
+* `github.com/kohkimakimoto/essh/modules/bash`
+* `git::ssh://your-private-git-server/path/to/repo.git`
+* `git::ssh://your-private-git-server/path/to/repo.git//sub/directory`
+
+For detail, see [hashicorp/go-getter](https://github.com/hashicorp/go-getter).
+
+Modules are installed automatically when Essh runs. The installed modules are stored in `.essh` directory if the configuration that is written `import` is `local` registry.
+If the configuration is `global` registry, the modules are stored in `~/.essh` directory.
+
+If you need to update installed modules, runs `essh --update`.
 
 ~~~
 $ essh --update
+~~~
+
+At default, Essh updates only modules in `local` registry. If you want to update `global` registry modules, run the following command:
+
+~~~
+$ essh --update --with-global
 ~~~
 
 ### Creating Modules
