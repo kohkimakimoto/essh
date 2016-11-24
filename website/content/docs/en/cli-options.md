@@ -33,15 +33,19 @@ All the options are listed below.
 
 * `--hosts`: List hosts.
 
-* `--select <tag|host>`: (Using with `--hosts` option) Get only the hosts filtered with a tag or a host.
+* `--select <tag|host>`: (Using with `--hosts` option) Get only the hosts filtered with tags or hosts.
+
+* `--filter <tag|host>`: (Using with `--hosts` option) Filter selected hosts with tags or hosts.
 
 * `--scope public|private`: (Using with `--hosts` option) Get only the hosts filtered with a scope.
 
 * `--registry local|global`: (Using with `--hosts` option) Get only the hosts filtered with a registry.
 
+* `--ssh-config`: (Using with `--hosts` option) Output selected hosts as ssh_config format.
+
 * `--tasks`: List tasks.
 
-* `--all`: (Using with `--tasks` option) Show all that includs hidden objects.
+* `--all`: (Using with `--tasks` option) Show all that include hidden objects.
 
 * `--tags`: List tags.
 

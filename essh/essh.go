@@ -68,6 +68,7 @@ var (
 	parallelFlag           bool
 	privilegedFlag         bool
 	ptyFlag                bool
+	SSHConfigFlag     bool
 	workindDirVar          string
 	configVar              string
 	selectVar              []string = []string{}
@@ -137,6 +138,8 @@ func Start() (exitStatus int) {
 			debugFlag = true
 		} else if arg == "--hosts" {
 			hostsFlag = true
+		} else if arg == "--ssh-config" {
+			SSHConfigFlag = true
 		} else if arg == "--quiet" {
 			quietFlag = true
 		} else if arg == "--all" {
@@ -591,11 +594,15 @@ func Start() (exitStatus int) {
 
 	// only print hosts list
 	if hostsFlag {
-		hosts := NewHostQuery().AppendSelections(selectVar).GetHostsOrderByScopeAndName()
-		tb := helper.NewPlainTable(os.Stdout)
-		if !quietFlag {
-			tb.SetHeader([]string{"SCOPE", "NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN"})
+		if len(selectVar) == 0 && len(filterVar) > 0 {
+			printError("--filter must be used with --select option.")
+			return ExitErr
 		}
+
+		hosts := NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByScopeAndName()
+
+		// filter by scope,registry,
+		filteredHosts := []*Host{}
 		for _, host := range hosts {
 
 			if scopeVar != "" {
@@ -616,17 +623,46 @@ func Start() (exitStatus int) {
 				}
 			}
 
-			if quietFlag {
-				tb.Append([]string{host.Name})
-			} else {
-				hidden := "false"
-				if host.Hidden {
-					hidden = "true"
-				}
-				tb.Append([]string{host.Scope(), host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString(), hidden})
-			}
+			filteredHosts = append(filteredHosts, host)
 		}
-		tb.Render()
+
+
+		if SSHConfigFlag {
+			outputConfig, ok := toString(lessh.RawGetString("ssh_config"))
+			if !ok {
+				printError(fmt.Errorf("invalid value %v in the 'ssh_config'", lessh.RawGetString("ssh_config")))
+				return ExitErr
+			}
+
+			// generate ssh hosts config
+			content, err := UpdateSSHConfig(outputConfig, filteredHosts)
+			if err != nil {
+				printError(err)
+				return ExitErr
+			}
+
+			// print generated config
+			fmt.Println(string(content))
+		} else {
+			tb := helper.NewPlainTable(os.Stdout)
+			if !quietFlag {
+				tb.SetHeader([]string{"SCOPE", "NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN"})
+			}
+
+			for _, host := range filteredHosts {
+				if quietFlag {
+					tb.Append([]string{host.Name})
+				} else {
+					hidden := "false"
+					if host.Hidden {
+						hidden = "true"
+					}
+					tb.Append([]string{host.Scope(), host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString(), hidden})
+				}
+			}
+
+			tb.Render()
+		}
 
 		return
 	}
@@ -1219,18 +1255,6 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 	return cmd.Wait()
 }
 
-//
-// 2016-11-17: It is very hard to use STDIN in Essh tasks for muliple targets.
-// https://github.com/kohkimakimoto/essh/issues/38
-//
-// Essh runs remote tasks by using ssh with `bash -s` command that loads a script from STDIN.
-// I don't understand correctly, but when I run a task in an another task, It is failure.
-// I tried to comment out `processStdin` method. The task runs correctly.
-// I guess that `io.ReadAtLeast(os.Stdin, buf, 1)` affects `bash -s`
-//
-// So now, Essh task does not use STDIN
-//
-
 // this code is borrowed from https://github.com/fujiwara/nssh/blob/master/nssh.go
 func processStdin(chs []chan []byte) {
 	buf := make([]byte, 1024)
@@ -1580,11 +1604,13 @@ Options:
 
   (Manage Hosts, Tags And Tasks)
   --hosts                       List hosts.
-  --select <tag|host>           (Using with --hosts option) Get only the hosts filtered with a tag or a host.
+  --select <tag|host>           (Using with --hosts option) Get only the hosts filtered with tags or hosts.
+  --filter <tag|host>           (Using with --hosts option) Filter selected hosts with tags or hosts.
   --scope public|private        (Using with --hosts option) Get only the hosts filtered with a scope.
   --registry local|global       (Using with --hosts option) Get only the hosts filtered with a registry.
+  --ssh-config                  (Using with --hosts option) Output selected hosts as ssh_config format.
   --tasks                       List tasks.
-  --all                         (Using with --tasks option) Show all that includs hidden objects.
+  --all                         (Using with --tasks option) Show all that include hidden objects.
   --tags                        List tags.
   --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
 
@@ -1736,9 +1762,11 @@ _essh_hosts_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
-        '--select:Get only the hosts filtered with a tag or a host.'
+        '--select:Get only the hosts filtered with tags or hosts.'
+        '--filter:Filter selected hosts with tags or hosts.'
         '--scope:Get only the hosts filtered with a scope.'
         '--registry:Get only the hosts filtered with a registry.'
+        '--ssh-config:Output selected hosts as ssh_config format.'
      )
     _describe -t option "option" __essh_options
 }
