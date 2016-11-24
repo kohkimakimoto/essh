@@ -684,8 +684,9 @@ func Start() (exitStatus int) {
 	// only print tasks list
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
-		tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "DISABLED", "HIDDEN"})
-
+		if !quietFlag {
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "DISABLED", "HIDDEN"})
+		}
 		for _, t := range SortedTasks() {
 			if (!t.Hidden && !t.Disabled) || allFlag {
 				if quietFlag {
