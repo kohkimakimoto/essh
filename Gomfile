@@ -18,6 +18,7 @@ gom "github.com/kardianos/osext"
 gom "github.com/Songmu/wrapcommander"
 gom "github.com/hashicorp/go-getter"
 gom "github.com/mattn/go-runewidth"
+gom "github.com/mitchellh/mapstructure"
 
 # dev tool
 gom "github.com/mitchellh/gox"

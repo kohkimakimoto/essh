@@ -1,4 +1,4 @@
-gom 'github.com/yuin/gopher-lua', :commit => 'd0d5dd3565a9f3c86ff5bc42a0b1cc9e5bfcf55e'
+gom 'github.com/yuin/gopher-lua', :commit => '7692488a1ad6bd06dc48890f4a149b65a86a767d'
 gom 'github.com/yuin/gluare', :commit => '8e2742cd1bf2b904720ac66eca3c2091b2ea0720'
 gom 'github.com/kohkimakimoto/gluayaml', :commit => '6fe413d49d73d785510ecf1529991ab0573e96c7'
 gom 'github.com/kohkimakimoto/gluatemplate', :commit => 'd9e2c9d6b00f069a9da377a9ac529c827c1c7d71'
@@ -13,4 +13,5 @@ gom 'github.com/kardianos/osext', :commit => 'c2c54e542fb797ad986b31721e1baedf21
 gom 'github.com/Songmu/wrapcommander', :commit => '4888652de0bfef31e500e8f4e0831e8ae9ecaa85'
 gom 'github.com/hashicorp/go-getter', :commit => '2fbd997432e72fe36060c8f07ec1eaf98d098177'
 gom 'github.com/mattn/go-runewidth', :commit => '737072b4e32b7a5018b4a7125da8d12de90e8045'
+gom 'github.com/mitchellh/mapstructure', :commit => 'f3009df150dadf309fdee4a54ed65c124afad715'
 gom 'github.com/mitchellh/gox', :commit => 'c9740af9c6574448fd48eb30a71f964014c7a837'
