@@ -1,5 +1,7 @@
 # Essh
 
+[![Build Status](https://travis-ci.org/kohkimakimoto/essh.svg?branch=master)](https://travis-ci.org/kohkimakimoto/essh)
+
 > **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
 Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation becomes more efficient and convenient.
