@@ -10,5 +10,9 @@ branches:
   only:
     - master
 
+before_install:
+  - go get github.com/mattn/gom
+  - make deps
+
 script:
-    make test
+  - make test
