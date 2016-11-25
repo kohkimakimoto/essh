@@ -23,8 +23,8 @@ test:
 testv:
 	go test -cover -v $$(go list ./... | grep -v vendor)
 
-test_integration:
-	cd tests && ./run.sh
+# test_integration:
+# 	cd tests && ./run.sh
 
 deps:
 	gom install
