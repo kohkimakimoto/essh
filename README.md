@@ -1,16 +1,12 @@
-# Essh
-
-[![Build Status](https://travis-ci.org/kohkimakimoto/essh.svg?branch=master)](https://travis-ci.org/kohkimakimoto/essh)
-
-> **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
-
-Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation becomes more efficient and convenient.
+# Essh [![Build Status](https://travis-ci.org/kohkimakimoto/essh.svg?branch=master)](https://travis-ci.org/kohkimakimoto/essh)
 
 https://essh.sitespread.net/
 
-## Features
+> **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
 
-Essh is a single binary CLI tool and simply wraps ssh command. You can use it in the same way as ssh. And it has useful features over ssh.
+Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation becomes more efficient and convenient. It is a single binary CLI tool and simply wraps ssh command. You can use it in the same way as ssh. And it has useful features over ssh.
+
+Features:
 
 * **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in [Lua](https://www.lua.org/) code. So your ssh_config can become more dynamic.
 
@@ -24,15 +20,9 @@ Essh is a single binary CLI tool and simply wraps ssh command. You can use it in
 
 * **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
 
-## Installation
-
-Essh is provided as a single binary. You can download it and drop it in your $PATH.
-
-[Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
-
 ## Gettting Started
 
-See [Introduction](https://essh.sitespread.net/intro/en/index.html)
+See [Introduction](https://essh.sitespread.net/intro/en/index.html) 
 
 ## Documentation
 
