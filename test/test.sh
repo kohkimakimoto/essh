@@ -15,6 +15,15 @@ indent() {
     esac
 }
 
+prefix() {
+  local p="${1:-prefix}"
+  local c="s/^/$p/"
+  case $(uname) in
+    Darwin) sed -l "$c";; # mac/bsd sed: -l buffers on line boundaries
+    *)      sed -u "$c";; # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
+  esac
+}
+
 if [ "${TERM:-dumb}" != "dumb" ]; then
     txtunderline=$(tput sgr 0 1)     # Underline
     txtbold=$(tput bold)             # Bold
@@ -35,6 +44,7 @@ fi
 
 GOTEST_FLAGS=${GOTEST_FLAGS:--cover -timeout=360s}
 DOCKER_IMAGE=${DOCKER_IMAGE:-"kohkimakimoto/ssh"}
+DOCKER_CONTAINER_NAME=${DOCKER_CONTAINER_NAME:-"essh_test_ssh_server"}
 
 test_dir=$(cd $(dirname $0); pwd)
 cd "$test_dir/.."
@@ -42,10 +52,15 @@ cd "$test_dir/.."
 echo "--> Running tests (flags: $GOTEST_FLAGS)..."
 
 echo "--> Starting a docker container as a test SSH server..."
-docker run -d -P --name essh_test_ssh_server $DOCKER_IMAGE 2>&1 | indent
-trap "echo '--> Removing tarminated containers...' && docker rm `docker ps -a -q` 2>&1 | indent" EXIT HUP INT QUIT TERM
+docker run -d -P --name $DOCKER_CONTAINER_NAME $DOCKER_IMAGE 2>&1 | indent
+trap "echo '--> Terminating a container...' && \
+      docker stop $DOCKER_CONTAINER_NAME 2>&1 | prefix '    Stopped: ' && \
+      docker rm $DOCKER_CONTAINER_NAME 2>&1 | prefix '    Deleted: ' && \
+      echo '--> Done.'" EXIT HUP INT QUIT TERM
+
+DOCKER_SSH_PORT=$(docker port $DOCKER_CONTAINER_NAME | perl -lne 'print $1 if /:(\d+)$/')
+TEST_SSH_SERVER_ADDR="127.0.0.1:$DOCKER_SSH_PORT"
 
 GOBIN="`which go`"
 $GOBIN test $GOTEST_FLAGS $($GOBIN list ./... | grep -v vendor) 2>&1 | perl -pe "s/^ok/${txtgreen}ok${txtreset}/; s/^FAIL/${txtred}FAIL${txtreset}/;" | indent
 
-echo "--> Done."
