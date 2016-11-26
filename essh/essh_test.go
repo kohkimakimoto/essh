@@ -30,7 +30,7 @@ func TestShowSSHConfig(t *testing.T) {
 	}
 }
 
-func TestConnectHost(t *testing.T) {
+func TestRunSSH(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Errorf("should not raise error: %v", err)
@@ -57,7 +57,7 @@ func TestConnectHost(t *testing.T) {
 	}()
 
 	// test
-	exitCode := Run([]string{"essh_test_ssh_server", "bash -c 'echo -n connected'"})
+	exitCode := Run([]string{"essh_test_ssh_server1", "bash -c 'echo -n connected'"})
 	if exitCode != 0 {
 		t.Error("exited with non zero")
 	}
@@ -77,7 +77,25 @@ var testConfig string
 func init() {
 	port := os.Getenv("TEST_SSH_SERVER_PORT")
 	testConfig = `
-	host "essh_test_ssh_server" {
+	host "essh_test_ssh_server1" {
+		HostName = "127.0.0.1",
+		Port = "` + port + `",
+		User = "root",
+		StrictHostKeyChecking = "no",
+		UserKnownHostsFile = "/dev/null",
+		LogLevel = "ERROR",
+	}
+
+	host "essh_test_ssh_server2" {
+		HostName = "127.0.0.1",
+		Port = "` + port + `",
+		User = "root",
+		StrictHostKeyChecking = "no",
+		UserKnownHostsFile = "/dev/null",
+		LogLevel = "ERROR",
+	}
+	
+	host "essh_test_ssh_server3" {
 		HostName = "127.0.0.1",
 		Port = "` + port + `",
 		User = "root",
