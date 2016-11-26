@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	os.Exit(essh.Start())
+	os.Exit(essh.Run(os.Args[1:]))
 }

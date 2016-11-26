@@ -85,7 +85,7 @@ const (
 	ExitErr = 1
 )
 
-func Start() (exitStatus int) {
+func Run(osArgs []string) (exitStatus int) {
 	defer func() {
 		if e := recover(); e != nil {
 			exitStatus = ExitErr
@@ -102,12 +102,11 @@ func Start() (exitStatus int) {
 		debugFlag = true
 	}
 
-	if len(os.Args) == 1 {
+	if len(osArgs) == 0 {
 		printUsage()
 		return
 	}
 
-	osArgs := os.Args[1:]
 	args := []string{}
 	doesNotParseOption := false
 

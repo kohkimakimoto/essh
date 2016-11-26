@@ -15,5 +15,7 @@ before_install:
   - make deps
 
 script:
+  # check build a binary
   - make
+  # run tests
   - make test

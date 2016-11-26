@@ -10,6 +10,10 @@ indent_size = 4
 indent_style = space
 indent_size = 2
 
+[*.yml]
+indent_style = space
+indent_size = 2
+
 [*.js]
 indent_style = space
 indent_size = 2
