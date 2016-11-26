@@ -58,8 +58,7 @@ trap "echo '--> Terminating a container...' && \
       docker rm $DOCKER_CONTAINER_NAME 2>&1 | prefix '    Deleted: ' && \
       echo '--> Done.'" EXIT HUP INT QUIT TERM
 
-DOCKER_SSH_PORT=$(docker port $DOCKER_CONTAINER_NAME | perl -lne 'print $1 if /:(\d+)$/')
-TEST_SSH_SERVER_ADDR="127.0.0.1:$DOCKER_SSH_PORT"
+export TEST_SSH_SERVER_PORT=$(docker port $DOCKER_CONTAINER_NAME | perl -lne 'print $1 if /:(\d+)$/')
 
 GOBIN="`which go`"
 $GOBIN test $GOTEST_FLAGS $($GOBIN list ./... | grep -v vendor) 2>&1 | perl -pe "s/^ok/${txtgreen}ok${txtreset}/; s/^FAIL/${txtred}FAIL${txtreset}/;" | indent

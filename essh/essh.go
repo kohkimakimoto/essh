@@ -68,14 +68,14 @@ var (
 	parallelFlag           bool
 	privilegedFlag         bool
 	ptyFlag                bool
-	SSHConfigFlag     bool
+	SSHConfigFlag          bool
 	workindDirVar          string
 	configVar              string
-	selectVar              []string = []string{}
+	selectVar              []string
 	scopeVar               string
 	registryVar            string
-	targetVar              []string = []string{}
-	filterVar              []string = []string{}
+	targetVar              []string
+	filterVar              []string
 	backendVar             string
 	prefixStringVar        string
 	driverVar              string
@@ -84,6 +84,55 @@ var (
 const (
 	ExitErr = 1
 )
+
+func initResources() {
+	// Flags
+	helpFlag = false
+	printFlag = false
+	colorFlag = false
+	noColorFlag = false
+	debugFlag = false
+	hostsFlag = false
+	quietFlag = false
+	allFlag = false
+	tagsFlag = false
+	tasksFlag = false
+	genFlag = false
+	updateFlag = false
+	withGlobalFlag = false
+	cleanAllFlag = false
+	cleanModulesFlag = false
+	cleanTmpFlag = false
+	zshCompletionModeFlag = false
+	zshCompletionFlag = false
+	zshCompletionHostsFlag = false
+	zshCompletionTagsFlag = false
+	zshCompletionTasksFlag = false
+	bashCompletionFlag = false
+	aliasesFlag = false
+	execFlag = false
+	fileFlag = false
+	prefixFlag = false
+	parallelFlag = false
+	privilegedFlag = false
+	ptyFlag = false
+	SSHConfigFlag = false
+	workindDirVar = ""
+	configVar = ""
+	selectVar = []string{}
+	scopeVar = ""
+	registryVar = ""
+	targetVar = []string{}
+	filterVar = []string{}
+	backendVar = ""
+	prefixStringVar = ""
+	driverVar = ""
+
+	// Registry
+	CurrentRegistry = nil
+	GlobalRegistry = nil
+	LocalRegistry = nil
+}
 
 func Run(osArgs []string) (exitStatus int) {
 	defer func() {
@@ -97,6 +146,8 @@ func Run(osArgs []string) (exitStatus int) {
 			printError(e)
 		}
 	}()
+
+	initResources()
 
 	if os.Getenv("ESSH_DEBUG") != "" {
 		debugFlag = true
@@ -624,7 +675,6 @@ func Run(osArgs []string) (exitStatus int) {
 
 			filteredHosts = append(filteredHosts, host)
 		}
-
 
 		if SSHConfigFlag {
 			outputConfig, ok := toString(lessh.RawGetString("ssh_config"))
