@@ -12,16 +12,16 @@ packaging:
 	@bash -c $(CURDIR)/_build/packaging.sh
 
 packaging_destroy:
-	@sh -c "cd $(CURDIR)/_build/packaging/rpm && vagrant destroy -f"
+	@bash -c "cd $(CURDIR)/_build/packaging/rpm && vagrant destroy -f"
 
 fmt:
 	go fmt $$(go list ./... | grep -v vendor)
 
 test:
-	go test -cover $$(go list ./... | grep -v vendor)
+	@bash -c $(CURDIR)/test/test.sh
 
 testv:
-	go test -cover -v $$(go list ./... | grep -v vendor)
+	@export GOTEST_FLAGS="-cover -timeout=360s -v" && bash -c $(CURDIR)/test/test.sh
 
 # test_integration:
 # 	cd tests && ./run.sh

@@ -15,4 +15,5 @@ before_install:
   - make deps
 
 script:
+  - make
   - make test
