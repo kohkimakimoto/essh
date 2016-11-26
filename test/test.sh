@@ -34,12 +34,18 @@ else
 fi
 
 GOTEST_FLAGS=${GOTEST_FLAGS:--cover -timeout=360s}
+DOCKER_IMAGE=${DOCKER_IMAGE:-"kohkimakimoto/ssh"}
 
 test_dir=$(cd $(dirname $0); pwd)
 cd "$test_dir/.."
 
 echo "--> Running tests (flags: $GOTEST_FLAGS)..."
+
+echo "--> Starting a docker container as a test SSH server..."
+docker run -d -P --name essh_test_ssh_server $DOCKER_IMAGE 2>&1 | indent
+trap "echo '--> Removing tarminated containers...' && docker rm `docker ps -a -q` 2>&1 | indent" EXIT HUP INT QUIT TERM
+
 GOBIN="`which go`"
-$GOBIN test $GOTEST_FLAGS $($GOBIN list ./... | grep -v vendor) | indent
+$GOBIN test $GOTEST_FLAGS $($GOBIN list ./... | grep -v vendor) 2>&1 | perl -pe "s/^ok/${txtgreen}ok${txtreset}/; s/^FAIL/${txtred}FAIL${txtreset}/;" | indent
 
 echo "--> Done."
