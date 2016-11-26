@@ -120,7 +120,7 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
 
 * `task` (function): `task`関数のエイリアス。
 
-* `dirver` (function): `dirver`関数のエイリアス。
+* `driver` (function): `driver`関数のエイリアス。
 
 * `import` (function): `import`関数のエイリアス。
 

@@ -45,7 +45,7 @@ $ essh example
 
 * `pty` (boolean): trueに設定すると、SSH接続は`ssh -t -t`のように複数の-tオプションを使用してsshコマンドに擬似端末を割り当てます。
 
-* `dirver` (string): このタスクで使用するドライバ。[Drivers](drivers.html)を参照してください。
+* `driver` (string): このタスクで使用するドライバ。[Drivers](drivers.html)を参照してください。
 
 * `parallel` (boolean): trueに設定すると、タスクのスクリプトを並列に実行します。
 

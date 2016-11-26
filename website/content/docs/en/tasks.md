@@ -45,7 +45,7 @@ Notice: Task name mustn't be duplicated with any host names.
 
 * `pty` (boolean): If it is true, SSH connection allocates pseudo-terminal by running ssh command with multiple -t options like `ssh -t -t`.
 
-* `dirver` (string): driver name is used in the task. see [Drivers](drivers.html).
+* `driver` (string): driver name is used in the task. see [Drivers](drivers.html).
 
 * `parallel` (boolean): If it is true, runs task's script in parallel.
 
