@@ -61,5 +61,7 @@ trap "echo '--> Terminating a container...' && \
 export TEST_SSH_SERVER_PORT=$(docker port $DOCKER_CONTAINER_NAME | perl -lne 'print $1 if /:(\d+)$/')
 
 GOBIN="`which go`"
-$GOBIN test $GOTEST_FLAGS $($GOBIN list ./... | grep -v vendor) 2>&1 | perl -pe "s/^ok/${txtgreen}ok${txtreset}/; s/^FAIL/${txtred}FAIL${txtreset}/;" | indent
+$GOBIN test $GOTEST_FLAGS $($GOBIN list ./... | grep -v vendor) 2>&1 | \
+  perl -pe "s/^ok/${txtgreen}ok${txtreset}/; s/^FAIL/${txtred}FAIL${txtreset}/; s/([\d\.]+%)/${txtbold}\$1${txtreset}/;" | \
+  indent
 
