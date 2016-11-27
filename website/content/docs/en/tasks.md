@@ -72,7 +72,7 @@ Notice: Task name mustn't be duplicated with any host names.
     end,
     ~~~
 
-    By the prepare function returns false, you can cancel to execute the task.
+    By the prepare function returns false, you can cancel to execute the task's script.
 
 * `script` (string|table): Script is code that will be executed. Example:
 
@@ -110,6 +110,6 @@ Notice: Task name mustn't be duplicated with any host names.
 
   * `ESSH_HOST_SSH_{SSH_CONFIG_KEY}`: ssh_config key/value pare.
 
-  * `ESSH_HOST_TAGS_{TAG}`: tag.
+  * `ESSH_HOST_TAGS_{TAG}`: tag. If you set a tag, This variable has a value "1".
 
   * `ESSH_HOST_PROPS_{KEY}`: property that is set by host's props. See [Hosts](hosts.html).

@@ -72,7 +72,7 @@ $ essh example
     end,
     ~~~
 
-    prepare関数によってfalseが返されると、タスクを実行するために取り消すことができます。
+    prepare関数によってfalseが返されると、タスクのスクリプトの実行を取り消すことができます。
 
 * `script` (string|table): スクリプトは実行されるコードです。例:
 
@@ -110,6 +110,6 @@ $ essh example
 
   * `ESSH_HOST_SSH_{SSH_CONFIG_KEY}`: ssh_configのキー/バリュー ペア.
 
-  * `ESSH_HOST_TAGS_{TAG}`: タグ.
+  * `ESSH_HOST_TAGS_{TAG}`: タグ。タグを設定すると、この変数の値は"1"になります。
 
   * `ESSH_HOST_PROPS_{KEY}`: ホストのpropsによって設定されるプロパティ。[ホスト](hosts.html)を参照してください。
