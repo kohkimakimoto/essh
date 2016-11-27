@@ -24,7 +24,7 @@ func TestShowSSHConfig(t *testing.T) {
 	os.Chdir(tmpDir)
 
 	// test just running
-	exitCode := Run([]string{"--hosts", "--select=essh_test_ssh_server", "--ssh-config"})
+	exitCode := Run([]string{"--hosts", "--select=foo", "--ssh-config"})
 	if exitCode != 0 {
 		t.Error("exited with non zero")
 	}
@@ -84,6 +84,9 @@ func init() {
 		StrictHostKeyChecking = "no",
 		UserKnownHostsFile = "/dev/null",
 		LogLevel = "ERROR",
+		tags = {
+			"foo",
+		},
 	}
 
 	host "essh_test_ssh_server2" {
@@ -93,6 +96,9 @@ func init() {
 		StrictHostKeyChecking = "no",
 		UserKnownHostsFile = "/dev/null",
 		LogLevel = "ERROR",
+		tags = {
+			"foo",
+		},
 	}
 	
 	host "essh_test_ssh_server3" {
@@ -102,6 +108,9 @@ func init() {
 		StrictHostKeyChecking = "no",
 		UserKnownHostsFile = "/dev/null",
 		LogLevel = "ERROR",
+		tags = {
+			"bar",
+		},
 	}
 `
 
