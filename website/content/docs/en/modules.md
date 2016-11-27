@@ -36,9 +36,37 @@ So the task displays indented output.
 
 `import` is implemented by using [hashicorp/go-getter](https://github.com/hashicorp/go-getter). You can use git url and local filesystem path to specify a module path. For example:
 
-* `github.com/kohkimakimoto/essh/modules/bash`
-* `git::ssh://your-private-git-server/path/to/repo.git`
-* `git::ssh://your-private-git-server/path/to/repo.git//sub/directory`
+* Getting a module from a github repository:
+
+    ~~~
+    local mod = "github.com/username/repository"
+    ~~~
+
+* Getting a module from a github repository and checkout tag, commit or branch:
+
+    ~~~
+    local mod = "github.com/username/repository?ref=master"
+    ~~~
+
+* Getting a module from a github repository's subdirectory:
+
+    ~~~
+    local mod = "github.com/username/repository//path/to/module"
+    ~~~
+
+    The double-slash, `//` is the separator for a subdirectory, and not part of the repository itself.
+
+* Getting a module from a generic git repository:
+    
+    ~~~~
+    local mod = "git::ssh://your-private-git-server/path/to/repo.git"
+    ~~~~
+
+* Getting a module from a local filesystem:
+
+    ~~~
+    local mod = "/path/to/module"
+    ~~~
 
 For detail, see [hashicorp/go-getter](https://github.com/hashicorp/go-getter).
 

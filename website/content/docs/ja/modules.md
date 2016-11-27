@@ -37,9 +37,37 @@ task "example" {
 
 `import`は[hashicorp/go-getter](https://github.com/hashicorp/go-getter)を使って実装されています。 git urlとローカルファイルシステムパスを使用して、モジュールパスを指定することができます。例えば、以下のようなものです。
 
-* `github.com/kohkimakimoto/essh/modules/bash`
-* `git::ssh://your-private-git-server/path/to/repo.git`
-* `git::ssh://your-private-git-server/path/to/repo.git//sub/directory`
+* githubリポジトリからモジュールを取得します:
+
+    ~~~
+    local mod = "github.com/username/repository"
+    ~~~
+
+* githubリポジトリからモジュールを取得し、タグ、コミットまたはブランチをチェックアウトします:
+
+    ~~~
+    local mod = "github.com/username/repository?ref=master"
+    ~~~
+
+* githubリポジトリのサブディレクトリからモジュールを取得します:
+
+    ~~~
+    local mod = "github.com/username/repository//path/to/module"
+    ~~~
+
+    ダブルスラッシュ`//`はサブディレクトリの区切りで、リポジトリ自体の一部ではありません。
+
+* 汎用のgitリポジトリからモジュールを取得する:
+    
+    ~~~~
+    local mod = "git::ssh://your-private-git-server/path/to/repo.git"
+    ~~~~
+
+* ローカルファイルシステムからモジュールを取得する:
+
+    ~~~
+    local mod = "/path/to/module"
+    ~~~
 
 詳細は[hashicorp/go-getter](https://github.com/hashicorp/go-getter)を参照してください。
 

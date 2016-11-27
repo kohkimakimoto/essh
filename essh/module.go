@@ -28,9 +28,9 @@ func NewModule(name string) *Module {
 }
 
 func (m *Module) Load(update bool) error {
-	// If we usually use git with essh, you can set variable "GIT_SSH=essh".
+	// If you usually use git with essh, you can set variable "GIT_SSH=essh".
 	// But this setting cause a error in a module loading.
-	// When we load a module, essh can git protocol, but essh hasn't had generated ssh_config used by git command.
+	// When we load a module, essh can git protocol, but essh hasn't generated ssh_config used by git command.
 	gitssh := os.Getenv("GIT_SSH")
 	if filepath.Base(gitssh) == "essh" {
 		os.Setenv("GIT_SSH", "ssh")
