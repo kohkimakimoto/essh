@@ -40,19 +40,19 @@ task "example" {
 * githubリポジトリからモジュールを取得します:
 
     ~~~
-    local mod = "github.com/username/repository"
+    local mod = import "github.com/username/repository"
     ~~~
 
 * githubリポジトリからモジュールを取得し、タグ、コミットまたはブランチをチェックアウトします:
 
     ~~~
-    local mod = "github.com/username/repository?ref=master"
+    local mod = import "github.com/username/repository?ref=master"
     ~~~
 
 * githubリポジトリのサブディレクトリからモジュールを取得します:
 
     ~~~
-    local mod = "github.com/username/repository//path/to/module"
+    local mod = import "github.com/username/repository//path/to/module"
     ~~~
 
     ダブルスラッシュ`//`はサブディレクトリの区切りで、リポジトリ自体の一部ではありません。
@@ -60,13 +60,13 @@ task "example" {
 * 汎用のgitリポジトリからモジュールを取得する:
     
     ~~~~
-    local mod = "git::ssh://your-private-git-server/path/to/repo.git"
+    local mod = import "git::ssh://your-private-git-server/path/to/repo.git"
     ~~~~
 
 * ローカルファイルシステムからモジュールを取得する:
 
     ~~~
-    local mod = "/path/to/module"
+    local mod = import "/path/to/module"
     ~~~
 
 詳細は[hashicorp/go-getter](https://github.com/hashicorp/go-getter)を参照してください。

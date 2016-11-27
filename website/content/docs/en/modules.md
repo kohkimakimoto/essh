@@ -39,19 +39,19 @@ So the task displays indented output.
 * Getting a module from a github repository:
 
     ~~~
-    local mod = "github.com/username/repository"
+    local mod = import "github.com/username/repository"
     ~~~
 
 * Getting a module from a github repository and checkout tag, commit or branch:
 
     ~~~
-    local mod = "github.com/username/repository?ref=master"
+    local mod = import "github.com/username/repository?ref=master"
     ~~~
 
 * Getting a module from a github repository's subdirectory:
 
     ~~~
-    local mod = "github.com/username/repository//path/to/module"
+    local mod = import "github.com/username/repository//path/to/module"
     ~~~
 
     The double-slash, `//` is the separator for a subdirectory, and not part of the repository itself.
@@ -59,13 +59,13 @@ So the task displays indented output.
 * Getting a module from a generic git repository:
     
     ~~~~
-    local mod = "git::ssh://your-private-git-server/path/to/repo.git"
+    local mod = import "git::ssh://your-private-git-server/path/to/repo.git"
     ~~~~
 
 * Getting a module from a local filesystem:
 
     ~~~
-    local mod = "/path/to/module"
+    local mod = import "/path/to/module"
     ~~~
 
 For detail, see [hashicorp/go-getter](https://github.com/hashicorp/go-getter).
