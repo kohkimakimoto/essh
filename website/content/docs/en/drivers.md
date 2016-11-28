@@ -136,11 +136,11 @@ task "example" {
     driver = "my_driver",
     script = {
         {
-            description = "ouptput aaa",
+            description = "output aaa",
             code = "echo aaa",
         },
         {
-            description = "ouptput bbb",
+            description = "output bbb",
             code = "echo bbb",
         },
     }
@@ -150,9 +150,9 @@ task "example" {
 This code outputs the result like the following.
 
 ~~~
-==> step 0: ouptput aaa
+==> step 0: output aaa
     aaa
-==> step 1: ouptput bbb
+==> step 1: output bbb
     bbb
 ~~~
 
