@@ -80,7 +80,30 @@ echo bbb
 driver "my_driver" {
     engine = [=[
         {{template "environment" .}}
-        {{range $i, $script := .Scripts}}{{$script.code}}
+        
+        set -e
+        indent() {
+            local n="${1:-4}"
+            local p=""
+            for i in `seq 1 $n`; do
+                p="$p "
+            done;
+
+            local c="s/^/$p/"
+            case $(uname) in
+              Darwin) sed -l "$c";;
+              *)      sed -u "$c";;
+            esac
+        }
+        
+        {{range $i, $script := .Scripts -}}
+        echo '==> step {{$i}}:{{if $script.description}} {{$script.description}}{{end}}'
+        { 
+            {{$script.code}} 
+        } | indent; __essh_exit_status=${PIPESTATUS[0]}
+        if [ $__essh_exit_status -ne 0 ]; then
+            exit $__essh_exit_status
+        fi
         {{end}}
     ]=],
 }
@@ -97,10 +120,40 @@ task "example" {
 `driver`の設定には、必須パラメータ`engine`が必要です。これがテンプレートテキストです。
 カスタムドライバを使用するには、タスクの`driver`プロパティを設定する必要があります。
 
-サンプル実装の詳細は以下を参照してください:
+この例では、ドライバはステップ番号と説明、インデントされたスクリプトの標準出力を表示します。上記のタスクを実行すると、次の出力が得られます。
 
-[bash.driver](https://github.com/kohkimakimoto/essh/blob/master/modules/bash/index.lua)
+~~~
+==> step 0:
+    aaa
+==> step 1:
+    bbb
+~~~
 
-or
+説明はまだ表示されていません。各スクリプトのコードに`description`プロパティを設定してください。
 
-[docker.driver](https://github.com/kohkimakimoto/essh/blob/master/modules/docker/index.lua)
+~~~
+task "example2" {
+    driver = "my_driver",
+    script = {
+        {
+            description = "show aaa",
+            code = "echo aaa",
+        },
+        {
+            description = "show bbb",
+            code = "echo bbb",
+        },
+    }
+}
+~~~
+
+以下のような出力なります。
+
+~~~
+==> step 0: show aaa
+    aaa
+==> step 1: show bbb
+    bbb
+~~~
+
+
