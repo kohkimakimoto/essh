@@ -132,15 +132,15 @@ task "example" {
 説明はまだ表示されていません。各スクリプトのコードに`description`プロパティを設定してください。
 
 ~~~
-task "example2" {
+task "example" {
     driver = "my_driver",
     script = {
         {
-            description = "show aaa",
+            description = "ouptput aaa",
             code = "echo aaa",
         },
         {
-            description = "show bbb",
+            description = "ouptput bbb",
             code = "echo bbb",
         },
     }
@@ -150,9 +150,9 @@ task "example2" {
 以下のような出力なります。
 
 ~~~
-==> step 0: show aaa
+==> step 0: ouptput aaa
     aaa
-==> step 1: show bbb
+==> step 1: ouptput bbb
     bbb
 ~~~
 

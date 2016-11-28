@@ -132,26 +132,28 @@ In this example, the driver outputs a step number and description, and indented 
 The description hasn't be displayed yet. You can set `description` property to each script's code.
 
 ~~~
-task "example2" {
+task "example" {
     driver = "my_driver",
     script = {
         {
-            description = "show aaa",
+            description = "ouptput aaa",
             code = "echo aaa",
         },
         {
-            description = "show bbb",
+            description = "ouptput bbb",
             code = "echo bbb",
         },
     }
 }
 ~~~
 
-This code outputs the following.
+This code outputs the result like the following.
 
 ~~~
-==> step 0: show aaa
+==> step 0: ouptput aaa
     aaa
-==> step 1: show bbb
+==> step 1: ouptput bbb
     bbb
 ~~~
+
+
