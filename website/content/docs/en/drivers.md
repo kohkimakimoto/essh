@@ -156,4 +156,30 @@ This code outputs the result like the following.
     bbb
 ~~~
 
+## Override Default Driver
+
+You can override default driver by defining a driver named `default`.
+
+~~~lua
+driver "default" {
+    engine = [=[
+        {{template "environment" .}}
+        
+        --- ... your driver
+    ]=],
+}
+
+task "example" {
+    script = {
+        {
+            description = "output aaa",
+            code = "echo aaa",
+        },
+        {
+            description = "output bbb",
+            code = "echo bbb",
+        },
+    }
+}
+~~~
 

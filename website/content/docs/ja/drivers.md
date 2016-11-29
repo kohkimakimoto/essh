@@ -54,7 +54,7 @@ echo bbb
 {{end}}
 ~~~
 
-`{{template environment"}}`は環境変数を生成します。上の例でこのセクションは以下の部分を出力します。
+`{{template "environment" .}}`は環境変数を生成します。上の例でこのセクションは以下の部分を出力します。
 
 ~~~
 export ESSH_TASK_NAME='example'
@@ -156,4 +156,29 @@ task "example" {
     bbb
 ~~~
 
+## デフォルトドライバの上書き
 
+`default`という名前のドライバを定義することで、デフォルトのドライバを上書きすることができます。
+
+~~~lua
+driver "default" {
+    engine = [=[
+        {{template "environment" .}}
+        
+        --- ... your driver
+    ]=],
+}
+
+task "example" {
+    script = {
+        {
+            description = "output aaa",
+            code = "echo aaa",
+        },
+        {
+            description = "output bbb",
+            code = "echo bbb",
+        },
+    }
+}
+~~~
