@@ -120,8 +120,8 @@ pre {
   line-height: 1.42857;
   word-break: break-all;
   word-wrap: break-word;
-  background-color: #fafafa;
-  border: 1px solid #ccc;
+  background-color: #f7f7f7;
+  border: none;
   border-radius: 2px;
 }
 
@@ -132,7 +132,7 @@ pre code {
 
 code.hljs {
   background: none;
-  padding: 10px;
+  padding: 16px;
 }
 
 .navbar-default {
@@ -472,6 +472,9 @@ section {
 
       h3 {
         font-size: 25px;
+        padding-bottom: 0.3em;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee; 
       }
     }
   }

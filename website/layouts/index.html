@@ -109,6 +109,7 @@
         <div class="col-md-12 col-lg-10 col-lg-offset-1">
           <div class="example-item">
             <h3>Managing Hosts, Running Commands, Hooks, etc...</h3>
+            <p>Configuration:</p>
 <pre><code class="language-lua">host "webserver-01" {
     HostName = "192.168.56.32",
     Port = "22",
@@ -147,6 +148,7 @@ host "dbserver-01" {
     },
 }
 </code></pre>
+            <p>Demo:</p>
             <asciinema-player src="/asciinema/example01.json" preload="true"></asciinema-player>
           </div>
         </div>
@@ -155,6 +157,7 @@ host "dbserver-01" {
         <div class="col-md-12 col-lg-10 col-lg-offset-1">
           <div class="example-item">
             <h3>Tasks</h3>
+            <p>Configuration:</p>
 <pre><code class="language-lua">task "hello" {
     description = "say hello",
     prefix = true,
@@ -183,6 +186,7 @@ task "hello-after-confirm" {
     ]=],
 }
 </code></pre>
+            <p>Demo:</p>
             <asciinema-player src="/asciinema/example02.json" preload="true"></asciinema-player>
           </div>
         </div>
