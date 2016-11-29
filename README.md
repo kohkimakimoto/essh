@@ -1,6 +1,4 @@
-# Essh 
-
-[![Build Status](https://travis-ci.org/kohkimakimoto/essh.svg?branch=master)](https://travis-ci.org/kohkimakimoto/essh)
+# Essh [![Build Status](https://travis-ci.org/kohkimakimoto/essh.svg?branch=master)](https://travis-ci.org/kohkimakimoto/essh)
 
 Extended ssh command. 
 
