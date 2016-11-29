@@ -1,8 +1,16 @@
-# Essh [![Build Status](https://travis-ci.org/kohkimakimoto/essh.svg?branch=master)](https://travis-ci.org/kohkimakimoto/essh)
+# Essh 
 
-https://essh.sitespread.net/
+[![Build Status](https://travis-ci.org/kohkimakimoto/essh.svg?branch=master)](https://travis-ci.org/kohkimakimoto/essh)
+
+Extended ssh command. 
+
+* [Website](https://essh.sitespread.net/)
+* [Documentation](https://essh.sitespread.net/docs/en/index.html)
+* [Gettting Started](https://essh.sitespread.net/intro/en/index.html)
 
 > **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
+
+## Overview
 
 Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation becomes more efficient and convenient. It is a single binary CLI tool and simply wraps ssh command. You can use it in the same way as ssh. And it has useful features over ssh.
 
@@ -19,14 +27,6 @@ Features:
 * **Task Runner**: Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
 
 * **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
-
-## Gettting Started
-
-See [Introduction](https://essh.sitespread.net/intro/en/index.html) 
-
-## Documentation
-
-See [Documentation](https://essh.sitespread.net/docs/en/index.html)
 
 ## Developing
 
