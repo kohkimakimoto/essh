@@ -19,7 +19,7 @@ type Driver struct {
 var DefaultDriver *Driver
 
 var (
-	BuiltinDefaultDriverName = "default"
+	DefaultDriverName = "default"
 )
 
 func NewDriver() *Driver {
@@ -92,14 +92,15 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 }
 
 func FindDriverInRegistry(name string, registry *Registry) *Driver {
+	if name == "" {
+		name = DefaultDriverName
+	}
+
 	if registry != nil {
 		if driver, ok := registry.Drivers[name]; ok {
 			return driver
 		}
 	} else {
-		if driver, ok := LocalRegistry.Drivers[name]; ok {
-			return driver
-		}
 		if driver, ok := GlobalRegistry.Drivers[name]; ok {
 			return driver
 		}
@@ -112,7 +113,7 @@ func init() {
 	// set built-in drivers
 	// default (just concatenate with new line code)
 	driver := NewDriver()
-	driver.Name = BuiltinDefaultDriverName
+	driver.Name = DefaultDriverName
 	driver.Engine = func(driver *Driver) (string, error) {
 		return `
 {{template "environment" .}}

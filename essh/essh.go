@@ -1056,13 +1056,11 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 	}
 
 	// generate commands by using driver
-	driver := DefaultDriver
-	if task.Driver != "" {
-		driver = FindDriverInRegistry(task.Driver, task.Registry)
-		if driver == nil {
-			return fmt.Errorf("invalid driver name '%s'", task.Driver)
-		}
+	driver := FindDriverInRegistry(task.Driver, task.Registry)
+	if driver == nil {
+		return fmt.Errorf("invalid driver name '%s'", task.Driver)
 	}
+
 	if debugFlag {
 		fmt.Printf("[essh debug] driver: %s \n", driver.Name)
 	}
@@ -1184,13 +1182,11 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 	}
 
 	// generate commands by using driver
-	driver := DefaultDriver
-	if task.Driver != "" {
-		driver = FindDriverInRegistry(task.Driver, task.Registry)
-		if driver == nil {
-			return fmt.Errorf("invalid driver name '%s'", task.Driver)
-		}
+	driver := FindDriverInRegistry(task.Driver, task.Registry)
+	if driver == nil {
+		return fmt.Errorf("invalid driver name '%s'", task.Driver)
 	}
+
 	if debugFlag {
 		fmt.Printf("[essh debug] driver: %s \n", driver.Name)
 	}
