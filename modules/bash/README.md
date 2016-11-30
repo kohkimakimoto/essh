@@ -2,7 +2,7 @@
 
 Collection of the bash code for Essh script.
 
-## Usage Example
+## Usage 
 
 ```lua
 local bash = import "github.com/kohkimakimoto/essh/modules/bash"
@@ -30,12 +30,3 @@ task "example" {
 * `version` (string):
 
 * `lock` (string):
-
-* `driver` (string): Custom driver engine.
-
-    ```lua
-    driver "bash" {
-        engine = bash.driver,
-        show_version = true,
-    }
-    ```
