@@ -898,6 +898,17 @@ func runTask(config string, task *Task) error {
 		CurrentRegistry = task.Registry
 	}
 
+	if task.Prepare != nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] run prepare function.\n")
+		}
+
+		err := task.Prepare()
+		if err != nil {
+			return err
+		}
+	}
+
 	// re generate config (task).
 	if task.Registry == nil {
 		// this is "--exec" command mode. use only public hosts
@@ -907,17 +918,6 @@ func runTask(config string, task *Task) error {
 		}
 	} else {
 		_, err := UpdateSSHConfig(config, NewHostQuery().GetSameRegistryHostsOrderByName(task.Registry.Type))
-		if err != nil {
-			return err
-		}
-	}
-
-	if task.Prepare != nil {
-		if debugFlag {
-			fmt.Printf("[essh debug] run prepare function.\n")
-		}
-
-		err := task.Prepare()
 		if err != nil {
 			return err
 		}
