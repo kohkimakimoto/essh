@@ -66,13 +66,25 @@ Notice: Task name mustn't be duplicated with any host names.
 * `prepare` (function): Prepare is a function to be executed when the task starts. See example:
 
     ~~~lua
-    prepare = function ()
+    prepare = function (t)
+        -- override task config
+        t.targets = "web"
         -- cancel the task execution by returns false.
         return false
     end,
     ~~~
 
     By the prepare function returns false, you can cancel to execute the task's script.
+
+* `props` (table): Props sets environment variables `ESSH_TASK_PROPS_{KEY}` when the task is executed. The table key is modified to upper cased.
+
+    ~~~lua
+    props = {
+        foo = "bar",
+    }
+
+    -- ESSH_TASK_PROPS_FOO=bar
+    ~~~
 
 * `script` (string|table): Script is code that will be executed. Example:
 
