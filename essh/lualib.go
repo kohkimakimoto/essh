@@ -751,7 +751,7 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 					Fn:      prepareFn,
 					NRet:    1,
 					Protect: false,
-				})
+				}, newLTask(L, task))
 				if err != nil {
 					return err
 				}
@@ -773,6 +773,26 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 			}
 		} else {
 			L.RaiseError("prepare have to be a function.")
+		}
+	case "props":
+		if propsTb, ok := toLTable(value); ok {
+			// initialize
+			task.Props = map[string]string{}
+
+			propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
+				propsKeyStr, ok := toString(propsKey)
+				if !ok {
+					L.RaiseError("props table's key must be a string: %v", propsKey)
+				}
+				propsValueStr, ok := toString(propsValue)
+				if !ok {
+					L.RaiseError("props table's value must be a string: %v", propsValue)
+				}
+
+				task.Props[propsKeyStr] = propsValueStr
+			})
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
 		}
 	default:
 		panic("unsupported task's field '" + key + "'.")
