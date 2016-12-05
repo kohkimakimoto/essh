@@ -606,7 +606,7 @@ func Run(osArgs []string) (exitStatus int) {
 	}
 
 	if zshCompletionTagsFlag {
-		for _, tag := range Tags() {
+		for _, tag := range SortedTags() {
 			fmt.Printf("%s\n", ColonEscape(tag))
 		}
 		return
@@ -686,7 +686,7 @@ func Run(osArgs []string) (exitStatus int) {
 		if !quietFlag {
 			tb.SetHeader([]string{"NAME"})
 		}
-		for _, tag := range Tags() {
+		for _, tag := range SortedTags() {
 			tb.Append([]string{tag})
 		}
 		tb.Render()
@@ -1524,7 +1524,7 @@ func validateConfig() error {
 		}
 	}
 
-	for _, tag := range Tags() {
+	for _, tag := range SortedTags() {
 		if _, ok := Hosts[tag]; ok {
 			return fmt.Errorf("Tag '%s' is duplicated with hostname.", tag)
 		}

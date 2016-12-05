@@ -86,7 +86,7 @@ func GenHostsConfig(enabledHosts []*Host) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func Tags() []string {
+func SortedTags() []string {
 	tagsMap := map[string]string{}
 	tags := []string{}
 
