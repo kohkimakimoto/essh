@@ -59,7 +59,7 @@ func TestGetAllHosts(t *testing.T) {
 	}
 	Hosts[h.Name] = h
 
-	hosts := getHostsList()
+	hosts := NewHostQuery().getHostsList()
 	if len(hosts) != 4 {
 		t.Errorf("host number should be 4 but %d", len(hosts))
 	}

@@ -5,15 +5,22 @@ import (
 )
 
 type HostQuery struct {
+	Datasource map[string]*Host
 	Selections []string
 	Filters    []string
 }
 
 func NewHostQuery() *HostQuery {
 	return &HostQuery{
+		Datasource:  Hosts,
 		Selections: []string{},
 		Filters:    []string{},
 	}
+}
+
+func (hostQuery *HostQuery) SetDatasource(datasource map[string]*Host) *HostQuery {
+	hostQuery.Datasource = datasource
+	return hostQuery
 }
 
 func (hostQuery *HostQuery) AppendSelection(selection string) *HostQuery {
@@ -37,7 +44,7 @@ func (hostQuery *HostQuery) AppendFilters(filters []string) *HostQuery {
 }
 
 func (hostQuery *HostQuery) GetHosts() []*Host {
-	hosts := getHostsList()
+	hosts := hostQuery.getHostsList()
 
 	if len(hostQuery.Selections) == 0 && len(hostQuery.Filters) == 0 {
 		return hosts
@@ -131,10 +138,11 @@ func (hostQuery *HostQuery) filterHosts(hosts []*Host, filter string) []*Host {
 	return newHosts
 }
 
-func getHostsList() []*Host {
+func (hostQuery *HostQuery) getHostsList() []*Host {
 	hostsSlice := []*Host{}
-	for _, host := range Hosts {
+	for _, host := range hostQuery.Datasource {
 		hostsSlice = append(hostsSlice, host)
 	}
 	return hostsSlice
 }
+

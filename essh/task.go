@@ -2,7 +2,6 @@ package essh
 
 import (
 	"github.com/yuin/gopher-lua"
-	"sort"
 )
 
 type Task struct {
@@ -24,7 +23,7 @@ type Task struct {
 	Prefix      string
 	UsePrefix   bool
 	Registry    *Registry
-
+	Job         *Job
 	LValues map[string]lua.LValue
 }
 
@@ -50,40 +49,11 @@ func NewTask() *Task {
 	}
 }
 
-func SortedTasks() []*Task {
-	names := []string{}
-	namesMap := map[string]bool{}
-	tasks := []*Task{}
-
-	for name, _ := range Tasks {
-		if namesMap[name] {
-			// already registerd to names
-			continue
-		}
-
-		names = append(names, name)
-		namesMap[name] = true
+func (t *Task) PublicName() string {
+	if t.Job != nil && t.Job.Name != DefaultJobName {
+		return t.Job.Name + ":" + t.Name
 	}
-
-	sort.Strings(names)
-
-	for _, name := range names {
-		if t, ok := Tasks[name]; ok {
-			tasks = append(tasks, t)
-		}
-	}
-
-	return tasks
-}
-
-func GetEnabledTask(name string) *Task {
-	for _, t := range SortedTasks() {
-		if t.Name == name && !t.Disabled {
-			return t
-		}
-	}
-
-	return nil
+	return t.Name
 }
 
 func (t *Task) IsRemoteTask() bool {
@@ -92,10 +62,6 @@ func (t *Task) IsRemoteTask() bool {
 	} else {
 		return false
 	}
-}
-
-func (t *Task) Context() *Registry {
-	return t.Registry
 }
 
 func (t *Task) TargetsSlice() []string {
@@ -122,14 +88,9 @@ func (t *Task) DescriptionOrDefault() string {
 	return t.Description
 }
 
-type TaskContext struct {
-	Task    *Task
-	Payload string
-}
-
-func NewTaskContext(task *Task, payload string) *TaskContext {
-	return &TaskContext{
-		Task:    task,
-		Payload: payload,
+func removeTaskInGlobalSpace(task *Task) {
+	t := Tasks[task.Name]
+	if t == task {
+		delete(Tasks, t.Name)
 	}
 }

@@ -13,16 +13,14 @@ type Driver struct {
 	Name    string
 	Props   map[string]interface{}
 	Engine  func(*Driver) (string, error)
+	Registry    *Registry
+	Job         *Job
 	LValues map[string]lua.LValue
 }
 
 var Drivers map[string]*Driver
 
-var DefaultDriver *Driver
-
-var (
-	DefaultDriverName = "default"
-)
+var DefaultDriverName = "default"
 
 func NewDriver() *Driver {
 	return &Driver{
@@ -94,6 +92,9 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 }
 
 const EnvironmentTemplate = `{{define "environment" -}}
+{{if .Task.Job -}}
+export ESSH_JOB_NAME={{.Task.Job.Name | ShellEscape}}
+{{end -}}
 export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
 export ESSH_SSH_CONFIG={{.SSHConfigPath}}
 export ESSH_DEBUG="{{if .Debug}}1{{end}}"
@@ -117,3 +118,10 @@ export ESSH_HOST_TAGS_{{$value | ToUpper | EnvKeyEscape}}=1
 {{end -}}
 {{end}}
 `
+
+func removeDriverInGlobalSpace(driver *Driver) {
+	d := Drivers[driver.Name]
+	if d == driver {
+		delete(Drivers, d.Name)
+	}
+}

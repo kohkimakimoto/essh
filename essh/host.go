@@ -17,8 +17,9 @@ type Host struct {
 	HooksAfterDisconnect []interface{}
 	Hidden               bool
 	Tags                 []string
-	Registry             *Registry
 	SSHConfig            map[string]string
+	Registry    *Registry
+	Job         *Job
 	LValues              map[string]lua.LValue
 }
 
@@ -116,5 +117,12 @@ func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
 	return func(s string) string {
 		diff := maxlen - namelen
 		return strings.Repeat(s, 1+diff)
+	}
+}
+
+func removeHostInGlobalSpace(host *Host) {
+	h := Hosts[host.Name]
+	if h == host {
+		delete(Hosts, host.Name)
 	}
 }
