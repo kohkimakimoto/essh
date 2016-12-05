@@ -24,8 +24,6 @@ import (
 
 // system configurations.
 var (
-	SystemWideConfigFile         string
-	SystemWideOverrideConfigFile string
 	UserConfigFile               string
 	UserOverrideConfigFile       string
 	UserDataDir                  string
@@ -72,7 +70,6 @@ var (
 	workindDirVar          string
 	configVar              string
 	selectVar              []string
-	scopeVar               string
 	registryVar            string
 	targetVar              []string
 	filterVar              []string
@@ -120,7 +117,6 @@ func initResources() {
 	workindDirVar = ""
 	configVar = ""
 	selectVar = []string{}
-	scopeVar = ""
 	registryVar = ""
 	targetVar = []string{}
 	filterVar = []string{}
@@ -132,6 +128,23 @@ func initResources() {
 	CurrentRegistry = nil
 	GlobalRegistry = nil
 	LocalRegistry = nil
+
+	// Hosts, Tasks, Drivers,
+	Hosts = map[string]*Host{}
+	Tasks = map[string]*Task{}
+	Drivers = map[string]*Driver{}
+
+	// set built-in drivers
+	driver := NewDriver()
+	driver.Name = DefaultDriverName
+	driver.Engine = func(driver *Driver) (string, error) {
+		return `
+{{template "environment" .}}
+{{range $i, $script := .Scripts}}{{$script.code}}
+{{end}}`, nil
+	}
+	DefaultDriver = driver
+	Drivers[DefaultDriverName] = driver
 }
 
 func Run(osArgs []string) (exitStatus int) {
@@ -307,15 +320,6 @@ func Run(osArgs []string) (exitStatus int) {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--backend=") {
 			backendVar = strings.Split(arg, "=")[1]
-		} else if arg == "--scope" {
-			if len(osArgs) < 2 {
-				printError("--scope reguires an argument.")
-				return ExitErr
-			}
-			scopeVar = osArgs[1]
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--scope=") {
-			scopeVar = strings.Split(arg, "=")[1]
 		} else if arg == "--registry" {
 			if len(osArgs) < 2 {
 				printError("--registry reguires an argument.")
@@ -481,29 +485,7 @@ func Run(osArgs []string) (exitStatus int) {
 		return ExitErr
 	}
 
-	// load system wide config
-	if _, err := os.Stat(SystemWideConfigFile); err == nil {
-		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s\n", SystemWideConfigFile)
-		}
-
-		if err := CurrentRegistry.MkDirs(); err != nil {
-			printError(err)
-			return ExitErr
-
-		}
-
-		if err := L.DoFile(SystemWideConfigFile); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
-		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s\n", SystemWideConfigFile)
-		}
-	}
-
-	// load per-user wide config
+	// load per-user (global) config
 	if _, err := os.Stat(UserConfigFile); err == nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] loading config file: %s\n", UserConfigFile)
@@ -566,7 +548,7 @@ func Run(osArgs []string) (exitStatus int) {
 	}
 
 	CurrentRegistry = GlobalRegistry
-	// load override user config
+	// load override global config
 	if _, err := os.Stat(UserOverrideConfigFile); err == nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
@@ -587,27 +569,6 @@ func Run(osArgs []string) (exitStatus int) {
 		}
 	}
 
-	// load override global config
-	if _, err := os.Stat(SystemWideOverrideConfigFile); err == nil {
-		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s\n", SystemWideOverrideConfigFile)
-		}
-
-		if err := CurrentRegistry.MkDirs(); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
-		if err := L.DoFile(SystemWideOverrideConfigFile); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
-		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s\n", SystemWideOverrideConfigFile)
-		}
-	}
-
 	// validate config
 	if err := validateConfig(); err != nil {
 		printError(err)
@@ -616,7 +577,7 @@ func Run(osArgs []string) (exitStatus int) {
 
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
-		for _, host := range NewHostQuery().GetPublicHostsOrderByName() {
+		for _, host := range NewHostQuery().GetHostsOrderByName() {
 			if !host.Hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.DescriptionOrDefault()))
 			}
@@ -649,32 +610,7 @@ func Run(osArgs []string) (exitStatus int) {
 			return ExitErr
 		}
 
-		hosts := NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByScopeAndName()
-
-		// filter by scope,registry,
-		filteredHosts := []*Host{}
-		for _, host := range hosts {
-
-			if scopeVar != "" {
-				if scopeVar == "public" && host.Private {
-					continue
-				}
-				if scopeVar == "private" && !host.Private {
-					continue
-				}
-			}
-
-			if registryVar != "" {
-				if registryVar == "global" && host.Registry.Type != RegistryTypeGlobal {
-					continue
-				}
-				if registryVar == "local" && host.Registry.Type != RegistryTypeLocal {
-					continue
-				}
-			}
-
-			filteredHosts = append(filteredHosts, host)
-		}
+		filteredHosts := NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
 
 		if SSHConfigFlag {
 			outputConfig, ok := toString(lessh.RawGetString("ssh_config"))
@@ -695,7 +631,7 @@ func Run(osArgs []string) (exitStatus int) {
 		} else {
 			tb := helper.NewPlainTable(os.Stdout)
 			if !quietFlag {
-				tb.SetHeader([]string{"SCOPE", "NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN"})
+				tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "HIDDEN"})
 			}
 
 			for _, host := range filteredHosts {
@@ -706,7 +642,7 @@ func Run(osArgs []string) (exitStatus int) {
 					if host.Hidden {
 						hidden = "true"
 					}
-					tb.Append([]string{host.Scope(), host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString(), hidden})
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), hidden})
 				}
 			}
 
@@ -757,7 +693,7 @@ func Run(osArgs []string) (exitStatus int) {
 	}
 
 	// generate ssh hosts config
-	content, err := UpdateSSHConfig(outputConfig, NewHostQuery().GetPublicHostsOrderByName())
+	content, err := UpdateSSHConfig(outputConfig, NewHostQuery().GetHostsOrderByName())
 	if err != nil {
 		printError(err)
 		return ExitErr
@@ -910,17 +846,9 @@ func runTask(config string, task *Task) error {
 	}
 
 	// re generate config (task).
-	if task.Registry == nil {
-		// this is "--exec" command mode. use only public hosts
-		_, err := UpdateSSHConfig(config, NewHostQuery().GetPublicHostsOrderByName())
-		if err != nil {
-			return err
-		}
-	} else {
-		_, err := UpdateSSHConfig(config, NewHostQuery().GetSameRegistryHostsOrderByName(task.Registry.Type))
-		if err != nil {
-			return err
-		}
+	_, err := UpdateSSHConfig(config, NewHostQuery().GetHostsOrderByName())
+	if err != nil {
+		return err
 	}
 
 	// get target hosts.
@@ -929,16 +857,11 @@ func runTask(config string, task *Task) error {
 		var hosts []*Host
 		if len(task.TargetsSlice()) == 0 {
 			hosts = []*Host{}
-		} else if task.Registry == nil {
-			hosts = NewHostQuery().
-				AppendSelections(task.TargetsSlice()).
-				AppendFilters(task.FiltersSlice()).
-				GetPublicHostsOrderByName()
 		} else {
 			hosts = NewHostQuery().
 				AppendSelections(task.TargetsSlice()).
 				AppendFilters(task.FiltersSlice()).
-				GetSameRegistryHostsOrderByName(task.Registry.Type)
+				GetHostsOrderByName()
 		}
 
 		if len(hosts) == 0 {
@@ -982,16 +905,11 @@ func runTask(config string, task *Task) error {
 		var hosts []*Host
 		if len(task.TargetsSlice()) == 0 {
 			hosts = []*Host{}
-		} else if task.Registry == nil {
-			hosts = NewHostQuery().
-				AppendSelections(task.TargetsSlice()).
-				AppendFilters(task.FiltersSlice()).
-				GetPublicHostsOrderByName()
 		} else {
 			hosts = NewHostQuery().
 				AppendSelections(task.TargetsSlice()).
 				AppendFilters(task.FiltersSlice()).
-				GetSameRegistryHostsOrderByName(task.Registry.Type)
+				GetHostsOrderByName()
 		}
 
 		if len(task.Targets) >= 1 && len(hosts) == 0 {
@@ -1056,9 +974,14 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 	}
 
 	// generate commands by using driver
-	driver := FindDriverInRegistry(task.Driver, task.Registry)
-	if driver == nil {
-		return fmt.Errorf("invalid driver name '%s'", task.Driver)
+	var driver *Driver
+	if task.Driver != "" {
+		driver = Drivers[task.Driver]
+		if driver == nil {
+			return fmt.Errorf("invalid driver name '%s'", task.Driver)
+		}
+	} else {
+		driver = DefaultDriver
 	}
 
 	if debugFlag {
@@ -1182,9 +1105,14 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 	}
 
 	// generate commands by using driver
-	driver := FindDriverInRegistry(task.Driver, task.Registry)
-	if driver == nil {
-		return fmt.Errorf("invalid driver name '%s'", task.Driver)
+	var driver *Driver
+	if task.Driver != "" {
+		driver = Drivers[task.Driver]
+		if driver == nil {
+			return fmt.Errorf("invalid driver name '%s'", task.Driver)
+		}
+	} else {
+		driver = DefaultDriver
 	}
 
 	if debugFlag {
@@ -1374,7 +1302,7 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	// hooks fires only when the hostname is just specified.
 	if len(args) == 1 {
 		hostname := args[0]
-		if host := GetPublicHost(hostname); host != nil {
+		if host := Hosts[hostname]; host != nil {
 			hooks["before_connect"] = host.HooksBeforeConnect
 			hooks["after_disconnect"] = host.HooksAfterDisconnect
 			hooks["after_connect"] = host.HooksAfterConnect
@@ -1532,22 +1460,14 @@ func runCommand(command string) error {
 
 func validateConfig() error {
 	// check duplication of the host, task and tag names
-	hostnames := map[string]bool{}
-	for _, host := range NewHostQuery().GetPublicHostsOrderByName() {
-		if _, ok := hostnames[host.Name]; ok {
-			return fmt.Errorf("Host '%s' is duplicated", host.Name)
-		}
-		hostnames[host.Name] = true
-	}
-
 	for _, task := range SortedTasks() {
-		if _, ok := hostnames[task.Name]; ok {
+		if _, ok := Hosts[task.Name]; ok {
 			return fmt.Errorf("Task '%s' is duplicated with hostname.", task.Name)
 		}
 	}
 
 	for _, tag := range Tags() {
-		if _, ok := hostnames[tag]; ok {
+		if _, ok := Hosts[tag]; ok {
 			return fmt.Errorf("Tag '%s' is duplicated with hostname.", tag)
 		}
 	}
@@ -1717,10 +1637,6 @@ func printError(err interface{}) {
 }
 
 func init() {
-	// set SystemWideConfigFile
-	SystemWideConfigFile = "/etc/essh/config.lua"
-	SystemWideOverrideConfigFile = "/etc/essh/config_override.lua"
-
 	// set UserDataDir
 	home := userHomeDir()
 	UserDataDir = filepath.Join(home, ".essh")

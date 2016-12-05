@@ -28,12 +28,9 @@ func InitLuaState(L *lua.LState) {
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
-	L.SetGlobal("private_host", L.NewFunction(esshPrivateHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 	L.SetGlobal("import", L.NewFunction(esshImport))
-	L.SetGlobal("find_hosts", L.NewFunction(esshFindHosts))
-	L.SetGlobal("registry", L.NewFunction(esshRegistry))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -54,19 +51,10 @@ func InitLuaState(L *lua.LState) {
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
-		"host":         esshHost,
-		"private_host": esshPrivateHost,
-		"task":         esshTask,
-		"driver":       esshDriver,
-		"import":       esshImport,
-		"find_hosts":   esshFindHosts,
-		"registry":     esshRegistry,
-
-		// deprecated
-		"require":  esshImport,   // deprecated
-		"debug":    esshDebug,    // deprecated
-		"gethosts": esshGethosts, // deprecated
-		"hosts":    esshGethosts, // deprecated
+		"host":   esshHost,
+		"task":   esshTask,
+		"driver": esshDriver,
+		"import": esshImport,
 	})
 }
 
@@ -98,31 +86,6 @@ func esshHost(L *lua.LState) int {
 	}
 
 	panic("host requires 1 or 2 arguments")
-}
-
-func esshPrivateHost(L *lua.LState) int {
-	name := L.CheckString(1)
-	if L.GetTop() == 1 {
-		// object or DSL style
-		h := registerHost(L, name)
-		updateHost(L, h, "private", lua.LBool(true))
-		L.Push(newLHost(L, h))
-
-		return 1
-	} else if L.GetTop() == 2 {
-		// function style
-		tb := L.CheckTable(2)
-		h := registerHost(L, name)
-		updateHost(L, h, "private", lua.LBool(true))
-		setupHost(L, h, tb)
-		L.Push(newLHost(L, h))
-
-		return 1
-	}
-
-	panic("private_host requires 1 or 2 arguments")
-
-	return 0
 }
 
 func esshTask(L *lua.LState) int {
@@ -242,7 +205,7 @@ func registerHost(L *lua.LState, name string) *Host {
 	h.Name = name
 	h.Registry = CurrentRegistry
 
-	CurrentRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
 	return h
 }
@@ -256,7 +219,7 @@ func registerTask(L *lua.LState, name string) *Task {
 	t.Name = name
 	t.Registry = CurrentRegistry
 
-	CurrentRegistry.Tasks[t.Name] = t
+	Tasks[t.Name] = t
 
 	return t
 }
@@ -269,7 +232,7 @@ func registerDriver(L *lua.LState, name string) *Driver {
 	d := NewDriver()
 	d.Name = name
 
-	CurrentRegistry.Drivers[d.Name] = d
+	Drivers[d.Name] = d
 
 	return d
 }
@@ -367,13 +330,6 @@ func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
 	case "hidden":
 		if hiddenBool, ok := toBool(value); ok {
 			h.Hidden = hiddenBool
-		} else {
-			panic("invalid value of a host's field '" + key + "'.")
-		}
-
-	case "private":
-		if privateBool, ok := toBool(value); ok {
-			h.Private = privateBool
 		} else {
 			panic("invalid value of a host's field '" + key + "'.")
 		}

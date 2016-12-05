@@ -28,6 +28,8 @@ type Task struct {
 	LValues map[string]lua.LValue
 }
 
+var Tasks map[string]*Task
+
 var (
 	DefaultPrefixLocal  = `[local:{{.Host.Name}}]{{HostnameAlignString " "}}`
 	DefaultPrefixRemote = `[remote:{{.Host.Name}}]{{HostnameAlignString " "}}`
@@ -53,17 +55,7 @@ func SortedTasks() []*Task {
 	namesMap := map[string]bool{}
 	tasks := []*Task{}
 
-	for name, _ := range GlobalRegistry.Tasks {
-		if namesMap[name] {
-			// already registerd to names
-			continue
-		}
-
-		names = append(names, name)
-		namesMap[name] = true
-	}
-
-	for name, _ := range LocalRegistry.Tasks {
+	for name, _ := range Tasks {
 		if namesMap[name] {
 			// already registerd to names
 			continue
@@ -76,11 +68,7 @@ func SortedTasks() []*Task {
 	sort.Strings(names)
 
 	for _, name := range names {
-		if t, ok := GlobalRegistry.Tasks[name]; ok {
-			tasks = append(tasks, t)
-		}
-
-		if t, ok := LocalRegistry.Tasks[name]; ok {
+		if t, ok := Tasks[name]; ok {
 			tasks = append(tasks, t)
 		}
 	}

@@ -25,6 +25,7 @@ func TestGetAllHosts(t *testing.T) {
 
 	GlobalRegistry = NewRegistry(tmpDir, RegistryTypeGlobal)
 	LocalRegistry = NewRegistry(tmpDir2, RegistryTypeLocal)
+	Hosts = map[string]*Host{}
 
 	h := NewHost()
 	h.Name = "essh-host-global-web01"
@@ -32,7 +33,7 @@ func TestGetAllHosts(t *testing.T) {
 	h.Tags = []string{
 		"web",
 	}
-	GlobalRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
 	h = NewHost()
 	h.Name = "essh-host-global-web02"
@@ -40,7 +41,7 @@ func TestGetAllHosts(t *testing.T) {
 	h.Tags = []string{
 		"web",
 	}
-	GlobalRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
 	h = NewHost()
 	h.Name = "essh-host-global-db01"
@@ -48,7 +49,7 @@ func TestGetAllHosts(t *testing.T) {
 	h.Tags = []string{
 		"db",
 	}
-	GlobalRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
 	h = NewHost()
 	h.Name = "essh-host-local-web01"
@@ -56,9 +57,9 @@ func TestGetAllHosts(t *testing.T) {
 	h.Tags = []string{
 		"web",
 	}
-	LocalRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
-	hosts := getAllHosts()
+	hosts := getHostsList()
 	if len(hosts) != 4 {
 		t.Errorf("host number should be 4 but %d", len(hosts))
 	}
@@ -83,6 +84,7 @@ func TestHostQueryGetHostsForSelectedHosts(t *testing.T) {
 
 	GlobalRegistry = NewRegistry(tmpDir, RegistryTypeGlobal)
 	LocalRegistry = NewRegistry(tmpDir2, RegistryTypeLocal)
+	Hosts = map[string]*Host{}
 
 	h := NewHost()
 	h.Name = "essh-host-global-web01"
@@ -90,7 +92,7 @@ func TestHostQueryGetHostsForSelectedHosts(t *testing.T) {
 	h.Tags = []string{
 		"web",
 	}
-	GlobalRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
 	h = NewHost()
 	h.Name = "essh-host-global-web02"
@@ -98,7 +100,7 @@ func TestHostQueryGetHostsForSelectedHosts(t *testing.T) {
 	h.Tags = []string{
 		"web",
 	}
-	GlobalRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
 	h = NewHost()
 	h.Name = "essh-host-global-db01"
@@ -106,7 +108,7 @@ func TestHostQueryGetHostsForSelectedHosts(t *testing.T) {
 	h.Tags = []string{
 		"db",
 	}
-	GlobalRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
 	h = NewHost()
 	h.Name = "essh-host-local-web01"
@@ -114,7 +116,7 @@ func TestHostQueryGetHostsForSelectedHosts(t *testing.T) {
 	h.Tags = []string{
 		"web",
 	}
-	LocalRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
 	// pattern1
 	q := NewHostQuery()

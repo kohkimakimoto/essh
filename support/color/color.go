@@ -1,8 +1,8 @@
 package color
 
 import (
-	"github.com/fatih/color"
 	"fmt"
+	"github.com/fatih/color"
 )
 
 var FgBold = color.New(color.Bold).SprintfFunc()
