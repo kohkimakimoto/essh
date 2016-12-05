@@ -113,6 +113,16 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
     end
     ~~~
 
+* `get_job` (function): ジョブを取得します。以下の例を参照してください。
+
+    ~~~lua
+    for _, h in pairs(essh.get_job("myjob"):select_hosts():get()) do
+        if h.ForwardAgent == nil then
+            h.ForwardAgent = "yes"
+        end
+    end
+    ~~~
+
 * `current_registry` (function): 現在のレジストリオブジェクトを取得します。
 
 * `host` (function): `host`関数のエイリアス。

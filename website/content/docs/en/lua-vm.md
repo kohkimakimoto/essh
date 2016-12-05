@@ -112,6 +112,16 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
     end
     ~~~
 
+* `get_job` (function): Get a job. See the following examples:
+
+    ~~~lua
+    for _, h in pairs(essh.get_job("myjob"):select_hosts():get()) do
+        if h.ForwardAgent == nil then
+            h.ForwardAgent = "yes"
+        end
+    end
+    ~~~
+
 * `current_registry` (function): Gets a current registry object.
 
 * `host` (function): An alias of `host` function.
