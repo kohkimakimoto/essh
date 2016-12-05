@@ -59,7 +59,9 @@ func InitLuaState(L *lua.LState) {
 		"import": esshImport,
 
 		// utility functions
+		"debug": esshDebug,
 		"select_hosts": esshSelectHosts,
+		"get_job": esshGetJob,
 		"current_registry": esshCurrentRegistry,
 	})
 }
@@ -219,28 +221,77 @@ func esshImport(L *lua.LState) int {
 
 func esshSelectHosts(L *lua.LState) int {
 	hostQuery := NewHostQuery()
-	if L.GetTop() > 1 {
-		panic("find_hosts can receive max 1 argument.")
-	} else if L.GetTop() == 1 {
-		value := L.CheckAny(1)
-		selections := []string{}
 
-		if selectionsStr, ok := toString(value); ok {
-			selections = []string{selectionsStr}
-		} else if selectionsSlice, ok := toSlice(value); ok {
-			for _, selection := range selectionsSlice {
-				if selectionStr, ok := selection.(string); ok {
-					selections = append(selections, selectionStr)
-				}
-			}
-		} else {
-			panic("find_hosts can receive string or array table of strings.")
-		}
-
-		hostQuery.AppendSelections(selections)
+	if L.GetTop() > 2 {
+		panic("select_hosts can receive max 2 argument.")
 	}
 
+	var job *Job
+
+	first := L.Get(1)
+	if ud, ok := first.(*lua.LUserData); ok {
+		if v, ok := ud.Value.(*Job); ok {
+			job = v
+		} else {
+			panic("expected a job but got an other userdata.")
+		}
+	}
+
+	if L.GetTop() == 1 {
+		if job == nil {
+			value := L.CheckAny(1)
+			selections := []string{}
+
+			if selectionsStr, ok := toString(value); ok {
+				selections = []string{selectionsStr}
+			} else if selectionsSlice, ok := toSlice(value); ok {
+				for _, selection := range selectionsSlice {
+					if selectionStr, ok := selection.(string); ok {
+						selections = append(selections, selectionStr)
+					}
+				}
+			} else {
+				panic("select_hosts can receive string or array table of strings.")
+			}
+			hostQuery.AppendSelections(selections)
+		} else {
+			hostQuery.SetDatasource(job.Hosts)
+		}
+	} else if L.GetTop() == 2 {
+		if job != nil {
+			value := L.CheckAny(2)
+			selections := []string{}
+
+			if selectionsStr, ok := toString(value); ok {
+				selections = []string{selectionsStr}
+			} else if selectionsSlice, ok := toSlice(value); ok {
+				for _, selection := range selectionsSlice {
+					if selectionStr, ok := selection.(string); ok {
+						selections = append(selections, selectionStr)
+					}
+				}
+			} else {
+				panic("select_hosts can receive string or array table of strings.")
+			}
+
+			hostQuery.SetDatasource(job.Hosts).AppendSelections(selections)
+		} else {
+			panic("expected a job but got an other userdata.")
+		}
+	}
 	L.Push(newLHostQuery(L, hostQuery))
+	return 1
+}
+
+func esshGetJob(L *lua.LState) int {
+	name := L.CheckString(1)
+	job := Jobs[name]
+	if job == nil {
+		L.Push(lua.LNil)
+		return 1
+	}
+
+	L.Push(newLJob(L, job))
 	return 1
 }
 
@@ -1170,17 +1221,19 @@ func jobIndex(L *lua.LState) int {
 	job := checkJob(L)
 	index := L.CheckString(2)
 
-	if index == "name" {
+	switch index {
+	case "name":
 		L.Push(lua.LString(job.Name))
-		return 1
+	case "select_hosts":
+		L.Push(L.NewFunction(esshSelectHosts))
+	default:
+		v, ok := job.LValues[index]
+		if v == nil || !ok {
+			v = lua.LNil
+		}
+		L.Push(v)
 	}
 
-	v, ok := job.LValues[index]
-	if v == nil || !ok {
-		v = lua.LNil
-	}
-
-	L.Push(v)
 	return 1
 }
 

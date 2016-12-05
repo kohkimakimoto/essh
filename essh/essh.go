@@ -47,6 +47,7 @@ var (
 	allFlag                bool
 	tagsFlag               bool
 	tasksFlag              bool
+	jobsFlag               bool
 	genFlag                bool
 	updateFlag             bool
 	withGlobalFlag         bool
@@ -58,6 +59,7 @@ var (
 	zshCompletionHostsFlag bool
 	zshCompletionTagsFlag  bool
 	zshCompletionTasksFlag bool
+	zshCompletionJobsFlag  bool
 	bashCompletionFlag     bool
 	aliasesFlag            bool
 	execFlag               bool
@@ -94,6 +96,7 @@ func initResources() {
 	allFlag = false
 	tagsFlag = false
 	tasksFlag = false
+	jobsFlag = false
 	genFlag = false
 	updateFlag = false
 	withGlobalFlag = false
@@ -105,6 +108,7 @@ func initResources() {
 	zshCompletionHostsFlag = false
 	zshCompletionTagsFlag = false
 	zshCompletionTasksFlag = false
+	zshCompletionJobsFlag = false
 	bashCompletionFlag = false
 	aliasesFlag = false
 	execFlag = false
@@ -117,6 +121,7 @@ func initResources() {
 	workindDirVar = ""
 	configVar = ""
 	selectVar = []string{}
+	jobVar    = ""
 	targetVar = []string{}
 	filterVar = []string{}
 	backendVar = ""
@@ -208,6 +213,8 @@ func Run(osArgs []string) (exitStatus int) {
 			allFlag = true
 		} else if arg == "--tasks" {
 			tasksFlag = true
+		} else if arg == "--jobs" {
+			jobsFlag = true
 		} else if arg == "--select" {
 			if len(osArgs) < 2 {
 				printError("--select reguires an argument.")
@@ -242,6 +249,9 @@ func Run(osArgs []string) (exitStatus int) {
 			zshCompletionModeFlag = true
 		} else if arg == "--zsh-completion-tasks" {
 			zshCompletionTasksFlag = true
+			zshCompletionModeFlag = true
+		} else if arg == "--zsh-completion-jobs" {
+			zshCompletionJobsFlag = true
 			zshCompletionModeFlag = true
 		} else if arg == "--bash-completion" {
 			// TODO
@@ -602,6 +612,13 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
+	if zshCompletionJobsFlag {
+		for _, job := range SortedJobs() {
+			fmt.Printf("%s\n", ColonEscape(job.Name))
+		}
+		return
+	}
+
 	// only print hosts list
 	if hostsFlag {
 		if len(selectVar) == 0 && len(filterVar) > 0 {
@@ -691,6 +708,19 @@ func Run(osArgs []string) (exitStatus int) {
 					tb.Append([]string{t.PublicName(), t.Description, t.Registry.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
 				}
 			}
+		}
+		tb.Render()
+
+		return
+	}
+
+	if jobsFlag {
+		tb := helper.NewPlainTable(os.Stdout)
+		if !quietFlag {
+			tb.SetHeader([]string{"NAME"})
+		}
+		for _, job := range SortedJobs() {
+			tb.Append([]string{job.Name})
 		}
 		tb.Render()
 
@@ -1605,7 +1635,8 @@ Options:
   --tasks                       List tasks.
   --all                         (Using with --tasks option) Show all that include hidden objects.
   --tags                        List tags.
-  --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
+  --quiet                       (Using with --hosts, --tasks, --tags or --jobs option) Show only names.
+  --jobs                        List jobs.
 
   (Manage Modules)
   --update                      Update modules.
@@ -1717,6 +1748,15 @@ _essh_tags() {
     _describe -t tag "tag" __essh_tags
 }
 
+_essh_jobs() {
+    local -a __essh_jobs
+    PRE_IFS=$IFS
+    IFS=$'\n'
+    __essh_jobs=($({{.Executable}} --zsh-completion-jobs))
+    IFS=$PRE_IFS
+    _describe -t tag "job" __essh_jobs
+}
+
 _essh_global_options() {
 }
 
@@ -1738,6 +1778,7 @@ _essh_options() {
         '--hosts:List hosts.'
         '--tags:List tags.'
         '--tasks:List tasks.'
+        '--jobs:List jobs.'
         '--debug:Output debug log.'
         '--exec:Execute commands with the hosts.'
         '--zsh-completion:Output zsh completion code.'
@@ -1769,6 +1810,14 @@ _essh_tasks_options() {
     _describe -t option "option" __essh_options
 }
 
+_essh_jobs_options() {
+    local -a __essh_options
+    __essh_options=(
+        '--debug:Output debug log.'
+        '--quiet:Show only names.'
+     )
+    _describe -t option "option" __essh_options
+}
 _essh_tags_options() {
     local -a __essh_options
     __essh_options=(
@@ -1815,7 +1864,7 @@ _essh_backends() {
 
 _essh () {
     local curcontext="$curcontext" state line
-    local last_arg arg execMode hostsMode tasksMode tagsMode
+    local last_arg arg execMode hostsMode tasksMode tagsMode jobsMode
 
     typeset -A opt_args
 
@@ -1853,6 +1902,9 @@ _essh () {
                     --tags)
                         tagsMode="on"
                         ;;
+                    --jobs)
+                        jobsMode="on"
+                        ;;
                     *)
                         ;;
                 esac
@@ -1868,6 +1920,9 @@ _essh () {
                     _essh_hosts
                     _essh_tags
                     ;;
+                --job)
+                	_essh_jobs
+                	;;
                 --backend)
                     _essh_backends
                     ;;
@@ -1883,6 +1938,8 @@ _essh () {
                         _essh_tasks_options
                     elif [ "$tagsMode" = "on" ]; then
                         _essh_tags_options
+                    elif [ "$jobsMode" = "on" ]; then
+                        _essh_jobs_options
                     else
                         _essh_options
                         _files
