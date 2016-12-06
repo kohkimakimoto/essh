@@ -720,7 +720,12 @@ func Run(osArgs []string) (exitStatus int) {
 			tb.SetHeader([]string{"NAME", "DESCRIPTION"})
 		}
 		for _, job := range SortedJobs() {
-			tb.Append([]string{job.Name, job.Description})
+			if quietFlag {
+				tb.Append([]string{job.Name})
+			} else {
+				tb.Append([]string{job.Name, job.Description})
+			}
+
 		}
 		tb.Render()
 
