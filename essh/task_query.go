@@ -49,7 +49,7 @@ func (t NameSortableTasks) Swap(i, j int) {
 }
 
 func (t NameSortableTasks) Less(i, j int) bool {
-	return t[i].Name < t[j].Name
+	return t[i].PublicName() < t[j].PublicName()
 }
 
 func (taskQuery *TaskQuery) GetTasksOrderByName() []*Task {
