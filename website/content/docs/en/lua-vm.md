@@ -130,7 +130,13 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
 
 * `driver` (function): An alias of `driver` function.
 
+* `job` (function): An alias of `job` function.
+
 * `import` (function): An alias of `import` function.
 
-* `debug` (function)
+* `debug` (function): Output a debug message. The debug message is outputed when you run Essh with `--debug` option.
+
+    ~~~~lua
+    essh.debug("foo")
+    ~~~~
 

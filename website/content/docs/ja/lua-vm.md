@@ -125,10 +125,18 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
 
 * `current_registry` (function): 現在のレジストリオブジェクトを取得します。
 
-* `host` (function): `host`関数のエイリアス。
+* `host` (function): `host` 関数のエイリアス。
 
-* `task` (function): `task`関数のエイリアス。
+* `task` (function): `task` 関数のエイリアス。
 
-* `driver` (function): `driver`関数のエイリアス。
+* `driver` (function): `driver` 関数のエイリアス。
 
-* `import` (function): `import`関数のエイリアス。
+* `job` (function): `job` 関数のエイリアス。
+
+* `import` (function): `import` 関数のエイリアス。
+
+* `debug` (function): デバッグメッセージを出力します。デバッグメッセージは`--debug`オプションつきでEsshを実行したときに出力されます。
+
+    ~~~~lua
+    essh.debug("foo")
+    ~~~~
