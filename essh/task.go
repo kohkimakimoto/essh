@@ -27,7 +27,6 @@ type Task struct {
 	LValues     map[string]lua.LValue
 	Parent      *Task
 	Child       *Task
-
 }
 
 var Tasks map[string]*Task

@@ -875,6 +875,26 @@ func runTask(config string, task *Task) error {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
 	}
 
+	if task.Job != nil {
+		if task.Job.Prepare != nil {
+			if debugFlag {
+				fmt.Printf("[essh debug] run job's prepare function.\n")
+			}
+
+			err := task.Job.Prepare()
+			if err != nil {
+				return err
+			}
+		}
+
+		// re generate ssh_config if it in a job
+		hosts := NewHostQuery().SetDatasource(task.Job.Hosts).GetHostsOrderByName()
+		_, err := UpdateSSHConfig(config, hosts)
+		if err != nil {
+			return err
+		}
+	}
+
 	if task.Registry != nil {
 		// change current registry
 		CurrentRegistry = task.Registry
@@ -882,19 +902,10 @@ func runTask(config string, task *Task) error {
 
 	if task.Prepare != nil {
 		if debugFlag {
-			fmt.Printf("[essh debug] run prepare function.\n")
+			fmt.Printf("[essh debug] run task's prepare function.\n")
 		}
 
 		err := task.Prepare()
-		if err != nil {
-			return err
-		}
-	}
-
-	// re generate ssh_config for the task.
-	if task.Job != nil {
-		hosts := NewHostQuery().SetDatasource(task.Job.Hosts).GetHostsOrderByName()
-		_, err := UpdateSSHConfig(config, hosts)
 		if err != nil {
 			return err
 		}

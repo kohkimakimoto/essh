@@ -6,13 +6,14 @@ import (
 )
 
 type Job struct {
-	Name    string
+	Name        string
 	Description string
 	Env         map[string]string
-	Hosts   map[string]*Host
-	Tasks   map[string]*Task
-	Drivers map[string]*Driver
-	LValues map[string]lua.LValue
+	Prepare     func() error
+	Hosts       map[string]*Host
+	Tasks       map[string]*Task
+	Drivers     map[string]*Driver
+	LValues     map[string]lua.LValue
 }
 
 var Jobs map[string]*Job
@@ -21,8 +22,8 @@ var DefaultJobName = "default"
 
 func NewJob() *Job {
 	return &Job{
-		Hosts:   map[string]*Host{},
-		Tasks:   map[string]*Task{},
+		Hosts: map[string]*Host{},
+		Tasks: map[string]*Task{},
 		Drivers: map[string]*Driver{
 			DefaultDriverName: DefaultDriver,
 		},

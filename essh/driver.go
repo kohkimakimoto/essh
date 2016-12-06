@@ -16,8 +16,8 @@ type Driver struct {
 	Registry *Registry
 	Job      *Job
 	LValues  map[string]lua.LValue
-	Parent               *Driver
-	Child                *Driver
+	Parent   *Driver
+	Child    *Driver
 }
 
 var Drivers map[string]*Driver

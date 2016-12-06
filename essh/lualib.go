@@ -1279,7 +1279,7 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 			// host, task or driver
 			lv, ok := v.(*lua.LUserData)
 			if !ok {
-				panic(fmt.Sprintf("expected userdata (host, task or driver) but got a '%v'\n", v))
+				panic(fmt.Sprintf("expected userdata (host, task or driver) but got '%v'\n", v))
 			}
 
 			switch vv := lv.Value.(type) {
@@ -1290,7 +1290,7 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 			case *Driver:
 				job.RegisterDriver(vv)
 			default:
-				panic(fmt.Sprintf("expected host, task or driver but got a '%v'\n", vv))
+				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", vv))
 			}
 		}
 
@@ -1310,6 +1310,37 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 		} else {
 			panic("invalid value of a job's field '" + key + "'.")
 		}
+	case "prepare":
+		if prepareFn, ok := value.(*lua.LFunction); ok {
+			job.Prepare = func() error {
+				err := L.CallByParam(lua.P{
+					Fn:      prepareFn,
+					NRet:    1,
+					Protect: false,
+				}, newLJob(L, job))
+				if err != nil {
+					return err
+				}
+
+				ret := L.Get(-1) // returned value
+				L.Pop(1)
+
+				if ret == lua.LNil {
+					return nil
+				} else if retB, ok := ret.(lua.LBool); ok {
+					if retB {
+						return nil
+					} else {
+						return fmt.Errorf("returned false from the prepare function.")
+					}
+				}
+
+				return nil
+			}
+		} else {
+			L.RaiseError("prepare have to be a function.")
+		}
+
 	case "env":
 		if envTb, ok := toLTable(value); ok {
 			// initialize
@@ -1335,12 +1366,12 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 			tb.ForEach(func(k, v lua.LValue) {
 				name, ok := toString(k)
 				if !ok {
-					panic(fmt.Sprintf("expected string of host's name but got a '%v'\n", k))
+					panic(fmt.Sprintf("expected string of host's name but got '%v'\n", k))
 				}
 
 				config, ok := toLTable(v)
 				if !ok {
-					panic(fmt.Sprintf("expected table of host's config but got a '%v'\n", v))
+					panic(fmt.Sprintf("expected table of host's config but got '%v'\n", v))
 				}
 
 				h := registerHost(L, name)
@@ -1348,19 +1379,19 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 				job.RegisterHost(h)
 			})
 		} else {
-			panic(fmt.Sprintf("expected table but got a '%v'\n", value))
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
 		}
 	case "tasks":
 		if tb, ok := toLTable(value); ok {
 			tb.ForEach(func(k, v lua.LValue) {
 				name, ok := toString(k)
 				if !ok {
-					panic(fmt.Sprintf("expected string of task's name but got a '%v'\n", k))
+					panic(fmt.Sprintf("expected string of task's name but got '%v'\n", k))
 				}
 
 				config, ok := toLTable(v)
 				if !ok {
-					panic(fmt.Sprintf("expected table of task's config but got a '%v'\n", v))
+					panic(fmt.Sprintf("expected table of task's config but got '%v'\n", v))
 				}
 
 				t := registerTask(L, name)
@@ -1368,19 +1399,19 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 				job.RegisterTask(t)
 			})
 		} else {
-			panic(fmt.Sprintf("expected table but got a '%v'\n", value))
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
 		}
 	case "drivers":
 		if tb, ok := toLTable(value); ok {
 			tb.ForEach(func(k, v lua.LValue) {
 				name, ok := toString(k)
 				if !ok {
-					panic(fmt.Sprintf("expected string of driver's name but got a '%v'\n", k))
+					panic(fmt.Sprintf("expected string of driver's name but got '%v'\n", k))
 				}
 
 				config, ok := toLTable(v)
 				if !ok {
-					panic(fmt.Sprintf("expected table of driver's config but got a '%v'\n", v))
+					panic(fmt.Sprintf("expected table of driver's config but got '%v'\n", v))
 				}
 
 				d := registerDriver(L, name)
@@ -1388,13 +1419,13 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 				job.RegisterDriver(d)
 			})
 		} else {
-			panic(fmt.Sprintf("expected table but got a '%v'\n", value))
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
 		}
 	case "base":
 		if tb, ok := toLTable(value); ok {
 			setupJob(L, job, tb)
 		} else {
-			panic(fmt.Sprintf("expected table or job, but got a '%v'\n", value))
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
 		}
 
 	default:
