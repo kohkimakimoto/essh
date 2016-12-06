@@ -5,15 +5,22 @@ import (
 )
 
 type HostQuery struct {
+	Datasource map[string]*Host
 	Selections []string
 	Filters    []string
 }
 
 func NewHostQuery() *HostQuery {
 	return &HostQuery{
+		Datasource: Hosts,
 		Selections: []string{},
 		Filters:    []string{},
 	}
+}
+
+func (hostQuery *HostQuery) SetDatasource(datasource map[string]*Host) *HostQuery {
+	hostQuery.Datasource = datasource
+	return hostQuery
 }
 
 func (hostQuery *HostQuery) AppendSelection(selection string) *HostQuery {
@@ -37,7 +44,7 @@ func (hostQuery *HostQuery) AppendFilters(filters []string) *HostQuery {
 }
 
 func (hostQuery *HostQuery) GetHosts() []*Host {
-	hosts := getAllHosts()
+	hosts := hostQuery.getHostsList()
 
 	if len(hostQuery.Selections) == 0 && len(hostQuery.Filters) == 0 {
 		return hosts
@@ -69,63 +76,7 @@ func (h NameSortableHosts) Less(i, j int) bool {
 func (hostQuery *HostQuery) GetHostsOrderByName() []*Host {
 	hosts := hostQuery.GetHosts()
 
-	sort.Sort(ScopeSortableHosts(hosts))
 	sort.Sort(NameSortableHosts(hosts))
-
-	return hosts
-}
-
-func (hostQuery *HostQuery) GetPublicHostsOrderByName() []*Host {
-	hosts := hostQuery.GetHosts()
-
-	sort.Sort(ScopeSortableHosts(hosts))
-	sort.Sort(NameSortableHosts(hosts))
-
-	filteredHosts := []*Host{}
-	for _, h := range hosts {
-		if !h.Private {
-			filteredHosts = append(filteredHosts, h)
-		}
-	}
-
-	return filteredHosts
-}
-
-func (hostQuery *HostQuery) GetSameRegistryHostsOrderByName(registryType int) []*Host {
-	hosts := hostQuery.GetHosts()
-
-	sort.Sort(ScopeSortableHosts(hosts))
-	sort.Sort(NameSortableHosts(hosts))
-
-	filteredHosts := []*Host{}
-	for _, h := range hosts {
-		if h.Registry.Type == registryType {
-			filteredHosts = append(filteredHosts, h)
-		}
-	}
-
-	return filteredHosts
-}
-
-type ScopeSortableHosts []*Host
-
-func (h ScopeSortableHosts) Len() int {
-	return len(h)
-}
-
-func (h ScopeSortableHosts) Swap(i, j int) {
-	h[i], h[j] = h[j], h[i]
-}
-
-func (h ScopeSortableHosts) Less(i, j int) bool {
-	return !h[i].Private && h[j].Private
-}
-
-func (hostQuery *HostQuery) GetHostsOrderByScopeAndName() []*Host {
-	hosts := hostQuery.GetHosts()
-
-	sort.Sort(NameSortableHosts(hosts))
-	sort.Sort(ScopeSortableHosts(hosts))
 
 	return hosts
 }
@@ -187,16 +138,10 @@ func (hostQuery *HostQuery) filterHosts(hosts []*Host, filter string) []*Host {
 	return newHosts
 }
 
-func getAllHosts() []*Host {
-	hosts := []*Host{}
-
-	for _, host := range GlobalRegistry.Hosts {
-		hosts = append(hosts, host)
+func (hostQuery *HostQuery) getHostsList() []*Host {
+	hostsSlice := []*Host{}
+	for _, host := range hostQuery.Datasource {
+		hostsSlice = append(hostsSlice, host)
 	}
-
-	for _, host := range LocalRegistry.Hosts {
-		hosts = append(hosts, host)
-	}
-
-	return hosts
+	return hostsSlice
 }

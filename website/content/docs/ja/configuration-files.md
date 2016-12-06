@@ -73,32 +73,10 @@ web01.tags = {
 
 Esshはいくつかの異なる場所から設定ファイルを読み込みます。必須である設定ファイルはありません。Esshはこれらが存在する場合のみロードします。設定は次の順序で適用されます。
 
-1. `/etc/essh/config.lua` (`global`レジストリ)。
-1. `~/.essh/config.lua` (`global` レジストリ)。
-1. カレントディレクトリの`esshconfig.lua`またはコマンドラインオプションの`--config`で指定したファイル (`local` レジストリ).
-1. カレントディレクトリの`esshconfig_override.lua`またはコマンドラインオプションの`--config`で指定したファイル名の最後に`_override`をつけたファイル。例)`--config=myconfig.lua`なら`myconfig_override.lua` (`local` レジストリ)。
-1. `~/.essh/config_override.lua` (`global` レジストリ)。
-1. `/etc/essh/config_override.lua` (`global` レジストリ)。
-
-## レジストリ {#registries}
-
-各設定ファイルには**レジストリ**という概念があります。レジストリは、設定がロードされることによって定義されるホストやタスクなどのリソースを保持する論理空間です。
-
-Esshには**local**と**global**の2つのレジストリがあります。
-
-### 例
-
-`/etc/essh/config.lua`にホストを定義すると、このホストの設定は`global`レジストリに格納されます。
-
-### 制約
-
-レジストリはリソースに関するいくつかの制約を提供します。たとえば（そして最も重要な制約）は次のとおりです。
-
-> タスクによって使用されるホストは、同じレジストリに定義されなければなりません。
-
-`global`レジストリでタスクを定義した場合、このタスクは`local`レジストリで定義されたホストを使用できません。
-
-詳細については、[ホスト](hosts.html)を参照してください。
+1. `~/.essh/config.lua`
+1. カレントディレクトリの`esshconfig.lua`またはコマンドラインオプションの`--config`で指定したファイル
+1. カレントディレクトリの`esshconfig_override.lua`またはコマンドラインオプションの`--config`で指定したファイル名の最後に`_override`をつけたファイル。例)`--config=myconfig.lua`なら`myconfig_override.lua`
+1. `~/.essh/config_override.lua`
 
 ## Lua
 

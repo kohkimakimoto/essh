@@ -24,8 +24,6 @@ import (
 
 // system configurations.
 var (
-	SystemWideConfigFile         string
-	SystemWideOverrideConfigFile string
 	UserConfigFile               string
 	UserOverrideConfigFile       string
 	UserDataDir                  string
@@ -49,6 +47,7 @@ var (
 	allFlag                bool
 	tagsFlag               bool
 	tasksFlag              bool
+	jobsFlag               bool
 	genFlag                bool
 	updateFlag             bool
 	withGlobalFlag         bool
@@ -60,6 +59,7 @@ var (
 	zshCompletionHostsFlag bool
 	zshCompletionTagsFlag  bool
 	zshCompletionTasksFlag bool
+	zshCompletionJobsFlag  bool
 	bashCompletionFlag     bool
 	aliasesFlag            bool
 	execFlag               bool
@@ -72,8 +72,7 @@ var (
 	workindDirVar          string
 	configVar              string
 	selectVar              []string
-	scopeVar               string
-	registryVar            string
+	jobVar                 string
 	targetVar              []string
 	filterVar              []string
 	backendVar             string
@@ -97,6 +96,7 @@ func initResources() {
 	allFlag = false
 	tagsFlag = false
 	tasksFlag = false
+	jobsFlag = false
 	genFlag = false
 	updateFlag = false
 	withGlobalFlag = false
@@ -108,6 +108,7 @@ func initResources() {
 	zshCompletionHostsFlag = false
 	zshCompletionTagsFlag = false
 	zshCompletionTasksFlag = false
+	zshCompletionJobsFlag = false
 	bashCompletionFlag = false
 	aliasesFlag = false
 	execFlag = false
@@ -120,8 +121,7 @@ func initResources() {
 	workindDirVar = ""
 	configVar = ""
 	selectVar = []string{}
-	scopeVar = ""
-	registryVar = ""
+	jobVar = ""
 	targetVar = []string{}
 	filterVar = []string{}
 	backendVar = ""
@@ -132,6 +132,23 @@ func initResources() {
 	CurrentRegistry = nil
 	GlobalRegistry = nil
 	LocalRegistry = nil
+
+	// Hosts, Tasks, Drivers,
+	Hosts = map[string]*Host{}
+	Tasks = map[string]*Task{}
+	Drivers = map[string]*Driver{}
+	Jobs = map[string]*Job{}
+
+	// set built-in drivers
+	driver := NewDriver()
+	driver.Name = DefaultDriverName
+	driver.Engine = func(driver *Driver) (string, error) {
+		return `
+{{template "environment" .}}
+{{range $i, $script := .Scripts}}{{$script.code}}
+{{end}}`, nil
+	}
+	Drivers[DefaultDriverName] = driver
 }
 
 func Run(osArgs []string) (exitStatus int) {
@@ -196,6 +213,8 @@ func Run(osArgs []string) (exitStatus int) {
 			allFlag = true
 		} else if arg == "--tasks" {
 			tasksFlag = true
+		} else if arg == "--jobs" {
+			jobsFlag = true
 		} else if arg == "--select" {
 			if len(osArgs) < 2 {
 				printError("--select reguires an argument.")
@@ -230,6 +249,9 @@ func Run(osArgs []string) (exitStatus int) {
 			zshCompletionModeFlag = true
 		} else if arg == "--zsh-completion-tasks" {
 			zshCompletionTasksFlag = true
+			zshCompletionModeFlag = true
+		} else if arg == "--zsh-completion-jobs" {
+			zshCompletionJobsFlag = true
 			zshCompletionModeFlag = true
 		} else if arg == "--bash-completion" {
 			// TODO
@@ -280,6 +302,15 @@ func Run(osArgs []string) (exitStatus int) {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--driver=") {
 			driverVar = strings.Split(arg, "=")[1]
+		} else if arg == "--job" {
+			if len(osArgs) < 2 {
+				printError("--job reguires an argument.")
+				return ExitErr
+			}
+			jobVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--job=") {
+			jobVar = strings.Split(arg, "=")[1]
 		} else if arg == "--target" {
 			if len(osArgs) < 2 {
 				printError("--target reguires an argument.")
@@ -307,24 +338,6 @@ func Run(osArgs []string) (exitStatus int) {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--backend=") {
 			backendVar = strings.Split(arg, "=")[1]
-		} else if arg == "--scope" {
-			if len(osArgs) < 2 {
-				printError("--scope reguires an argument.")
-				return ExitErr
-			}
-			scopeVar = osArgs[1]
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--scope=") {
-			scopeVar = strings.Split(arg, "=")[1]
-		} else if arg == "--registry" {
-			if len(osArgs) < 2 {
-				printError("--registry reguires an argument.")
-				return ExitErr
-			}
-			registryVar = osArgs[1]
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--registry=") {
-			registryVar = strings.Split(arg, "=")[1]
 		} else if arg == "--file" {
 			fileFlag = true
 		} else if arg == "--pty" {
@@ -481,29 +494,7 @@ func Run(osArgs []string) (exitStatus int) {
 		return ExitErr
 	}
 
-	// load system wide config
-	if _, err := os.Stat(SystemWideConfigFile); err == nil {
-		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s\n", SystemWideConfigFile)
-		}
-
-		if err := CurrentRegistry.MkDirs(); err != nil {
-			printError(err)
-			return ExitErr
-
-		}
-
-		if err := L.DoFile(SystemWideConfigFile); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
-		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s\n", SystemWideConfigFile)
-		}
-	}
-
-	// load per-user wide config
+	// load per-user (global) config
 	if _, err := os.Stat(UserConfigFile); err == nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] loading config file: %s\n", UserConfigFile)
@@ -566,7 +557,7 @@ func Run(osArgs []string) (exitStatus int) {
 	}
 
 	CurrentRegistry = GlobalRegistry
-	// load override user config
+	// load override global config
 	if _, err := os.Stat(UserOverrideConfigFile); err == nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
@@ -587,27 +578,6 @@ func Run(osArgs []string) (exitStatus int) {
 		}
 	}
 
-	// load override global config
-	if _, err := os.Stat(SystemWideOverrideConfigFile); err == nil {
-		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s\n", SystemWideOverrideConfigFile)
-		}
-
-		if err := CurrentRegistry.MkDirs(); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
-		if err := L.DoFile(SystemWideOverrideConfigFile); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
-		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s\n", SystemWideOverrideConfigFile)
-		}
-	}
-
 	// validate config
 	if err := validateConfig(); err != nil {
 		printError(err)
@@ -616,7 +586,7 @@ func Run(osArgs []string) (exitStatus int) {
 
 	// show hosts for zsh completion
 	if zshCompletionHostsFlag {
-		for _, host := range NewHostQuery().GetPublicHostsOrderByName() {
+		for _, host := range NewHostQuery().GetHostsOrderByName() {
 			if !host.Hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(host.Name), ColonEscape(host.DescriptionOrDefault()))
 			}
@@ -627,17 +597,24 @@ func Run(osArgs []string) (exitStatus int) {
 
 	// show tasks for zsh completion
 	if zshCompletionTasksFlag {
-		for _, task := range SortedTasks() {
+		for _, task := range NewTaskQuery().GetTasksOrderByName() {
 			if !task.Disabled && !task.Hidden {
-				fmt.Printf("%s\t%s\n", ColonEscape(task.Name), ColonEscape(task.DescriptionOrDefault()))
+				fmt.Printf("%s\t%s\n", ColonEscape(task.PublicName()), ColonEscape(task.DescriptionOrDefault()))
 			}
 		}
 		return
 	}
 
 	if zshCompletionTagsFlag {
-		for _, tag := range Tags() {
+		for _, tag := range SortedTags() {
 			fmt.Printf("%s\n", ColonEscape(tag))
+		}
+		return
+	}
+
+	if zshCompletionJobsFlag {
+		for _, job := range SortedJobs() {
+			fmt.Printf("%s\n", ColonEscape(job.Name))
 		}
 		return
 	}
@@ -649,31 +626,17 @@ func Run(osArgs []string) (exitStatus int) {
 			return ExitErr
 		}
 
-		hosts := NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByScopeAndName()
+		var filteredHosts []*Host
 
-		// filter by scope,registry,
-		filteredHosts := []*Host{}
-		for _, host := range hosts {
-
-			if scopeVar != "" {
-				if scopeVar == "public" && host.Private {
-					continue
-				}
-				if scopeVar == "private" && !host.Private {
-					continue
-				}
+		if jobVar != "" {
+			job := Jobs[jobVar]
+			if job == nil {
+				printError(fmt.Errorf("not found '%s' job.", jobVar))
 			}
 
-			if registryVar != "" {
-				if registryVar == "global" && host.Registry.Type != RegistryTypeGlobal {
-					continue
-				}
-				if registryVar == "local" && host.Registry.Type != RegistryTypeLocal {
-					continue
-				}
-			}
-
-			filteredHosts = append(filteredHosts, host)
+			filteredHosts = NewHostQuery().SetDatasource(job.Hosts).AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
+		} else {
+			filteredHosts = NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
 		}
 
 		if SSHConfigFlag {
@@ -695,7 +658,7 @@ func Run(osArgs []string) (exitStatus int) {
 		} else {
 			tb := helper.NewPlainTable(os.Stdout)
 			if !quietFlag {
-				tb.SetHeader([]string{"SCOPE", "NAME", "DESCRIPTION", "TAGS", "REGISTRY", "HIDDEN"})
+				tb.SetHeader([]string{"NAME", "DESCRIPTION", "TAGS", "HIDDEN"})
 			}
 
 			for _, host := range filteredHosts {
@@ -706,7 +669,7 @@ func Run(osArgs []string) (exitStatus int) {
 					if host.Hidden {
 						hidden = "true"
 					}
-					tb.Append([]string{host.Scope(), host.Name, host.Description, strings.Join(host.Tags, ","), host.Registry.TypeString(), hidden})
+					tb.Append([]string{host.Name, host.Description, strings.Join(host.Tags, ","), hidden})
 				}
 			}
 
@@ -722,7 +685,7 @@ func Run(osArgs []string) (exitStatus int) {
 		if !quietFlag {
 			tb.SetHeader([]string{"NAME"})
 		}
-		for _, tag := range Tags() {
+		for _, tag := range SortedTags() {
 			tb.Append([]string{tag})
 		}
 		tb.Render()
@@ -736,14 +699,27 @@ func Run(osArgs []string) (exitStatus int) {
 		if !quietFlag {
 			tb.SetHeader([]string{"NAME", "DESCRIPTION", "REGISTRY", "DISABLED", "HIDDEN"})
 		}
-		for _, t := range SortedTasks() {
+		for _, t := range NewTaskQuery().GetTasksOrderByName() {
 			if (!t.Hidden && !t.Disabled) || allFlag {
 				if quietFlag {
-					tb.Append([]string{t.Name})
+					tb.Append([]string{t.PublicName()})
 				} else {
-					tb.Append([]string{t.Name, t.Description, t.Registry.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
+					tb.Append([]string{t.PublicName(), t.Description, t.Registry.TypeString(), fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
 				}
 			}
+		}
+		tb.Render()
+
+		return
+	}
+
+	if jobsFlag {
+		tb := helper.NewPlainTable(os.Stdout)
+		if !quietFlag {
+			tb.SetHeader([]string{"NAME"})
+		}
+		for _, job := range SortedJobs() {
+			tb.Append([]string{job.Name})
 		}
 		tb.Render()
 
@@ -757,7 +733,7 @@ func Run(osArgs []string) (exitStatus int) {
 	}
 
 	// generate ssh hosts config
-	content, err := UpdateSSHConfig(outputConfig, NewHostQuery().GetPublicHostsOrderByName())
+	content, err := UpdateSSHConfig(outputConfig, NewHostQuery().GetHostsOrderByName())
 	if err != nil {
 		printError(err)
 		return ExitErr
@@ -828,7 +804,7 @@ func Run(osArgs []string) (exitStatus int) {
 		// try to get a task.
 		if len(args) > 0 {
 			taskName := args[0]
-			task := GetEnabledTask(taskName)
+			task := GetEnabledTask(taskName, os.Getenv("ESSH_JOB_NAME"))
 			if task != nil {
 				if len(args) >= 2 {
 					printError("too many arguments.")
@@ -909,15 +885,10 @@ func runTask(config string, task *Task) error {
 		}
 	}
 
-	// re generate config (task).
-	if task.Registry == nil {
-		// this is "--exec" command mode. use only public hosts
-		_, err := UpdateSSHConfig(config, NewHostQuery().GetPublicHostsOrderByName())
-		if err != nil {
-			return err
-		}
-	} else {
-		_, err := UpdateSSHConfig(config, NewHostQuery().GetSameRegistryHostsOrderByName(task.Registry.Type))
+	// re generate ssh_config for the task.
+	if task.Job != nil {
+		hosts := NewHostQuery().SetDatasource(task.Job.Hosts).GetHostsOrderByName()
+		_, err := UpdateSSHConfig(config, hosts)
 		if err != nil {
 			return err
 		}
@@ -929,16 +900,19 @@ func runTask(config string, task *Task) error {
 		var hosts []*Host
 		if len(task.TargetsSlice()) == 0 {
 			hosts = []*Host{}
-		} else if task.Registry == nil {
-			hosts = NewHostQuery().
-				AppendSelections(task.TargetsSlice()).
-				AppendFilters(task.FiltersSlice()).
-				GetPublicHostsOrderByName()
 		} else {
-			hosts = NewHostQuery().
-				AppendSelections(task.TargetsSlice()).
-				AppendFilters(task.FiltersSlice()).
-				GetSameRegistryHostsOrderByName(task.Registry.Type)
+			if task.Job != nil {
+				hosts = NewHostQuery().
+					SetDatasource(task.Job.Hosts).
+					AppendSelections(task.TargetsSlice()).
+					AppendFilters(task.FiltersSlice()).
+					GetHostsOrderByName()
+			} else {
+				hosts = NewHostQuery().
+					AppendSelections(task.TargetsSlice()).
+					AppendFilters(task.FiltersSlice()).
+					GetHostsOrderByName()
+			}
 		}
 
 		if len(hosts) == 0 {
@@ -982,16 +956,20 @@ func runTask(config string, task *Task) error {
 		var hosts []*Host
 		if len(task.TargetsSlice()) == 0 {
 			hosts = []*Host{}
-		} else if task.Registry == nil {
-			hosts = NewHostQuery().
-				AppendSelections(task.TargetsSlice()).
-				AppendFilters(task.FiltersSlice()).
-				GetPublicHostsOrderByName()
 		} else {
-			hosts = NewHostQuery().
-				AppendSelections(task.TargetsSlice()).
-				AppendFilters(task.FiltersSlice()).
-				GetSameRegistryHostsOrderByName(task.Registry.Type)
+			if task.Job != nil {
+				hosts = NewHostQuery().
+					SetDatasource(task.Job.Hosts).
+					AppendSelections(task.TargetsSlice()).
+					AppendFilters(task.FiltersSlice()).
+					GetHostsOrderByName()
+
+			} else {
+				hosts = NewHostQuery().
+					AppendSelections(task.TargetsSlice()).
+					AppendFilters(task.FiltersSlice()).
+					GetHostsOrderByName()
+			}
 		}
 
 		if len(task.Targets) >= 1 && len(hosts) == 0 {
@@ -1056,7 +1034,10 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 	}
 
 	// generate commands by using driver
-	driver := FindDriverInRegistry(task.Driver, task.Registry)
+	if task.Driver == "" {
+		task.Driver = DefaultDriverName
+	}
+	driver := Drivers[task.Driver]
 	if driver == nil {
 		return fmt.Errorf("invalid driver name '%s'", task.Driver)
 	}
@@ -1182,7 +1163,10 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 	}
 
 	// generate commands by using driver
-	driver := FindDriverInRegistry(task.Driver, task.Registry)
+	if task.Driver == "" {
+		task.Driver = DefaultDriverName
+	}
+	driver := Drivers[task.Driver]
 	if driver == nil {
 		return fmt.Errorf("invalid driver name '%s'", task.Driver)
 	}
@@ -1374,7 +1358,7 @@ func runSSH(L *lua.LState, config string, args []string) (error, int) {
 	// hooks fires only when the hostname is just specified.
 	if len(args) == 1 {
 		hostname := args[0]
-		if host := GetPublicHost(hostname); host != nil {
+		if host := Hosts[hostname]; host != nil {
 			hooks["before_connect"] = host.HooksBeforeConnect
 			hooks["after_disconnect"] = host.HooksAfterDisconnect
 			hooks["after_connect"] = host.HooksAfterConnect
@@ -1532,22 +1516,14 @@ func runCommand(command string) error {
 
 func validateConfig() error {
 	// check duplication of the host, task and tag names
-	hostnames := map[string]bool{}
-	for _, host := range NewHostQuery().GetPublicHostsOrderByName() {
-		if _, ok := hostnames[host.Name]; ok {
-			return fmt.Errorf("Host '%s' is duplicated", host.Name)
-		}
-		hostnames[host.Name] = true
-	}
-
-	for _, task := range SortedTasks() {
-		if _, ok := hostnames[task.Name]; ok {
-			return fmt.Errorf("Task '%s' is duplicated with hostname.", task.Name)
+	for _, task := range NewTaskQuery().GetTasksOrderByName() {
+		if _, ok := Hosts[task.PublicName()]; ok {
+			return fmt.Errorf("Task '%s' is duplicated with hostname.", task.PublicName())
 		}
 	}
 
-	for _, tag := range Tags() {
-		if _, ok := hostnames[tag]; ok {
+	for _, tag := range SortedTags() {
+		if _, ok := Hosts[tag]; ok {
 			return fmt.Errorf("Tag '%s' is duplicated with hostname.", tag)
 		}
 	}
@@ -1652,13 +1628,13 @@ Options:
   --hosts                       List hosts.
   --select <tag|host>           (Using with --hosts option) Get only the hosts filtered with tags or hosts.
   --filter <tag|host>           (Using with --hosts option) Filter selected hosts with tags or hosts.
-  --scope public|private        (Using with --hosts option) Get only the hosts filtered with a scope.
-  --registry local|global       (Using with --hosts option) Get only the hosts filtered with a registry.
+  --job <job>                   (Using with --hosts option) Get hosts from specific job.
   --ssh-config                  (Using with --hosts option) Output selected hosts as ssh_config format.
   --tasks                       List tasks.
   --all                         (Using with --tasks option) Show all that include hidden objects.
   --tags                        List tags.
-  --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
+  --quiet                       (Using with --hosts, --tasks, --tags or --jobs option) Show only names.
+  --jobs                        List jobs.
 
   (Manage Modules)
   --update                      Update modules.
@@ -1717,10 +1693,6 @@ func printError(err interface{}) {
 }
 
 func init() {
-	// set SystemWideConfigFile
-	SystemWideConfigFile = "/etc/essh/config.lua"
-	SystemWideOverrideConfigFile = "/etc/essh/config_override.lua"
-
 	// set UserDataDir
 	home := userHomeDir()
 	UserDataDir = filepath.Join(home, ".essh")
@@ -1774,6 +1746,15 @@ _essh_tags() {
     _describe -t tag "tag" __essh_tags
 }
 
+_essh_jobs() {
+    local -a __essh_jobs
+    PRE_IFS=$IFS
+    IFS=$'\n'
+    __essh_jobs=($({{.Executable}} --zsh-completion-jobs))
+    IFS=$PRE_IFS
+    _describe -t tag "job" __essh_jobs
+}
+
 _essh_global_options() {
 }
 
@@ -1795,6 +1776,7 @@ _essh_options() {
         '--hosts:List hosts.'
         '--tags:List tags.'
         '--tasks:List tasks.'
+        '--jobs:List jobs.'
         '--debug:Output debug log.'
         '--exec:Execute commands with the hosts.'
         '--zsh-completion:Output zsh completion code.'
@@ -1810,8 +1792,7 @@ _essh_hosts_options() {
         '--quiet:Show only names.'
         '--select:Get only the hosts filtered with tags or hosts.'
         '--filter:Filter selected hosts with tags or hosts.'
-        '--scope:Get only the hosts filtered with a scope.'
-        '--registry:Get only the hosts filtered with a registry.'
+        '--job:Get hosts from specific job.'
         '--ssh-config:Output selected hosts as ssh_config format.'
      )
     _describe -t option "option" __essh_options
@@ -1827,6 +1808,14 @@ _essh_tasks_options() {
     _describe -t option "option" __essh_options
 }
 
+_essh_jobs_options() {
+    local -a __essh_options
+    __essh_options=(
+        '--debug:Output debug log.'
+        '--quiet:Show only names.'
+     )
+    _describe -t option "option" __essh_options
+}
 _essh_tags_options() {
     local -a __essh_options
     __essh_options=(
@@ -1871,27 +1860,9 @@ _essh_backends() {
     _describe -t option "option" __essh_options
 }
 
-_essh_scopes() {
-    local -a __essh_options
-    __essh_options=(
-        'public'
-        'private'
-     )
-    _describe -t option "option" __essh_options
-}
-
-_essh_registries() {
-    local -a __essh_options
-    __essh_options=(
-        'global'
-        'local'
-     )
-    _describe -t option "option" __essh_options
-}
-
 _essh () {
     local curcontext="$curcontext" state line
-    local last_arg arg execMode hostsMode tasksMode tagsMode
+    local last_arg arg execMode hostsMode tasksMode tagsMode jobsMode
 
     typeset -A opt_args
 
@@ -1929,6 +1900,9 @@ _essh () {
                     --tags)
                         tagsMode="on"
                         ;;
+                    --jobs)
+                        jobsMode="on"
+                        ;;
                     *)
                         ;;
                 esac
@@ -1944,14 +1918,11 @@ _essh () {
                     _essh_hosts
                     _essh_tags
                     ;;
+                --job)
+                	_essh_jobs
+                	;;
                 --backend)
                     _essh_backends
-                    ;;
-                --scope)
-                    _essh_scopes
-                    ;;
-                --registry)
-                    _essh_registries
                     ;;
                 --clean-modules|--clean-tmp|--clean-all|--update)
                     _essh_registry_options
@@ -1965,6 +1936,8 @@ _essh () {
                         _essh_tasks_options
                     elif [ "$tagsMode" = "on" ]; then
                         _essh_tags_options
+                    elif [ "$jobsMode" = "on" ]; then
+                        _essh_jobs_options
                     else
                         _essh_options
                         _files

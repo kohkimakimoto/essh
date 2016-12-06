@@ -110,9 +110,9 @@ $ essh example
 
     スクリプトでは、定義済みの環境変数を使用できます。以下を参照してください。
 
-  * `ESSH_TASK_NAME`: タスク名.
+  * `ESSH_TASK_NAME`: タスク名。
 
-  * `ESSH_SSH_CONFIG`: 生成されたssh_configファイルのパス
+  * `ESSH_SSH_CONFIG`: 生成されたssh_configファイルのパス。
 
   * `ESSH_DEBUG`: CLIで `--debug`オプションを設定した場合この変数は"1"に設定されます。
 
@@ -125,3 +125,5 @@ $ essh example
   * `ESSH_HOST_TAGS_{TAG}`: タグ。タグを設定すると、この変数の値は"1"になります。
 
   * `ESSH_HOST_PROPS_{KEY}`: ホストのpropsによって設定されるプロパティ。[ホスト](hosts.html)を参照してください。
+
+  * `ESSH_JOB_NAME`: ジョブ名。[ジョブ](jobs.html)を参照してください。

@@ -23,17 +23,15 @@ func InitLuaState(L *lua.LState) {
 	registerHostClass(L)
 	registerHostQueryClass(L)
 	registerDriverClass(L)
-
 	registerRegistryClass(L)
+	registerJobClass(L)
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
-	L.SetGlobal("private_host", L.NewFunction(esshPrivateHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
+	L.SetGlobal("job", L.NewFunction(esshJob))
 	L.SetGlobal("import", L.NewFunction(esshImport))
-	L.SetGlobal("find_hosts", L.NewFunction(esshFindHosts))
-	L.SetGlobal("registry", L.NewFunction(esshRegistry))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -54,19 +52,17 @@ func InitLuaState(L *lua.LState) {
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
-		"host":         esshHost,
-		"private_host": esshPrivateHost,
-		"task":         esshTask,
-		"driver":       esshDriver,
-		"import":       esshImport,
-		"find_hosts":   esshFindHosts,
-		"registry":     esshRegistry,
+		"host":   esshHost,
+		"task":   esshTask,
+		"driver": esshDriver,
+		"job":    esshJob,
+		"import": esshImport,
 
-		// deprecated
-		"require":  esshImport,   // deprecated
-		"debug":    esshDebug,    // deprecated
-		"gethosts": esshGethosts, // deprecated
-		"hosts":    esshGethosts, // deprecated
+		// utility functions
+		"debug":            esshDebug,
+		"select_hosts":     esshSelectHosts,
+		"get_job":          esshGetJob,
+		"current_registry": esshCurrentRegistry,
 	})
 }
 
@@ -100,31 +96,6 @@ func esshHost(L *lua.LState) int {
 	panic("host requires 1 or 2 arguments")
 }
 
-func esshPrivateHost(L *lua.LState) int {
-	name := L.CheckString(1)
-	if L.GetTop() == 1 {
-		// object or DSL style
-		h := registerHost(L, name)
-		updateHost(L, h, "private", lua.LBool(true))
-		L.Push(newLHost(L, h))
-
-		return 1
-	} else if L.GetTop() == 2 {
-		// function style
-		tb := L.CheckTable(2)
-		h := registerHost(L, name)
-		updateHost(L, h, "private", lua.LBool(true))
-		setupHost(L, h, tb)
-		L.Push(newLHost(L, h))
-
-		return 1
-	}
-
-	panic("private_host requires 1 or 2 arguments")
-
-	return 0
-}
-
 func esshTask(L *lua.LState) int {
 	name := L.CheckString(1)
 	if L.GetTop() == 1 {
@@ -147,6 +118,16 @@ func esshTask(L *lua.LState) int {
 }
 
 func esshDriver(L *lua.LState) int {
+	first := L.CheckAny(1)
+	if tb, ok := toLTable(first); ok {
+		name := DefaultDriverName
+		d := registerDriver(L, name)
+		setupDriver(L, d, tb)
+		L.Push(newLDriver(L, d))
+
+		return 1
+	}
+
 	name := L.CheckString(1)
 	if L.GetTop() == 1 {
 		// object or DSL style
@@ -165,6 +146,37 @@ func esshDriver(L *lua.LState) int {
 	}
 
 	panic("driver requires 1 or 2 arguments")
+}
+
+func esshJob(L *lua.LState) int {
+	first := L.CheckAny(1)
+	if tb, ok := toLTable(first); ok {
+		name := DefaultJobName
+		j := registerJob(L, name)
+		setupJob(L, j, tb)
+		L.Push(newLJob(L, j))
+
+		return 1
+	}
+
+	name := L.CheckString(1)
+	if L.GetTop() == 1 {
+		// object or DSL style
+		j := registerJob(L, name)
+		L.Push(newLJob(L, j))
+
+		return 1
+	} else if L.GetTop() == 2 {
+		// function style
+		tb := L.CheckTable(2)
+		j := registerJob(L, name)
+		setupJob(L, j, tb)
+		L.Push(newLJob(L, j))
+
+		return 1
+	}
+
+	panic("job requires 1 or 2 arguments")
 }
 
 func esshImport(L *lua.LState) int {
@@ -206,30 +218,79 @@ func esshImport(L *lua.LState) int {
 	return 1
 }
 
-func esshFindHosts(L *lua.LState) int {
+func esshSelectHosts(L *lua.LState) int {
 	hostQuery := NewHostQuery()
-	if L.GetTop() > 1 {
-		panic("find_hosts can receive max 1 argument.")
-	} else if L.GetTop() == 1 {
-		value := L.CheckAny(1)
-		selections := []string{}
 
-		if selectionsStr, ok := toString(value); ok {
-			selections = []string{selectionsStr}
-		} else if selectionsSlice, ok := toSlice(value); ok {
-			for _, selection := range selectionsSlice {
-				if selectionStr, ok := selection.(string); ok {
-					selections = append(selections, selectionStr)
-				}
-			}
-		} else {
-			panic("find_hosts can receive string or array table of strings.")
-		}
-
-		hostQuery.AppendSelections(selections)
+	if L.GetTop() > 2 {
+		panic("select_hosts can receive max 2 argument.")
 	}
 
+	var job *Job
+
+	first := L.Get(1)
+	if ud, ok := first.(*lua.LUserData); ok {
+		if v, ok := ud.Value.(*Job); ok {
+			job = v
+		} else {
+			panic("expected a job but got an other userdata.")
+		}
+	}
+
+	if L.GetTop() == 1 {
+		if job == nil {
+			value := L.CheckAny(1)
+			selections := []string{}
+
+			if selectionsStr, ok := toString(value); ok {
+				selections = []string{selectionsStr}
+			} else if selectionsSlice, ok := toSlice(value); ok {
+				for _, selection := range selectionsSlice {
+					if selectionStr, ok := selection.(string); ok {
+						selections = append(selections, selectionStr)
+					}
+				}
+			} else {
+				panic("select_hosts can receive string or array table of strings.")
+			}
+			hostQuery.AppendSelections(selections)
+		} else {
+			hostQuery.SetDatasource(job.Hosts)
+		}
+	} else if L.GetTop() == 2 {
+		if job != nil {
+			value := L.CheckAny(2)
+			selections := []string{}
+
+			if selectionsStr, ok := toString(value); ok {
+				selections = []string{selectionsStr}
+			} else if selectionsSlice, ok := toSlice(value); ok {
+				for _, selection := range selectionsSlice {
+					if selectionStr, ok := selection.(string); ok {
+						selections = append(selections, selectionStr)
+					}
+				}
+			} else {
+				panic("select_hosts can receive string or array table of strings.")
+			}
+
+			hostQuery.SetDatasource(job.Hosts).AppendSelections(selections)
+		} else {
+			panic("expected a job but got an other userdata.")
+		}
+	}
 	L.Push(newLHostQuery(L, hostQuery))
+	return 1
+}
+
+func esshGetJob(L *lua.LState) int {
+	name := L.CheckString(1)
+	job := Jobs[name]
+	if job == nil {
+		L.Push(lua.LNil)
+		return 1
+	}
+
+	L.Push(newLJob(L, job))
 	return 1
 }
 
@@ -242,7 +303,7 @@ func registerHost(L *lua.LState, name string) *Host {
 	h.Name = name
 	h.Registry = CurrentRegistry
 
-	CurrentRegistry.Hosts[h.Name] = h
+	Hosts[h.Name] = h
 
 	return h
 }
@@ -256,7 +317,7 @@ func registerTask(L *lua.LState, name string) *Task {
 	t.Name = name
 	t.Registry = CurrentRegistry
 
-	CurrentRegistry.Tasks[t.Name] = t
+	Tasks[t.Name] = t
 
 	return t
 }
@@ -268,10 +329,24 @@ func registerDriver(L *lua.LState, name string) *Driver {
 
 	d := NewDriver()
 	d.Name = name
+	d.Registry = CurrentRegistry
 
-	CurrentRegistry.Drivers[d.Name] = d
+	Drivers[d.Name] = d
 
 	return d
+}
+
+func registerJob(L *lua.LState, name string) *Job {
+	if debugFlag {
+		fmt.Printf("[essh debug] register job: %s\n", name)
+	}
+
+	j := NewJob()
+	j.Name = name
+
+	Jobs[j.Name] = j
+
+	return j
 }
 
 func setupHost(L *lua.LState, h *Host, config *lua.LTable) {
@@ -371,13 +446,6 @@ func updateHost(L *lua.LState, h *Host, key string, value lua.LValue) {
 			panic("invalid value of a host's field '" + key + "'.")
 		}
 
-	case "private":
-		if privateBool, ok := toBool(value); ok {
-			h.Private = privateBool
-		} else {
-			panic("invalid value of a host's field '" + key + "'.")
-		}
-
 	case "tags":
 		if tagsTb, ok := toLTable(value); ok {
 			// initialize
@@ -471,19 +539,7 @@ func toScript(L *lua.LState, value lua.LValue) ([]map[string]string, error) {
 	return nil, fmt.Errorf("'script' got a invalid value.")
 }
 
-func esshGethosts(L *lua.LState) int {
-	lhosts := L.NewTable()
-
-	for _, host := range NewHostQuery().GetHostsOrderByName() {
-		lhost := newLHost(L, host)
-		lhosts.Append(lhost)
-	}
-
-	L.Push(lhosts)
-	return 1
-}
-
-func esshRegistry(L *lua.LState) int {
+func esshCurrentRegistry(L *lua.LState) int {
 	L.Push(newLRegistry(L, CurrentRegistry))
 	return 1
 }
@@ -568,6 +624,14 @@ func toLTable(v lua.LValue) (*lua.LTable, bool) {
 	}
 }
 
+func toFloat64(v lua.LValue) (float64, bool) {
+	if lv, ok := v.(lua.LNumber); ok {
+		return float64(lv), true
+	} else {
+		return 0, false
+	}
+}
+
 const LTaskClass = "Task*"
 
 func registerTaskClass(L *lua.LState) {
@@ -599,7 +663,8 @@ func taskCall(L *lua.LState) int {
 
 	setupTask(L, task, tb)
 
-	return 0
+	L.Push(L.CheckUserData(1))
+	return 1
 }
 
 func taskIndex(L *lua.LState) int {
@@ -830,7 +895,8 @@ func hostCall(L *lua.LState) int {
 
 	setupHost(L, host, tb)
 
-	return 0
+	L.Push(L.CheckUserData(1))
+	return 1
 }
 
 func hostIndex(L *lua.LState) int {
@@ -989,7 +1055,8 @@ func driverCall(L *lua.LState) int {
 
 	setupDriver(L, driver, tb)
 
-	return 0
+	L.Push(L.CheckUserData(1))
+	return 1
 }
 
 func driverIndex(L *lua.LState) int {
@@ -1113,4 +1180,166 @@ func registryType(L *lua.LState) int {
 	reg := checkRegistry(L)
 	L.Push(lua.LString(reg.TypeString()))
 	return 1
+}
+
+const LJobClass = "Job*"
+
+func registerJobClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LJobClass)
+	mt.RawSetString("__call", L.NewFunction(jobCall))
+	mt.RawSetString("__index", L.NewFunction(jobIndex))
+	mt.RawSetString("__newindex", L.NewFunction(jobNewindex))
+}
+
+func newLJob(L *lua.LState, job *Job) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = job
+	L.SetMetatable(ud, L.GetTypeMetatable(LJobClass))
+	return ud
+}
+
+func checkJob(L *lua.LState) *Job {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Job); ok {
+		return v
+	}
+	L.ArgError(1, "Job object expected")
+	return nil
+}
+
+func jobCall(L *lua.LState) int {
+	job := checkJob(L)
+	tb := L.CheckTable(2)
+
+	setupJob(L, job, tb)
+
+	return 0
+}
+
+func jobIndex(L *lua.LState) int {
+	job := checkJob(L)
+	index := L.CheckString(2)
+
+	switch index {
+	case "name":
+		L.Push(lua.LString(job.Name))
+	case "select_hosts":
+		L.Push(L.NewFunction(esshSelectHosts))
+	default:
+		v, ok := job.LValues[index]
+		if v == nil || !ok {
+			v = lua.LNil
+		}
+		L.Push(v)
+	}
+
+	return 1
+}
+
+func jobNewindex(L *lua.LState) int {
+	job := checkJob(L)
+	index := L.CheckString(2)
+	value := L.CheckAny(3)
+
+	updateJob(L, job, index, value)
+
+	return 0
+}
+
+func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
+	config.ForEach(func(k, v lua.LValue) {
+
+		if _, ok := toFloat64(k); ok {
+			// host, task or driver
+			lv, ok := v.(*lua.LUserData)
+			if !ok {
+				panic(fmt.Sprintf("expected userdata (host, task or driver) but got a '%v'\n", v))
+			}
+
+			switch vv := lv.Value.(type) {
+			case *Host:
+				job.RegisterHost(vv)
+			case *Task:
+				job.RegisterTask(vv)
+			case *Driver:
+				job.RegisterDriver(vv)
+			default:
+				panic(fmt.Sprintf("expected host, task or driver but got a '%v'\n", vv))
+			}
+		}
+
+		if kstr, ok := toString(k); ok {
+			updateJob(L, job, kstr, v)
+		}
+	})
+}
+
+func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
+	job.LValues[key] = value
+
+	switch key {
+	case "hosts":
+		if tb, ok := toLTable(value); ok {
+			tb.ForEach(func(k, v lua.LValue) {
+				name, ok := toString(k)
+				if !ok {
+					panic(fmt.Sprintf("expected string of host's name but got a '%v'\n", k))
+				}
+
+				config, ok := toLTable(v)
+				if !ok {
+					panic(fmt.Sprintf("expected table of host's config but got a '%v'\n", v))
+				}
+
+				h := registerHost(L, name)
+				setupHost(L, h, config)
+				job.RegisterHost(h)
+			})
+		} else {
+			panic(fmt.Sprintf("expected table but got a '%v'\n", value))
+		}
+	case "tasks":
+		if tb, ok := toLTable(value); ok {
+			tb.ForEach(func(k, v lua.LValue) {
+				name, ok := toString(k)
+				if !ok {
+					panic(fmt.Sprintf("expected string of task's name but got a '%v'\n", k))
+				}
+
+				config, ok := toLTable(v)
+				if !ok {
+					panic(fmt.Sprintf("expected table of task's config but got a '%v'\n", v))
+				}
+
+				t := registerTask(L, name)
+				setupTask(L, t, config)
+				job.RegisterTask(t)
+			})
+		} else {
+			panic(fmt.Sprintf("expected table but got a '%v'\n", value))
+		}
+	case "drivers":
+		if tb, ok := toLTable(value); ok {
+			tb.ForEach(func(k, v lua.LValue) {
+				name, ok := toString(k)
+				if !ok {
+					panic(fmt.Sprintf("expected string of driver's name but got a '%v'\n", k))
+				}
+
+				config, ok := toLTable(v)
+				if !ok {
+					panic(fmt.Sprintf("expected table of driver's config but got a '%v'\n", v))
+				}
+
+				d := registerDriver(L, name)
+				setupDriver(L, d, config)
+				job.RegisterDriver(d)
+			})
+		} else {
+			panic(fmt.Sprintf("expected table but got a '%v'\n", value))
+		}
+	default:
+		panic("unsupported job's field '" + key + "'.")
+	}
+
 }

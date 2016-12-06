@@ -17,11 +17,13 @@ type Host struct {
 	HooksAfterDisconnect []interface{}
 	Hidden               bool
 	Tags                 []string
-	Registry             *Registry
-	Private              bool
 	SSHConfig            map[string]string
+	Registry             *Registry
+	Job                  *Job
 	LValues              map[string]lua.LValue
 }
+
+var Hosts map[string]*Host
 
 func NewHost() *Host {
 	return &Host{
@@ -34,26 +36,6 @@ func NewHost() *Host {
 		LValues:              map[string]lua.LValue{},
 	}
 }
-
-//
-// Spec note about Hosts (it is a little complicated!):
-//   Hosts are stored into a space: "global" or "local" which are called as 'registry' (or 'context').
-//   The registry is determined by a place of the configuration file that hosts are defined in.
-//
-//   Example:
-//     /etc/essh/config.lua              -> "global"
-//     ~/.essh/config.lua                -> "global"
-//     /path/to/project/esshconfig.lua   -> "local"
-//
-//   Hosts also have configuration "scope". There are two types of scope: "public" and "private".
-//
-//   There are some rules about operating hosts.
-//     * Each public hosts must be unique. (You can NOT define public hosts by the same name in the local and global registry.)
-//     * Any hosts must be unique in a same registry. (You can NOT define hosts by the same name in the same registry.)
-//     * Hosts used by task must be defined in a same registry. (Tasks can refer to only hosts defined in the same registry.)
-//     * Private hosts is only used by tasks.
-//     * There can be duplicated hosts in the entire registries. (You can define private hosts even if you define same name public hosts.)
-//
 
 func (h *Host) SortedSSHConfig() []map[string]string {
 	values := []map[string]string{}
@@ -83,24 +65,6 @@ func (h *Host) DescriptionOrDefault() string {
 	return h.Description
 }
 
-func (h *Host) Scope() string {
-	if h.Private {
-		return "private"
-	} else {
-		return "public"
-	}
-}
-
-func GetPublicHost(hostname string) *Host {
-	for _, h := range NewHostQuery().GetPublicHostsOrderByName() {
-		if h.Name == hostname {
-			return h
-		}
-	}
-
-	return nil
-}
-
 var hostsTemplate = `{{range $i, $host := .Hosts -}}
 Host {{$host.Name}}{{range $ii, $param := $host.SortedSSHConfig}}{{range $k, $v := $param}}
     {{$k}} {{$v}}{{end}}{{end}}
@@ -122,7 +86,7 @@ func GenHostsConfig(enabledHosts []*Host) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func Tags() []string {
+func SortedTags() []string {
 	tagsMap := map[string]string{}
 	tags := []string{}
 
@@ -153,5 +117,12 @@ func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
 	return func(s string) string {
 		diff := maxlen - namelen
 		return strings.Repeat(s, 1+diff)
+	}
+}
+
+func removeHostInGlobalSpace(host *Host) {
+	h := Hosts[host.Name]
+	if h == host {
+		delete(Hosts, host.Name)
 	}
 }

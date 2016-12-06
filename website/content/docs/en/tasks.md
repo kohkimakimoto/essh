@@ -110,18 +110,20 @@ Notice: Task name mustn't be duplicated with any host names.
 
     You can use predefined environment variables in your script, See below:
 
-  * `ESSH_TASK_NAME`: task name.
+  * `ESSH_TASK_NAME`: Task name.
 
-  * `ESSH_SSH_CONFIG`: generated ssh_config file path.
+  * `ESSH_SSH_CONFIG`: Generated ssh_config file path.
 
   * `ESSH_DEBUG`: If you set `--debug` option by CLI. this variable is set "1".
 
-  * `ESSH_HOSTNAME`: host name.
+  * `ESSH_HOSTNAME`: Host name.
 
-  * `ESSH_HOST_HOSTNAME`: host name.
+  * `ESSH_HOST_HOSTNAME`: Host name.
 
   * `ESSH_HOST_SSH_{SSH_CONFIG_KEY}`: ssh_config key/value pare.
 
-  * `ESSH_HOST_TAGS_{TAG}`: tag. If you set a tag, This variable has a value "1".
+  * `ESSH_HOST_TAGS_{TAG}`: Tag. If you set a tag, This variable has a value "1".
 
-  * `ESSH_HOST_PROPS_{KEY}`: property that is set by host's props. See [Hosts](hosts.html).
+  * `ESSH_HOST_PROPS_{KEY}`: Property that is set by host's props. See [Hosts](hosts.html).
+
+  * `ESSH_JOB_NAME`: Job name. See [Jobs](jobs.html).

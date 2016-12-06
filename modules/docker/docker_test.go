@@ -1,14 +1,14 @@
 package docker
 
 import (
-	"io/ioutil"
-	"os"
-	"testing"
-	"path/filepath"
+	"bytes"
 	"github.com/kohkimakimoto/essh/essh"
 	"io"
-	"bytes"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"runtime"
+	"testing"
 )
 
 func TestLocalExecTaskInDocker(t *testing.T) {
@@ -24,7 +24,6 @@ func TestLocalExecTaskInDocker(t *testing.T) {
 		t.Errorf("should not raise error: %v", err)
 	}
 	os.Chdir(tmpDir)
-
 
 	// capture stdout
 	// borrowed from http://stackoverflow.com/questions/10473800/in-go-how-do-i-capture-stdout-of-a-function-into-a-string
@@ -52,16 +51,14 @@ func TestLocalExecTaskInDocker(t *testing.T) {
 	t.Log(out)
 }
 
-
 var testConfig string
 
 func init() {
 	_, filename, _, _ := runtime.Caller(0)
 	modDir := filepath.Dir(filename)
 
-
 	testConfig = `
-	local docker = import "`+modDir+`"
+	local docker = import "` + modDir + `"
 
 	driver "docker-centos7" {
 		engine = docker.driver,

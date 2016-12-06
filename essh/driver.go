@@ -10,17 +10,17 @@ import (
 )
 
 type Driver struct {
-	Name    string
-	Props   map[string]interface{}
-	Engine  func(*Driver) (string, error)
-	LValues map[string]lua.LValue
+	Name     string
+	Props    map[string]interface{}
+	Engine   func(*Driver) (string, error)
+	Registry *Registry
+	Job      *Job
+	LValues  map[string]lua.LValue
 }
 
-var DefaultDriver *Driver
+var Drivers map[string]*Driver
 
-var (
-	DefaultDriverName = "default"
-)
+var DefaultDriverName = "default"
 
 func NewDriver() *Driver {
 	return &Driver{
@@ -91,39 +91,10 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 	return b.String(), nil
 }
 
-func FindDriverInRegistry(name string, registry *Registry) *Driver {
-	if name == "" {
-		name = DefaultDriverName
-	}
-
-	if registry != nil {
-		if driver, ok := registry.Drivers[name]; ok {
-			return driver
-		}
-	} else {
-		if driver, ok := GlobalRegistry.Drivers[name]; ok {
-			return driver
-		}
-	}
-
-	return nil
-}
-
-func init() {
-	// set built-in drivers
-	// default (just concatenate with new line code)
-	driver := NewDriver()
-	driver.Name = DefaultDriverName
-	driver.Engine = func(driver *Driver) (string, error) {
-		return `
-{{template "environment" .}}
-{{range $i, $script := .Scripts}}{{$script.code}}
-{{end}}`, nil
-	}
-	DefaultDriver = driver
-}
-
 const EnvironmentTemplate = `{{define "environment" -}}
+{{if .Task.Job -}}
+export ESSH_JOB_NAME={{.Task.Job.Name | ShellEscape}}
+{{end -}}
 export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
 export ESSH_SSH_CONFIG={{.SSHConfigPath}}
 export ESSH_DEBUG="{{if .Debug}}1{{end}}"
@@ -147,3 +118,10 @@ export ESSH_HOST_TAGS_{{$value | ToUpper | EnvKeyEscape}}=1
 {{end -}}
 {{end}}
 `
+
+func removeDriverInGlobalSpace(driver *Driver) {
+	d := Drivers[driver.Name]
+	if d == driver {
+		delete(Drivers, d.Name)
+	}
+}

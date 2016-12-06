@@ -11,9 +11,6 @@ type Registry struct {
 	Key           string
 	DataDir       string
 	LoadedModules map[string]*Module
-	Hosts         map[string]*Host
-	Tasks         map[string]*Task
-	Drivers       map[string]*Driver
 	Type          int
 }
 
@@ -31,11 +28,6 @@ func NewRegistry(dataDir string, registryType int) *Registry {
 		Key:           fmt.Sprintf("%x", sha256.Sum256([]byte(dataDir))),
 		DataDir:       dataDir,
 		LoadedModules: map[string]*Module{},
-		Hosts:         map[string]*Host{},
-		Tasks:         map[string]*Task{},
-		Drivers:       map[string]*Driver{
-			DefaultDriverName: DefaultDriver,
-		},
 		Type:          registryType,
 	}
 

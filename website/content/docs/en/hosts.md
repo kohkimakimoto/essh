@@ -48,8 +48,6 @@ All the properties of this type are listed below.
 
 * `hidden` (boolean): If you set it true, zsh completion doesn't show the host.
 
-* `private` (boolean): If you set it true, This host can be only used to the tasks. See also [scope](#scope)
-
 * `hooks_before_connect` (table): Hooks that fire before connect. This hook runs on local. The hook is defined as a Lua table. This table can have mulitple functions or strings. See the example:
 
     ~~~lua
@@ -97,39 +95,3 @@ All the properties of this type are listed below.
 
     -- ESSH_HOST_PROPS_FOO=bar
     ~~~
-
-## Scope
-
-Hosts in Essh have scope: **private** or **public**.
-
-Private hosts can be only used for the tasks that are defined in same registry. The hosts of this type can't be used by ssh login, and does not suggest by zsh-completion. Also they can't be used with `--exec` option.
-
-You can use `private_host` function as an alias to define a private host. See the below example:
-
-~~~lua
-private_host "example" {
-    HostName = "192.168.0.11",
-    Port = "22",
-    User = "kohkimakimoto",
-}
-~~~
-
-This is same the following:
-
-~~~lua
-host "example" {
-    HostName = "192.168.0.11",
-    Port = "22",
-    User = "kohkimakimoto",
-    private = true,
-}
-~~~
-
-## Constraints
-
-There are constraints about [scope](#scope) and [registries](configuration-files.html#registries). These constraints are useful primarily to avoid mixing project-specific tasks and hosts with hosts you want to use globally for SSH connections.
-
-* **Each public hosts must be unique.** (You can NOT define public hosts by the same name in the local and global registry.)
-* **Any hosts must be unique in a same registry.** (You can NOT define hosts by the same name in the same registry.)
-* **Hosts used by task must be defined in a same registry.** (Tasks can refer to only hosts defined in the same registry.)
-* **Private hosts can be used only by tasks.**
