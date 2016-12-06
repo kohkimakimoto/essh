@@ -89,11 +89,11 @@ func GenHostsConfig(enabledHosts []*Host) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func SortedTags() []string {
+func GetTags(hosts map[string]*Host) []string {
 	tagsMap := map[string]string{}
 	tags := []string{}
 
-	for _, host := range NewHostQuery().GetHostsOrderByName() {
+	for _, host := range hosts {
 		for _, t := range host.Tags {
 			if _, exists := tagsMap[t]; !exists {
 				tagsMap[t] = t

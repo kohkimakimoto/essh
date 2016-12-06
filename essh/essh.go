@@ -580,7 +580,7 @@ func Run(osArgs []string) (exitStatus int) {
 	}
 
 	// validate config
-	if err := validateConfig(); err != nil {
+	if err := validateResources(NewTaskQuery().Datasource, NewHostQuery().Datasource, nil); err != nil {
 		printError(err)
 		return ExitErr
 	}
@@ -607,7 +607,7 @@ func Run(osArgs []string) (exitStatus int) {
 	}
 
 	if zshCompletionTagsFlag {
-		for _, tag := range SortedTags() {
+		for _, tag := range GetTags(Hosts) {
 			fmt.Printf("%s\n", ColonEscape(tag))
 		}
 		return
@@ -686,7 +686,7 @@ func Run(osArgs []string) (exitStatus int) {
 		if !quietFlag {
 			tb.SetHeader([]string{"NAME"})
 		}
-		for _, tag := range SortedTags() {
+		for _, tag := range GetTags(Hosts) {
 			tb.Append([]string{tag})
 		}
 		tb.Render()
@@ -891,6 +891,10 @@ func runTask(config string, task *Task) error {
 		hosts := NewHostQuery().SetDatasource(task.Job.Hosts).GetHostsOrderByName()
 		_, err := UpdateSSHConfig(config, hosts)
 		if err != nil {
+			return err
+		}
+
+		if err := validateResources(task.Job.Tasks, task.Job.Hosts, task.Job); err != nil {
 			return err
 		}
 	}
@@ -1547,16 +1551,23 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
-func validateConfig() error {
+func validateResources(tasks map[string]*Task, hosts map[string]*Host, job *Job) error {
 	// check duplication of the host, task and tag names
-	for _, task := range NewTaskQuery().GetTasksOrderByName() {
-		if _, ok := Hosts[task.PublicName()]; ok {
-			return fmt.Errorf("Task '%s' is duplicated with hostname.", task.PublicName())
+	for _, task := range tasks {
+		var taskName string
+		if job == nil {
+			taskName = task.PublicName()
+		} else {
+			taskName = task.Name
+		}
+		if _, ok := hosts[taskName]; ok {
+			return fmt.Errorf("Task '%s' is duplicated with hostname.", taskName)
 		}
 	}
 
-	for _, tag := range SortedTags() {
-		if _, ok := Hosts[tag]; ok {
+	tags := GetTags(hosts)
+	for _, tag := range tags {
+		if _, ok := hosts[tag]; ok {
 			return fmt.Errorf("Tag '%s' is duplicated with hostname.", tag)
 		}
 	}
