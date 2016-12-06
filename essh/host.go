@@ -18,8 +18,8 @@ type Host struct {
 	Hidden               bool
 	Tags                 []string
 	SSHConfig            map[string]string
-	Registry    *Registry
-	Job         *Job
+	Registry             *Registry
+	Job                  *Job
 	LValues              map[string]lua.LValue
 }
 

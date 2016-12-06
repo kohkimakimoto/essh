@@ -55,13 +55,13 @@ func InitLuaState(L *lua.LState) {
 		"host":   esshHost,
 		"task":   esshTask,
 		"driver": esshDriver,
-		"job": esshJob,
+		"job":    esshJob,
 		"import": esshImport,
 
 		// utility functions
-		"debug": esshDebug,
-		"select_hosts": esshSelectHosts,
-		"get_job": esshGetJob,
+		"debug":            esshDebug,
+		"select_hosts":     esshSelectHosts,
+		"get_job":          esshGetJob,
 		"current_registry": esshCurrentRegistry,
 	})
 }
@@ -147,7 +147,6 @@ func esshDriver(L *lua.LState) int {
 
 	panic("driver requires 1 or 2 arguments")
 }
-
 
 func esshJob(L *lua.LState) int {
 	first := L.CheckAny(1)
@@ -1254,7 +1253,7 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 			// host, task or driver
 			lv, ok := v.(*lua.LUserData)
 			if !ok {
-				panic(fmt.Sprintf("expected userdata (host, task or driver) but got a '%v'\n",v))
+				panic(fmt.Sprintf("expected userdata (host, task or driver) but got a '%v'\n", v))
 			}
 
 			switch vv := lv.Value.(type) {
@@ -1265,7 +1264,7 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 			case *Driver:
 				job.RegisterDriver(vv)
 			default:
-				panic(fmt.Sprintf("expected host, task or driver but got a '%v'\n",vv))
+				panic(fmt.Sprintf("expected host, task or driver but got a '%v'\n", vv))
 			}
 		}
 

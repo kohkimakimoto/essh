@@ -10,12 +10,12 @@ import (
 )
 
 type Driver struct {
-	Name    string
-	Props   map[string]interface{}
-	Engine  func(*Driver) (string, error)
-	Registry    *Registry
-	Job         *Job
-	LValues map[string]lua.LValue
+	Name     string
+	Props    map[string]interface{}
+	Engine   func(*Driver) (string, error)
+	Registry *Registry
+	Job      *Job
+	LValues  map[string]lua.LValue
 }
 
 var Drivers map[string]*Driver

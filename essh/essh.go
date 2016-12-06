@@ -121,7 +121,7 @@ func initResources() {
 	workindDirVar = ""
 	configVar = ""
 	selectVar = []string{}
-	jobVar    = ""
+	jobVar = ""
 	targetVar = []string{}
 	filterVar = []string{}
 	backendVar = ""
@@ -639,7 +639,6 @@ func Run(osArgs []string) (exitStatus int) {
 			filteredHosts = NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
 		}
 
-
 		if SSHConfigFlag {
 			outputConfig, ok := toString(lessh.RawGetString("ssh_config"))
 			if !ok {
@@ -894,7 +893,6 @@ func runTask(config string, task *Task) error {
 			return err
 		}
 	}
-
 
 	// get target hosts.
 	if task.IsRemoteTask() {

@@ -70,8 +70,8 @@ So the task displays indented output.
 
 For detail, see [hashicorp/go-getter](https://github.com/hashicorp/go-getter).
 
-Modules are installed automatically when Essh runs. The installed modules are stored in `.essh` directory if the configuration that is written `import` is `local` registry.
-If the configuration is `global` registry, the modules are stored in `~/.essh` directory.
+Modules are installed automatically when Essh runs. The installed modules are stored in `.essh/modules` directory if the config file that is written `import` is `esshconfig.lua` in the current directory.
+If the config file is `~/.essh/config.lua`, the modules are stored in `~/.essh/modules` directory.
 
 If you need to update installed modules, runs `essh --update`.
 
@@ -79,7 +79,7 @@ If you need to update installed modules, runs `essh --update`.
 $ essh --update
 ~~~
 
-At default, Essh updates only modules in `local` registry. If you want to update `global` registry modules, run the following command:
+At default, Essh updates only modules in `.essh/modules`. If you want to update `~/.essh/modules` , run the following command:
 
 ~~~
 $ essh --update --with-global

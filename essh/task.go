@@ -24,7 +24,7 @@ type Task struct {
 	UsePrefix   bool
 	Registry    *Registry
 	Job         *Job
-	LValues map[string]lua.LValue
+	LValues     map[string]lua.LValue
 }
 
 var Tasks map[string]*Task

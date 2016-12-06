@@ -70,7 +70,7 @@ func (taskQuery *TaskQuery) getTasksList() []*Task {
 
 func GetEnabledTask(name string, jobName string) *Task {
 	if jobName != "" && !strings.Contains(name, ":") && jobName != DefaultJobName {
-		name = jobName + ":" +name
+		name = jobName + ":" + name
 	}
 
 	for _, t := range NewTaskQuery().GetTasksOrderByName() {

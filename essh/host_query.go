@@ -12,7 +12,7 @@ type HostQuery struct {
 
 func NewHostQuery() *HostQuery {
 	return &HostQuery{
-		Datasource:  Hosts,
+		Datasource: Hosts,
 		Selections: []string{},
 		Filters:    []string{},
 	}
@@ -145,4 +145,3 @@ func (hostQuery *HostQuery) getHostsList() []*Host {
 	}
 	return hostsSlice
 }
-

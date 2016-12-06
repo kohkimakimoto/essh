@@ -6,9 +6,9 @@ import (
 )
 
 type Job struct {
-	Name string
-	Hosts map[string]*Host
-	Tasks map[string]*Task
+	Name    string
+	Hosts   map[string]*Host
+	Tasks   map[string]*Task
 	Drivers map[string]*Driver
 	LValues map[string]lua.LValue
 }
@@ -19,8 +19,8 @@ var DefaultJobName = "default"
 
 func NewJob() *Job {
 	return &Job{
-		Hosts: map[string]*Host{},
-		Tasks: map[string]*Task{},
+		Hosts:   map[string]*Host{},
+		Tasks:   map[string]*Task{},
 		Drivers: map[string]*Driver{},
 		LValues: map[string]lua.LValue{},
 	}
