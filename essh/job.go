@@ -7,6 +7,8 @@ import (
 
 type Job struct {
 	Name    string
+	Description string
+	Env         map[string]string
 	Hosts   map[string]*Host
 	Tasks   map[string]*Task
 	Drivers map[string]*Driver
@@ -26,6 +28,14 @@ func NewJob() *Job {
 		},
 		LValues: map[string]lua.LValue{},
 	}
+}
+
+func (job *Job) DescriptionOrDefault() string {
+	if job.Description == "" {
+		return job.Name + " job"
+	}
+
+	return job.Description
 }
 
 func (job *Job) RegisterHost(host *Host) {

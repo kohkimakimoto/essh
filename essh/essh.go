@@ -615,7 +615,7 @@ func Run(osArgs []string) (exitStatus int) {
 
 	if zshCompletionJobsFlag {
 		for _, job := range SortedJobs() {
-			fmt.Printf("%s\n", ColonEscape(job.Name))
+			fmt.Printf("%s\t%s\n", ColonEscape(job.Name), ColonEscape(job.DescriptionOrDefault()))
 		}
 		return
 	}
@@ -717,10 +717,10 @@ func Run(osArgs []string) (exitStatus int) {
 	if jobsFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION"})
 		}
 		for _, job := range SortedJobs() {
-			tb.Append([]string{job.Name})
+			tb.Append([]string{job.Name, job.Description})
 		}
 		tb.Render()
 

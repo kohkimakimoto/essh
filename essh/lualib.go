@@ -642,6 +642,14 @@ func toLTable(v lua.LValue) (*lua.LTable, bool) {
 	}
 }
 
+func toLUserData(v lua.LValue) (*lua.LUserData, bool) {
+	if lv, ok := v.(*lua.LUserData); ok {
+		return lv, true
+	} else {
+		return nil, false
+	}
+}
+
 func toFloat64(v lua.LValue) (float64, bool) {
 	if lv, ok := v.(lua.LNumber); ok {
 		return float64(lv), true
@@ -1296,6 +1304,32 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 	job.LValues[key] = value
 
 	switch key {
+	case "description":
+		if descStr, ok := toString(value); ok {
+			job.Description = descStr
+		} else {
+			panic("invalid value of a job's field '" + key + "'.")
+		}
+	case "env":
+		if envTb, ok := toLTable(value); ok {
+			// initialize
+			job.Env = map[string]string{}
+
+			envTb.ForEach(func(envKey lua.LValue, envValue lua.LValue) {
+				envKeyStr, ok := toString(envKey)
+				if !ok {
+					L.RaiseError("props table's key must be a string: %v", envKey)
+				}
+				envValueStr, ok := toString(envValue)
+				if !ok {
+					L.RaiseError("props table's value must be a string: %v", envValue)
+				}
+
+				job.Env[envKeyStr] = envValueStr
+			})
+		} else {
+			panic("invalid value of a job's field '" + key + "'.")
+		}
 	case "hosts":
 		if tb, ok := toLTable(value); ok {
 			tb.ForEach(func(k, v lua.LValue) {
@@ -1356,6 +1390,13 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 		} else {
 			panic(fmt.Sprintf("expected table but got a '%v'\n", value))
 		}
+	case "base":
+		if tb, ok := toLTable(value); ok {
+			setupJob(L, job, tb)
+		} else {
+			panic(fmt.Sprintf("expected table or job, but got a '%v'\n", value))
+		}
+
 	default:
 		panic("unsupported job's field '" + key + "'.")
 	}
