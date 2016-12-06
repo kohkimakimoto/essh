@@ -16,6 +16,8 @@ type Driver struct {
 	Registry *Registry
 	Job      *Job
 	LValues  map[string]lua.LValue
+	Parent               *Driver
+	Child                *Driver
 }
 
 var Drivers map[string]*Driver
@@ -122,6 +124,12 @@ export ESSH_HOST_TAGS_{{$value | ToUpper | EnvKeyEscape}}=1
 func removeDriverInGlobalSpace(driver *Driver) {
 	d := Drivers[driver.Name]
 	if d == driver {
-		delete(Drivers, d.Name)
+		if d.Child != nil {
+			newDriver := d.Child
+			Drivers[newDriver.Name] = newDriver
+			newDriver.Parent = nil
+		} else {
+			delete(Drivers, d.Name)
+		}
 	}
 }

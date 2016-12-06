@@ -25,6 +25,9 @@ type Task struct {
 	Registry    *Registry
 	Job         *Job
 	LValues     map[string]lua.LValue
+	Parent               *Task
+	Child                *Task
+
 }
 
 var Tasks map[string]*Task
@@ -91,6 +94,12 @@ func (t *Task) DescriptionOrDefault() string {
 func removeTaskInGlobalSpace(task *Task) {
 	t := Tasks[task.Name]
 	if t == task {
-		delete(Tasks, t.Name)
+		if t.Child != nil {
+			newTask := t.Child
+			Tasks[newTask.Name] = newTask
+			newTask.Parent = nil
+		} else {
+			delete(Tasks, t.Name)
+		}
 	}
 }

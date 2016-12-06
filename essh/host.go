@@ -21,6 +21,9 @@ type Host struct {
 	Registry             *Registry
 	Job                  *Job
 	LValues              map[string]lua.LValue
+	// If you define same name hosts in multi time, stores it in layered structure that uses Parent and Child.
+	Parent               *Host
+	Child                *Host
 }
 
 var Hosts map[string]*Host
@@ -123,6 +126,13 @@ func HostnameAlignString(host *Host, hosts []*Host) func(string) string {
 func removeHostInGlobalSpace(host *Host) {
 	h := Hosts[host.Name]
 	if h == host {
-		delete(Hosts, host.Name)
+		if h.Child != nil {
+			// has a child. pop the child
+			newHost := h.Child
+			Hosts[newHost.Name] =newHost
+			newHost.Parent = nil
+		} else {
+			delete(Hosts, host.Name)
+		}
 	}
 }

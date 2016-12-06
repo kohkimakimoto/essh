@@ -303,6 +303,12 @@ func registerHost(L *lua.LState, name string) *Host {
 	h.Name = name
 	h.Registry = CurrentRegistry
 
+	if host := Hosts[h.Name]; host != nil {
+		// detect same name host
+		h.Child = host
+		host.Parent = h
+	}
+
 	Hosts[h.Name] = h
 
 	return h
@@ -317,6 +323,12 @@ func registerTask(L *lua.LState, name string) *Task {
 	t.Name = name
 	t.Registry = CurrentRegistry
 
+	if task := Tasks[t.Name]; task != nil {
+		// detect same name host
+		t.Child = task
+		task.Parent = t
+	}
+
 	Tasks[t.Name] = t
 
 	return t
@@ -330,6 +342,12 @@ func registerDriver(L *lua.LState, name string) *Driver {
 	d := NewDriver()
 	d.Name = name
 	d.Registry = CurrentRegistry
+
+	if driver := Drivers[d.Name]; driver != nil {
+		// detect same name host
+		d.Child = driver
+		driver.Parent = d
+	}
 
 	Drivers[d.Name] = d
 
