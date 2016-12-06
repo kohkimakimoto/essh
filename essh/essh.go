@@ -615,7 +615,7 @@ func Run(osArgs []string) (exitStatus int) {
 
 	if zshCompletionJobsFlag {
 		for _, job := range SortedJobs() {
-			fmt.Printf("%s\t%s\n", ColonEscape(job.Name), ColonEscape(job.DescriptionOrDefault()))
+			fmt.Printf("%s\n", ColonEscape(job.Name))
 		}
 		return
 	}
