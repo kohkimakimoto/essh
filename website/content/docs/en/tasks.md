@@ -76,14 +76,14 @@ Notice: Task name mustn't be duplicated with any host names.
 
     By the prepare function returns false, you can cancel to execute the task's script.
 
-* `props` (table): Props sets environment variables `ESSH_TASK_PROPS_{KEY}` when the task is executed. The table key is modified to upper cased.
+* `env` (table): Env sets environment variables `ESSH_TASK_PROPS_{KEY}` when the task is executed. The table key is modified to upper cased.
 
     ~~~lua
-    props = {
+    env = {
         foo = "bar",
     }
 
-    -- ESSH_TASK_PROPS_FOO=bar
+    -- export FOO="bar"
     ~~~
 
 * `script` (string|table): Script is code that will be executed. Example:

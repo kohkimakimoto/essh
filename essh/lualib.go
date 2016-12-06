@@ -857,22 +857,22 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		} else {
 			L.RaiseError("prepare have to be a function.")
 		}
-	case "props":
-		if propsTb, ok := toLTable(value); ok {
+	case "env":
+		if envTb, ok := toLTable(value); ok {
 			// initialize
-			task.Props = map[string]string{}
+			task.Env = map[string]string{}
 
-			propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
-				propsKeyStr, ok := toString(propsKey)
+			envTb.ForEach(func(envKey lua.LValue, envValue lua.LValue) {
+				envKeyStr, ok := toString(envKey)
 				if !ok {
-					L.RaiseError("props table's key must be a string: %v", propsKey)
+					L.RaiseError("props table's key must be a string: %v", envKey)
 				}
-				propsValueStr, ok := toString(propsValue)
+				envValueStr, ok := toString(envValue)
 				if !ok {
-					L.RaiseError("props table's value must be a string: %v", propsValue)
+					L.RaiseError("props table's value must be a string: %v", envValue)
 				}
 
-				task.Props[propsKeyStr] = propsValueStr
+				task.Env[envKeyStr] = envValueStr
 			})
 		} else {
 			panic("invalid value of a task's field '" + key + "'.")

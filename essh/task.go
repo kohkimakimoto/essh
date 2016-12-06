@@ -7,7 +7,7 @@ import (
 type Task struct {
 	Name        string
 	Description string
-	Props       map[string]string
+	Env         map[string]string
 	Prepare     func() error
 	Driver      string
 	Pty         bool
@@ -25,8 +25,8 @@ type Task struct {
 	Registry    *Registry
 	Job         *Job
 	LValues     map[string]lua.LValue
-	Parent               *Task
-	Child                *Task
+	Parent      *Task
+	Child       *Task
 
 }
 

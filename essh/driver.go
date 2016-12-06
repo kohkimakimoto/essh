@@ -22,6 +22,7 @@ type Driver struct {
 
 var Drivers map[string]*Driver
 
+var DefaultDriver *Driver
 var DefaultDriverName = "default"
 
 func NewDriver() *Driver {
@@ -100,8 +101,8 @@ export ESSH_JOB_NAME={{.Task.Job.Name | ShellEscape}}
 export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
 export ESSH_SSH_CONFIG={{.SSHConfigPath}}
 export ESSH_DEBUG="{{if .Debug}}1{{end}}"
-{{range $key, $value := .Task.Props -}}
-export ESSH_TASK_PROPS_{{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape }}
+{{range $key, $value := .Task.Env -}}
+export {{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape }}
 {{end -}}
 {{if .Host -}}
 export ESSH_HOSTNAME={{.Host.Name | ShellEscape}}

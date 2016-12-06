@@ -149,6 +149,7 @@ func initResources() {
 {{end}}`, nil
 	}
 	Drivers[DefaultDriverName] = driver
+	DefaultDriver = driver
 }
 
 func Run(osArgs []string) (exitStatus int) {

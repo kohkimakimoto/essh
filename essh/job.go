@@ -21,7 +21,9 @@ func NewJob() *Job {
 	return &Job{
 		Hosts:   map[string]*Host{},
 		Tasks:   map[string]*Task{},
-		Drivers: map[string]*Driver{},
+		Drivers: map[string]*Driver{
+			DefaultDriverName: DefaultDriver,
+		},
 		LValues: map[string]lua.LValue{},
 	}
 }
