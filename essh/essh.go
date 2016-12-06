@@ -1037,7 +1037,15 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 	if task.Driver == "" {
 		task.Driver = DefaultDriverName
 	}
-	driver := Drivers[task.Driver]
+
+	var drivers map[string]*Driver
+	if task.Job != nil {
+		drivers = task.Job.Drivers
+	} else {
+		drivers = Drivers
+	}
+
+	driver := drivers[task.Driver]
 	if driver == nil {
 		return fmt.Errorf("invalid driver name '%s'", task.Driver)
 	}
@@ -1166,7 +1174,15 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 	if task.Driver == "" {
 		task.Driver = DefaultDriverName
 	}
-	driver := Drivers[task.Driver]
+
+	var drivers map[string]*Driver
+	if task.Job != nil {
+		drivers = task.Job.Drivers
+	} else {
+		drivers = Drivers
+	}
+
+	driver := drivers[task.Driver]
 	if driver == nil {
 		return fmt.Errorf("invalid driver name '%s'", task.Driver)
 	}
