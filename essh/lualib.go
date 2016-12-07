@@ -1296,7 +1296,16 @@ func jobNewindex(L *lua.LState) int {
 }
 
 func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
+	if base := config.RawGetString("base"); base != lua.LNil {
+		updateJob(L, job, "base", base)
+	}
+
 	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok && kstr == "base" {
+			// skip base key.
+			return
+		}
+
 		if _, ok := toFloat64(k); ok {
 			// set a host, task or driver
 			lv, ok := v.(*lua.LUserData)
