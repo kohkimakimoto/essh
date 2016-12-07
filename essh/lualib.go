@@ -1304,6 +1304,12 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 	job.LValues[key] = value
 
 	switch key {
+	case "base":
+		if tb, ok := toLTable(value); ok {
+			setupJob(L, job, tb)
+		} else {
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
+		}
 	case "description":
 		if descStr, ok := toString(value); ok {
 			job.Description = descStr
@@ -1363,6 +1369,9 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 		}
 	case "hosts":
 		if tb, ok := toLTable(value); ok {
+			// initialize
+			job.Hosts = map[string]*Host{}
+
 			tb.ForEach(func(k, v lua.LValue) {
 				name, ok := toString(k)
 				if !ok {
@@ -1383,6 +1392,9 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 		}
 	case "tasks":
 		if tb, ok := toLTable(value); ok {
+			// initialize
+			job.Tasks = map[string]*Task{}
+
 			tb.ForEach(func(k, v lua.LValue) {
 				name, ok := toString(k)
 				if !ok {
@@ -1403,6 +1415,11 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 		}
 	case "drivers":
 		if tb, ok := toLTable(value); ok {
+			// initialize
+			job.Drivers = map[string]*Driver{
+				DefaultDriverName: DefaultDriver,
+			}
+
 			tb.ForEach(func(k, v lua.LValue) {
 				name, ok := toString(k)
 				if !ok {
@@ -1421,13 +1438,6 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 		} else {
 			panic(fmt.Sprintf("expected table but got '%v'\n", value))
 		}
-	case "base":
-		if tb, ok := toLTable(value); ok {
-			setupJob(L, job, tb)
-		} else {
-			panic(fmt.Sprintf("expected table but got '%v'\n", value))
-		}
-
 	default:
 		panic("unsupported job's field '" + key + "'.")
 	}
