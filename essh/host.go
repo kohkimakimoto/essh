@@ -40,6 +40,12 @@ func NewHost() *Host {
 	}
 }
 
+func (h *Host) MapLValuesToLTable(tb *lua.LTable) {
+	for key, value := range h.LValues {
+		tb.RawSetString(key, value)
+	}
+}
+
 func (h *Host) SortedSSHConfig() []map[string]string {
 	values := []map[string]string{}
 

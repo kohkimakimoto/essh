@@ -51,6 +51,12 @@ func NewTask() *Task {
 	}
 }
 
+func (t *Task) MapLValuesToLTable(tb *lua.LTable) {
+	for key, value := range t.LValues {
+		tb.RawSetString(key, value)
+	}
+}
+
 func (t *Task) PublicName() string {
 	if t.Job != nil && t.Job.Name != DefaultJobName {
 		return t.Job.Name + ":" + t.Name

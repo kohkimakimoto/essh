@@ -9,6 +9,7 @@ type Job struct {
 	Name        string
 	Description string
 	Env         map[string]string
+	Config      *lua.LTable
 	Prepare     func() error
 	Hosts       map[string]*Host
 	Tasks       map[string]*Task

@@ -32,6 +32,12 @@ func NewDriver() *Driver {
 	}
 }
 
+func (driver *Driver) MapLValuesToLTable(tb *lua.LTable) {
+	for key, value := range driver.LValues {
+		tb.RawSetString(key, value)
+	}
+}
+
 func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, host *Host) (string, error) {
 	for key, value := range driver.LValues {
 		driver.Props[key] = toGoValue(value)

@@ -61,6 +61,7 @@ func InitLuaState(L *lua.LState) {
 		// utility functions
 		"debug":            esshDebug,
 		"select_hosts":     esshSelectHosts,
+		"jobs":             esshJobs,
 		"get_job":          esshGetJob,
 		"current_registry": esshCurrentRegistry,
 	})
@@ -279,6 +280,16 @@ func esshSelectHosts(L *lua.LState) int {
 		}
 	}
 	L.Push(newLHostQuery(L, hostQuery))
+	return 1
+}
+
+func esshJobs(L *lua.LState) int {
+	tb := L.NewTable()
+	for _, job := range Jobs {
+		tb.Append(newLJob(L, job))
+	}
+
+	L.Push(tb)
 	return 1
 }
 
@@ -698,7 +709,10 @@ func taskIndex(L *lua.LState) int {
 	index := L.CheckString(2)
 
 	if index == "name" {
-		L.Push(lua.LString(task.Name))
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			L.Push(lua.LString(task.Name))
+			return 1
+		}))
 		return 1
 	}
 
@@ -930,7 +944,10 @@ func hostIndex(L *lua.LState) int {
 	index := L.CheckString(2)
 
 	if index == "name" {
-		L.Push(lua.LString(host.Name))
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			L.Push(lua.LString(host.Name))
+			return 1
+		}))
 		return 1
 	}
 
@@ -1090,7 +1107,10 @@ func driverIndex(L *lua.LState) int {
 	index := L.CheckString(2)
 
 	if index == "name" {
-		L.Push(lua.LString(driver.Name))
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			L.Push(lua.LString(driver.Name))
+			return 1
+		}))
 		return 1
 	}
 
@@ -1248,7 +1268,10 @@ func jobIndex(L *lua.LState) int {
 
 	switch index {
 	case "name":
-		L.Push(lua.LString(job.Name))
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			L.Push(lua.LString(job.Name))
+			return 1
+		}))
 	case "select_hosts":
 		L.Push(L.NewFunction(esshSelectHosts))
 	default:
@@ -1274,28 +1297,66 @@ func jobNewindex(L *lua.LState) int {
 
 func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 	config.ForEach(func(k, v lua.LValue) {
-
 		if _, ok := toFloat64(k); ok {
-			// host, task or driver
+			// set a host, task or driver
 			lv, ok := v.(*lua.LUserData)
 			if !ok {
 				panic(fmt.Sprintf("expected userdata (host, task or driver) but got '%v'\n", v))
 			}
 
-			switch vv := lv.Value.(type) {
+			switch resource := lv.Value.(type) {
 			case *Host:
-				job.RegisterHost(vv)
-			case *Task:
-				job.RegisterTask(vv)
-			case *Driver:
-				job.RegisterDriver(vv)
-			default:
-				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", vv))
-			}
-		}
+				// set host table data
+				if job.LValues["hosts"] == nil {
+					job.LValues["hosts"] = L.NewTable()
+				}
+				hosts, ok := toLTable(job.LValues["hosts"])
+				if !ok {
+					panic("broken 'hosts' table")
+				}
+				host := L.NewTable()
+				resource.MapLValuesToLTable(host)
+				hosts.RawSetString(resource.Name, host)
 
-		if kstr, ok := toString(k); ok {
+				// register host object
+				job.RegisterHost(resource)
+			case *Task:
+				// set task table data
+				if job.LValues["tasks"] == nil {
+					job.LValues["tasks"] = L.NewTable()
+				}
+				tasks, ok := toLTable(job.LValues["tasks"])
+				if !ok {
+					panic("broken 'tasks' table")
+				}
+				task := L.NewTable()
+				resource.MapLValuesToLTable(task)
+				tasks.RawSetString(resource.Name, task)
+
+				// register task object
+				job.RegisterTask(resource)
+			case *Driver:
+				// set task table data
+				if job.LValues["drivers"] == nil {
+					job.LValues["drivers"] = L.NewTable()
+				}
+				drivers, ok := toLTable(job.LValues["drivers"])
+				if !ok {
+					panic("broken 'drivers' table")
+				}
+				driver := L.NewTable()
+				resource.MapLValuesToLTable(driver)
+				drivers.RawSetString(resource.Name, driver)
+
+				// register task object
+				job.RegisterDriver(resource)
+			default:
+				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", resource))
+			}
+		} else if kstr, ok := toString(k); ok {
 			updateJob(L, job, kstr, v)
+		} else {
+			panic("invalid operation\n")
 		}
 	})
 }
@@ -1364,6 +1425,12 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 
 				job.Env[envKeyStr] = envValueStr
 			})
+		} else {
+			panic("invalid value of a job's field '" + key + "'.")
+		}
+	case "config":
+		if configTb, ok := toLTable(value); ok {
+			job.Config = configTb
 		} else {
 			panic("invalid value of a job's field '" + key + "'.")
 		}
