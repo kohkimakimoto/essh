@@ -879,22 +879,22 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		} else {
 			L.RaiseError("prepare have to be a function.")
 		}
-	case "env":
-		if envTb, ok := toLTable(value); ok {
+	case "props":
+		if propsTb, ok := toLTable(value); ok {
 			// initialize
-			task.Env = map[string]string{}
+			task.Props = map[string]string{}
 
-			envTb.ForEach(func(envKey lua.LValue, envValue lua.LValue) {
-				envKeyStr, ok := toString(envKey)
+			propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
+				propsKeyStr, ok := toString(propsKey)
 				if !ok {
-					L.RaiseError("props table's key must be a string: %v", envKey)
+					L.RaiseError("props table's key must be a string: %v", propsKey)
 				}
-				envValueStr, ok := toString(envValue)
+				propsValueStr, ok := toString(propsValue)
 				if !ok {
-					L.RaiseError("props table's value must be a string: %v", envValue)
+					L.RaiseError("props table's value must be a string: %v", propsValue)
 				}
 
-				task.Env[envKeyStr] = envValueStr
+				task.Props[propsKeyStr] = propsValueStr
 			})
 		} else {
 			panic("invalid value of a task's field '" + key + "'.")
@@ -1408,29 +1408,23 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 			L.RaiseError("prepare have to be a function.")
 		}
 
-	case "env":
-		if envTb, ok := toLTable(value); ok {
+	case "props":
+		if propsTb, ok := toLTable(value); ok {
 			// initialize
-			job.Env = map[string]string{}
+			job.Props = map[string]string{}
 
-			envTb.ForEach(func(envKey lua.LValue, envValue lua.LValue) {
-				envKeyStr, ok := toString(envKey)
+			propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
+				propsKeyStr, ok := toString(propsKey)
 				if !ok {
-					L.RaiseError("props table's key must be a string: %v", envKey)
+					L.RaiseError("props table's key must be a string: %v", propsKey)
 				}
-				envValueStr, ok := toString(envValue)
+				propsValueStr, ok := toString(propsValue)
 				if !ok {
-					L.RaiseError("props table's value must be a string: %v", envValue)
+					L.RaiseError("props table's value must be a string: %v", propsValue)
 				}
 
-				job.Env[envKeyStr] = envValueStr
+				job.Props[propsKeyStr] = propsValueStr
 			})
-		} else {
-			panic("invalid value of a job's field '" + key + "'.")
-		}
-	case "config":
-		if configTb, ok := toLTable(value); ok {
-			job.Config = configTb
 		} else {
 			panic("invalid value of a job's field '" + key + "'.")
 		}

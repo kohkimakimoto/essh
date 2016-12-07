@@ -103,15 +103,15 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 const EnvironmentTemplate = `{{define "environment" -}}
 {{if .Task.Job -}}
 export ESSH_JOB_NAME={{.Task.Job.Name | ShellEscape}}
-{{range $key, $value := .Task.Job.Env -}}
-export {{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape }}
+{{range $key, $value := .Task.Job.Props -}}
+export ESSH_TASK_PROPS_{{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape }}
 {{end -}}
 {{end -}}
 export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
 export ESSH_SSH_CONFIG={{.SSHConfigPath}}
 export ESSH_DEBUG="{{if .Debug}}1{{end}}"
-{{range $key, $value := .Task.Env -}}
-export {{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape }}
+{{range $key, $value := .Task.Props -}}
+export ESSH_TASK_PROPS_{{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape }}
 {{end -}}
 {{if .Host -}}
 export ESSH_HOSTNAME={{.Host.Name | ShellEscape}}

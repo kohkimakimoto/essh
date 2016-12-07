@@ -55,7 +55,7 @@ Notice: Task name mustn't be duplicated with any host names.
 
 * `hidden` (boolean): If it is true, this task is not displayed in tasks list.
 
-* `targets` (string|table): Host names or tags that the task's scripts is executed for. You can use only hosts and tags which defined by same configuration registry of the task. For example, if you define a task in `/var/tmp/esshconfig.lua`, this task can not use hosts defined in `~/.essh/config.lua`. The first configuration file is **local** registry. But the second configuration file is **global** registry.
+* `targets` (string|table): Host names or tags that the task's scripts is executed for.
 
 * `filters` (string|table): Host names or tags to filter target hosts. This property must be used with `targets`.
 
@@ -76,14 +76,14 @@ Notice: Task name mustn't be duplicated with any host names.
 
     By the prepare function returns false, you can cancel to execute the task's script.
 
-* `env` (table): Env sets environment variables `ESSH_TASK_PROPS_{KEY}` when the task is executed. The table key is modified to upper cased.
+* `props` (table): Props sets environment variables `ESSH_TASK_PROPS_${KEY}=VALUE` when the task is executed. The table key is modified to upper cased.
 
     ~~~lua
     env = {
         foo = "bar",
     }
 
-    -- export FOO="bar"
+    -- export ESSH_TASK_PROPS_FOO="bar"
     ~~~
 
 * `script` (string|table): Script is code that will be executed. Example:

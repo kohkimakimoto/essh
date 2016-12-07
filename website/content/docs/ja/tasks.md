@@ -76,14 +76,14 @@ $ essh example
 
     prepare関数によってfalseが返されると、タスクのスクリプトの実行を取り消すことができます。
 
-* `env` (table): Envはタスクが実行されるとき、環境変数を`KEY=VALUE`で設定します。テーブルキーは大文字に変更されます。
+* `props` (table): Propsはタスクが実行されるとき、環境変数を`ESSH_TASK_PROPS_${KEY}=VALUE`で設定します。テーブルキーは大文字に変更されます。
 
     ~~~lua
     env = {
         foo = "bar",
     }
 
-    -- export FOO="bar"
+    -- export ESSH_TASK_PROPS_FOO="bar"
     ~~~
     
 * `script` (string|table): スクリプトは実行されるコードです。例:

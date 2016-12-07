@@ -7,7 +7,7 @@ import (
 type Task struct {
 	Name        string
 	Description string
-	Env         map[string]string
+	Props       map[string]string
 	Prepare     func() error
 	Driver      string
 	Pty         bool
