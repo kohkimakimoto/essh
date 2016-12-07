@@ -79,7 +79,7 @@ Notice: Task name mustn't be duplicated with any host names.
 * `props` (table): Props sets environment variables `ESSH_TASK_PROPS_${KEY}=VALUE` when the task is executed. The table key is modified to upper cased.
 
     ~~~lua
-    env = {
+    props = {
         foo = "bar",
     }
 

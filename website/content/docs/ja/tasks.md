@@ -79,7 +79,7 @@ $ essh example
 * `props` (table): Propsはタスクが実行されるとき、環境変数を`ESSH_TASK_PROPS_${KEY}=VALUE`で設定します。テーブルキーは大文字に変更されます。
 
     ~~~lua
-    env = {
+    props = {
         foo = "bar",
     }
 
