@@ -122,6 +122,12 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
     end
     ~~~
 
+* `module` (table): A table only lives in the imported module. You can use it as a module scope variable in a module. It has some predefined values.
+
+    * `path` (string): A path to the module.
+    
+    * `import_path` (string): A path that was used by import function's argument.
+    
 * `current_registry` (function): Gets a current registry object.
 
 * `host` (function): An alias of `host` function.

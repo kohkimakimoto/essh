@@ -123,6 +123,12 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
     end
     ~~~
 
+* `module` (table): インポートされたモジュール内にのみで有効なテーブルです。モジュールスコープの変数として使用できます。いくつか定義済みの値を持ちます。
+
+    * `path` (string): モジュールのパス
+    
+    * `import_path` (string): import関数の引数に使用されたパス
+
 * `current_registry` (function): 現在のレジストリオブジェクトを取得します。
 
 * `host` (function): `host` 関数のエイリアス。
