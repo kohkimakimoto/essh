@@ -50,7 +50,7 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
 	lessh.RawSetString("version", lua.LString(Version))
-	lessh.RawSetString("module_root", lua.LNil)
+	lessh.RawSetString("module", lua.LNil)
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
@@ -194,6 +194,14 @@ func esshJob(L *lua.LState) int {
 
 func esshImport(L *lua.LState) int {
 	name := L.CheckString(1)
+	lessh, ok := toLTable(L.GetGlobal("essh"))
+	if !ok {
+		L.RaiseError("'essh' global variable is broken")
+	}
+	mod := lessh.RawGetString("module")
+	if mod != lua.LNil {
+		L.RaiseError("'essh.module' is existed. does not support nested module importing.")
+	}
 
 	module := CurrentRegistry.LoadedModules[name]
 	if module == nil {
@@ -214,15 +222,17 @@ func esshImport(L *lua.LState) int {
 			L.RaiseError("invalid module: %v", err)
 		}
 
-		lessh, ok := toLTable(L.GetGlobal("essh"))
-		if !ok {
-			L.RaiseError("'essh' global variable is broken")
-		}
-		lessh.RawSetString("module_root", lua.LString(filepath.Dir(indexFile)))
+		// init module variable
+		modulevar := L.NewTable()
+		modulevar.RawSetString("path", lua.LString(filepath.Dir(indexFile)))
+		modulevar.RawSetString("import_path", lua.LString(name))
+		lessh.RawSetString("module", modulevar)
+
 		if err := L.DoFile(indexFile); err != nil {
-			L.RaiseError("%v", err)
+			panic(err)
 		}
-		lessh.RawSetString("module_root", lua.LNil)
+		// remove module variable
+		lessh.RawSetString("module", lua.LNil)
 
 		// get a module return value
 		ret := L.Get(-1)
