@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"unicode"
+	"path/filepath"
 )
 
 func InitLuaState(L *lua.LState) {
@@ -49,6 +50,7 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("essh", lessh)
 	lessh.RawSetString("ssh_config", lua.LNil)
 	lessh.RawSetString("version", lua.LString(Version))
+	lessh.RawSetString("module_root", lua.LNil)
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
@@ -211,9 +213,16 @@ func esshImport(L *lua.LState) int {
 		if _, err := os.Stat(indexFile); err != nil {
 			L.RaiseError("invalid module: %v", err)
 		}
+
+		lessh, ok := toLTable(L.GetGlobal("essh"))
+		if !ok {
+			L.RaiseError("'essh' global variable is broken")
+		}
+		lessh.RawSetString("module_root", lua.LString(filepath.Dir(indexFile)))
 		if err := L.DoFile(indexFile); err != nil {
 			L.RaiseError("%v", err)
 		}
+		lessh.RawSetString("module_root", lua.LNil)
 
 		// get a module return value
 		ret := L.Get(-1)
