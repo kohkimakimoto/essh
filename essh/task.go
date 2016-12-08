@@ -31,6 +31,8 @@ type Task struct {
 
 var Tasks map[string]*Task
 
+var DefaultTaskName = "default"
+
 var (
 	DefaultPrefixLocal  = `[local:{{.Host.Name}}]{{HostnameAlignString " "}}`
 	DefaultPrefixRemote = `[remote:{{.Host.Name}}]{{HostnameAlignString " "}}`
@@ -59,8 +61,13 @@ func (t *Task) MapLValuesToLTable(tb *lua.LTable) {
 
 func (t *Task) PublicName() string {
 	if t.Job != nil && t.Job.Name != DefaultJobName {
+		if t.Name == DefaultTaskName {
+			return t.Job.Name
+		}
+
 		return t.Job.Name + ":" + t.Name
 	}
+
 	return t.Name
 }
 

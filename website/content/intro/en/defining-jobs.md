@@ -8,4 +8,8 @@ basename = "defining-jobs.html"
 
 # Defining Jobs
 
-Let's read next section: [Using Drivers](using-drivers.html)
+## Next Steps
+
+In the [Introduction](/intro/en/index.html) guide, I have explained the basic features of Essh. If you want to get in-depth information about Essh, read the [documentation](/docs/en/index.html).
+
+Enjoy!

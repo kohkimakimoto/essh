@@ -46,4 +46,4 @@ foo
 
 モジュールの詳細については[モジュール](/docs/ja/modules.html)セクションを参照してください。
 
-次のセクション: [ジョブを定義する](defining-jobs.html)
+次のセクション: [ドライバを使う](using-drivers.html)

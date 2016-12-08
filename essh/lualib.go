@@ -98,6 +98,16 @@ func esshHost(L *lua.LState) int {
 }
 
 func esshTask(L *lua.LState) int {
+	first := L.CheckAny(1)
+	if tb, ok := toLTable(first); ok {
+		name := DefaultTaskName
+		j := registerTask(L, name)
+		setupTask(L, j, tb)
+		L.Push(newLTask(L, j))
+
+		return 1
+	}
+
 	name := L.CheckString(1)
 	if L.GetTop() == 1 {
 		// object or DSL style
@@ -1296,17 +1306,17 @@ func jobNewindex(L *lua.LState) int {
 }
 
 func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
-	if base := config.RawGetString("base"); base != lua.LNil {
-		updateJob(L, job, "base", base)
-	}
+	// guarantee evaluating a key/value dictionary at first.
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateJob(L, job, kstr, v)
+		}
+	})
 
 	config.ForEach(func(k, v lua.LValue) {
-		if kstr, ok := toString(k); ok && kstr == "base" {
-			// skip base key.
+		if _, ok := toString(k); ok {
 			return
-		}
-
-		if _, ok := toFloat64(k); ok {
+		} else if _, ok := toFloat64(k); ok {
 			// set a host, task or driver
 			lv, ok := v.(*lua.LUserData)
 			if !ok {
@@ -1362,8 +1372,6 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 			default:
 				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", resource))
 			}
-		} else if kstr, ok := toString(k); ok {
-			updateJob(L, job, kstr, v)
 		} else {
 			panic("invalid operation\n")
 		}
