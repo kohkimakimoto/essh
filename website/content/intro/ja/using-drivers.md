@@ -52,7 +52,7 @@ echo bbb
 
 この内容は**組み込みドライバ**によって生成されたものです。組み込みドライバは、Esshバイナリに含まれている次のテキストテンプレートです。
 
-~~~go
+~~~
 {{template "environment" .}}
 {{range $i, $script := .Scripts}}{{$script.code}}
 {{end}}
@@ -68,7 +68,7 @@ export ESSH_DEBUG="1"
 
 その後、Esshはスクリプトテキストを新しい行コードと連結します。
 
-~~~go
+~~~
 {{range $i, $script := .Scripts}}{{$script.code}}
 {{end}}
 ~~~
