@@ -164,4 +164,6 @@ task "example" {
     bbb
 ~~~
 
+ドライバの詳細については、[ドライバ](/docs/ja/drivers.html)のセクションを参照してください。
+
 次のセクション: [ジョブを定義する](defining-jobs.html)

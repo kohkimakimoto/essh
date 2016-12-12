@@ -8,7 +8,52 @@ basename = "defining-jobs.html"
 
 # Defining Jobs
 
-WIP...
+Jobs in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a job, can be used only by the tasks in the same job. 
+
+Edit your `esshconfig.lua`:
+
+~~~lua
+job "myjob" {
+    host "web01.localhost" {
+        ForwardAgent = "yes",
+        HostName = "192.168.0.11",
+        Port = "22",
+        User = "kohkimakimoto",
+        tags = {
+            "web",
+        },
+    },
+
+    host "web02.localhost" {
+        ForwardAgent = "yes",
+        HostName = "192.168.0.12",
+        Port = "22",
+        User = "kohkimakimoto",
+        tags = {
+            "web",
+        },
+    },
+
+    task "hello" {
+        description = "say hello",
+        prefix = true,
+        backend = "remote",
+        targets = "web",
+        script = [=[
+            echo "hello on $(hostname)"
+        ]=],
+    },
+}
+~~~
+
+A Job's tasks have a prefix that is their job's name, So you will run the task like the following
+
+~~~
+$ essh myjob:hello
+~~~
+
+For more information on jobs, see the [Jobs](/docs/en/jobs.html) section.
+
 
 ## Next Steps
 

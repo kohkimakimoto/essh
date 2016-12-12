@@ -14,8 +14,8 @@ import (
 	"github.com/yuin/gopher-lua"
 	"net/http"
 	"os"
-	"unicode"
 	"path/filepath"
+	"unicode"
 )
 
 func InitLuaState(L *lua.LState) {
