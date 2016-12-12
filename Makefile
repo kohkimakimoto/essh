@@ -1,4 +1,4 @@
-.PHONY: default dev dist packaging packaging_destroy fmt test testv deps deps_update website
+.PHONY: default dev dist packaging fmt test testv deps deps_update website
 
 default: dev
 
@@ -10,9 +10,6 @@ dist:
 
 packaging:
 	@bash -c $(CURDIR)/_build/packaging.sh
-
-packaging_destroy:
-	@bash -c "cd $(CURDIR)/_build/packaging/rpm && vagrant destroy -f"
 
 fmt:
 	go fmt $$(go list ./... | grep -v vendor)
