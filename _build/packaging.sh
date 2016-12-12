@@ -34,7 +34,7 @@ source ./_build/config
 echo "--> Building RPM packages..."
 # building PRMs by using docker.
 cd _build/packaging/rpm
-for image in 'kohkimakimoto/rpmbuild-el5' 'kohkimakimoto/rpmbuild-el6' 'kohkimakimoto/rpmbuild-el7'; do
+for image in 'kohkimakimoto/rpmbuild:el5' 'kohkimakimoto/rpmbuild:el6' 'kohkimakimoto/rpmbuild:el7'; do
     docker run \
         --env DOCKER_IMAGE=${image}  \
         --env PRODUCT_NAME=${PRODUCT_NAME}  \
@@ -42,12 +42,10 @@ for image in 'kohkimakimoto/rpmbuild-el5' 'kohkimakimoto/rpmbuild-el6' 'kohkimak
         --env COMMIT_HASH=${COMMIT_HASH}  \
         -v $DIR:/tmp/repo \
         -w /tmp/repo \
+        --rm \
         ${image} \
         bash ./_build/packaging/rpm/run.sh
 done
-
-echo "    Removing tarminated containers..."
-docker rm `docker ps -a -q -f status=exited` | indent
 
 cd "$DIR"
 
