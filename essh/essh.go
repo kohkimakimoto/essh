@@ -495,24 +495,29 @@ func Run(osArgs []string) (exitStatus int) {
 		return ExitErr
 	}
 
-	// load per-user (global) config
-	if _, err := os.Stat(UserConfigFile); err == nil {
-		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s\n", UserConfigFile)
-		}
+	if configVar == "" {
+		// If a configuration file is given on the command line option,
+		// the per-user configuration file will be ignored.
 
-		if err := CurrentRegistry.MkDirs(); err != nil {
-			printError(err)
-			return ExitErr
-		}
+		// load per-user (global) config
+		if _, err := os.Stat(UserConfigFile); err == nil {
+			if debugFlag {
+				fmt.Printf("[essh debug] loading config file: %s\n", UserConfigFile)
+			}
 
-		if err := L.DoFile(UserConfigFile); err != nil {
-			printError(err)
-			return ExitErr
-		}
+			if err := CurrentRegistry.MkDirs(); err != nil {
+				printError(err)
+				return ExitErr
+			}
 
-		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s\n", UserConfigFile)
+			if err := L.DoFile(UserConfigFile); err != nil {
+				printError(err)
+				return ExitErr
+			}
+
+			if debugFlag {
+				fmt.Printf("[essh debug] loaded config file: %s\n", UserConfigFile)
+			}
 		}
 	}
 
@@ -557,25 +562,27 @@ func Run(osArgs []string) (exitStatus int) {
 		}
 	}
 
-	CurrentRegistry = GlobalRegistry
-	// load override global config
-	if _, err := os.Stat(UserOverrideConfigFile); err == nil {
-		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
-		}
+	if configVar == "" {
+		CurrentRegistry = GlobalRegistry
+		// load override global config
+		if _, err := os.Stat(UserOverrideConfigFile); err == nil {
+			if debugFlag {
+				fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
+			}
 
-		if err := CurrentRegistry.MkDirs(); err != nil {
-			printError(err)
-			return ExitErr
-		}
+			if err := CurrentRegistry.MkDirs(); err != nil {
+				printError(err)
+				return ExitErr
+			}
 
-		if err := L.DoFile(UserOverrideConfigFile); err != nil {
-			printError(err)
-			return ExitErr
-		}
+			if err := L.DoFile(UserOverrideConfigFile); err != nil {
+				printError(err)
+				return ExitErr
+			}
 
-		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s\n", UserOverrideConfigFile)
+			if debugFlag {
+				fmt.Printf("[essh debug] loaded config file: %s\n", UserOverrideConfigFile)
+			}
 		}
 	}
 
