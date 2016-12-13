@@ -37,13 +37,21 @@ task "example" {
 }
 ~~~
 
+注意：タスク名はホスト名と重複して定義することはできません。
+
 以下のコマンドでタスクを実行できます。
 
 ~~~
 $ essh example
 ~~~
 
-注意：タスク名はホスト名と重複して定義することはできません。
+タスクに引数を渡すことができます。
+
+~~~
+$ essh example foo bar
+~~~
+
+
 
 ## プロパティ
 
@@ -75,6 +83,8 @@ $ essh example
     prepare = function (t)
         -- override task config
         t.targets = "web"
+        -- get command line arguments
+        print(t.args[1])
         -- cancel the task execution by returns false.
         return false
     end,
@@ -122,6 +132,10 @@ $ essh example
 
   * `ESSH_DEBUG`: CLIで `--debug`オプションを設定した場合この変数は"1"に設定されます。
 
+  * `ESSH_TASK_PROPS_${KEY}`: タスクの`props`によって設定される値。
+  
+  * `ESSH_TASK_ARGS_${INDEX}`: コマンドライン引数によって渡される引数の値。インデックスは '1'から始まります。
+
   * `ESSH_HOSTNAME`: ホスト名。
 
   * `ESSH_HOST_HOSTNAME`: ホスト名。
@@ -130,7 +144,7 @@ $ essh example
 
   * `ESSH_HOST_TAGS_{TAG}`: タグ。タグを設定すると、この変数の値は"1"になります。
 
-  * `ESSH_HOST_PROPS_{KEY}`: ホストのpropsによって設定されるプロパティ。[ホスト](hosts.html)を参照してください。
+  * `ESSH_HOST_PROPS_{KEY}`: ホストの`props`によって設定される値。[ホスト](hosts.html)を参照してください。
 
   * `ESSH_JOB_NAME`: ジョブ名。[ジョブ](jobs.html)を参照してください。
   

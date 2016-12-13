@@ -37,13 +37,20 @@ task "example" {
 }
 ~~~
 
+Notice: Task name mustn't be duplicated with any host names.
+
 You can run a task below command.
 
 ~~~
 $ essh example
 ~~~
 
-Notice: Task name mustn't be duplicated with any host names.
+You can pass arguments to a task.
+
+~~~
+$ essh example foo bar
+~~~
+
 
 ## Properties
 
@@ -75,6 +82,8 @@ Notice: Task name mustn't be duplicated with any host names.
     prepare = function (t)
         -- override task config
         t.targets = "web"
+        -- get command line arguments
+        print(t.args[1])
         -- cancel the task execution by returns false.
         return false
     end,
@@ -122,6 +131,10 @@ Notice: Task name mustn't be duplicated with any host names.
 
   * `ESSH_DEBUG`: If you set `--debug` option by CLI. this variable is set "1".
 
+  * `ESSH_TASK_PROPS_${KEY}`: The value that is set by task's `props`.
+  
+  * `ESSH_TASK_ARGS_${INDEX}`: The argument's value that is passed by a command line arguments. The index starts at '1'.
+
   * `ESSH_HOSTNAME`: Host name.
 
   * `ESSH_HOST_HOSTNAME`: Host name.
@@ -130,7 +143,7 @@ Notice: Task name mustn't be duplicated with any host names.
 
   * `ESSH_HOST_TAGS_{TAG}`: Tag. If you set a tag, This variable has a value "1".
 
-  * `ESSH_HOST_PROPS_{KEY}`: Property that is set by host's props. See [Hosts](hosts.html).
+  * `ESSH_HOST_PROPS_{KEY}`: The value that is set by host's `props`. See [Hosts](hosts.html).
 
   * `ESSH_JOB_NAME`: Job name. See [Jobs](jobs.html).
   
