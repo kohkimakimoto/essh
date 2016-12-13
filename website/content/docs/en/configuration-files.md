@@ -10,7 +10,7 @@ basename = "configuration-files.html"
 
 Essh configuration is written in [Lua](https://www.lua.org/). In the configuration files, you can use DSL syntax that is more human-readable.
 
-Here is an example:
+## Example
 
 ~~~lua
 host "web01.localhost" {

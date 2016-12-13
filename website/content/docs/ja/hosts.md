@@ -10,7 +10,7 @@ basename = "hosts.html"
 
 Esshのホストとは、あなたが管理するSSHサーバです。ホスト設定を使用して、Esshは動的にSSHコンフィグを生成し、フック機能を提供し、タグでホストを分類します。
 
-例:
+## 例
 
 ~~~lua
 host "web01.localhost" {
@@ -18,16 +18,26 @@ host "web01.localhost" {
     HostName = "192.168.0.11",
     Port = "22",
     User = "kohkimakimoto",
-
+    -- ... And you can use all ssh_config options. see ssh_config(5)
+    
     -- Essh config properties.
     description = "web01 development server",
+    
     hidden = false,
-    private = false,
-    props = {},
-    tags = {},
-    hooks_before_connect = {},
-    hooks_after_connect = {},
-    hooks_after_disconnect = {},
+    
+    props = {
+        aaa = "bbb",
+        ccc = "ddd",
+    },
+    
+    tags = {
+        "web",
+        "development",
+    },
+    
+    hooks_before_connect = {
+        "echo bar",
+    },
 }
 ~~~
 

@@ -10,20 +10,26 @@ basename = "tasks.html"
 
 タスクは、リモートサーバーまたはローカルサーバーで実行されるスクリプトです。これを使用してシステム管理タスクを自動化することができます。
 
-例:
+## 例
 
 ~~~lua
 task "example" {
     description = "example task",
+    
     targets = {
         "web",
     },
+    
     filters = {
         "production",
     },
+    
     backend = "local",
+    
     parallel = true,
+    
     prefix = true,
+    
     script = {
         "echo foo",
         "echo bar"
@@ -86,7 +92,7 @@ $ essh example
     -- export ESSH_TASK_PROPS_FOO="bar"
     ~~~
     
-* `script` (string|table): スクリプトは実行されるコードです。例:
+* `script` (string|table): 実行されるコードです。例:
 
     ~~~lua
     script = [=[
@@ -127,3 +133,5 @@ $ essh example
   * `ESSH_HOST_PROPS_{KEY}`: ホストのpropsによって設定されるプロパティ。[ホスト](hosts.html)を参照してください。
 
   * `ESSH_JOB_NAME`: ジョブ名。[ジョブ](jobs.html)を参照してください。
+  
+* `script_file` (string): ファイルパスまたはhttpまたはhttpsでアクセスできるURL。ファイルの内容が実行されます。 `script_file`と` script`を同時に使うことはできません。

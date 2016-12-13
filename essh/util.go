@@ -1,7 +1,6 @@
 package essh
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -41,15 +40,15 @@ func GetContentFromPath(shellPath string) ([]byte, error) {
 			fmt.Printf("[essh debug] get script using http from '%s'\n", shellPath)
 		}
 
-		var httpClient *http.Client
-		if strings.HasPrefix(shellPath, "https://") {
-			tr := &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}
-			httpClient = &http.Client{Transport: tr}
-		} else {
-			httpClient = &http.Client{}
-		}
+		var httpClient *http.Client = &http.Client{}
+		//if strings.HasPrefix(shellPath, "https://") {
+		//	tr := &http.Transport{
+		//		// TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		//	}
+		//	httpClient = &http.Client{Transport: tr}
+		//} else {
+		//	httpClient = &http.Client{}
+		//}
 
 		resp, err := httpClient.Get(shellPath)
 		if err != nil {

@@ -10,23 +10,34 @@ basename = "hosts.html"
 
 Hosts in Essh are SSH servers that you manage. Using hosts configuration, Essh dynamically generates SSH config, provides hook functions, classify the hosts by tags.
 
-Example:
+## Example
+
 ~~~lua
 host "web01.localhost" {
     -- SSH config properties.
     HostName = "192.168.0.11",
     Port = "22",
     User = "kohkimakimoto",
-
+    -- ... And you can use all ssh_config options. see ssh_config(5)
+    
     -- Essh config properties.
     description = "web01 development server",
+    
     hidden = false,
-    private = false,
-    props = {},
-    tags = {},
-    hooks_before_connect = {},
-    hooks_after_connect = {},
-    hooks_after_disconnect = {},
+    
+    props = {
+        aaa = "bbb",
+        ccc = "ddd",
+    },
+    
+    tags = {
+        "web",
+        "development",
+    },
+    
+    hooks_before_connect = {
+        "echo bar",
+    },
 }
 ~~~
 

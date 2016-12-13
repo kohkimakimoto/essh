@@ -857,9 +857,9 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		task.Script = script
 
 		if task.File != "" && len(task.Script) > 0 {
-			L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
+			L.RaiseError("invalid task definition: can't use 'script_file' and 'script' at the same time.")
 		}
-	case "file":
+	case "script_file":
 		if fileStr, ok := toString(value); ok {
 			task.File = fileStr
 		} else {
@@ -867,7 +867,7 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		}
 
 		if task.File != "" && len(task.Script) > 0 {
-			L.RaiseError("invalid task definition: can't use 'file' and 'script' at the same time.")
+			L.RaiseError("invalid task definition: can't use 'script_file' and 'script' at the same time.")
 		}
 	case "prefix":
 		if prefixBool, ok := toBool(value); ok {

@@ -10,20 +10,26 @@ basename = "tasks.html"
 
 Task is a script that runs on remote or local servers. You can use it to automate your system administration tasks.
 
-Example:
+## Example
 
 ~~~lua
 task "example" {
     description = "example task",
+    
     targets = {
         "web",
     },
+    
     filters = {
         "production",
     },
+    
     backend = "local",
+    
     parallel = true,
+    
     prefix = true,
+    
     script = {
         "echo foo",
         "echo bar"
@@ -86,7 +92,7 @@ Notice: Task name mustn't be duplicated with any host names.
     -- export ESSH_TASK_PROPS_FOO="bar"
     ~~~
 
-* `script` (string|table): Script is code that will be executed. Example:
+* `script` (string|table): Code that will be executed. Example:
 
     ~~~lua
     script = [=[
@@ -127,3 +133,5 @@ Notice: Task name mustn't be duplicated with any host names.
   * `ESSH_HOST_PROPS_{KEY}`: Property that is set by host's props. See [Hosts](hosts.html).
 
   * `ESSH_JOB_NAME`: Job name. See [Jobs](jobs.html).
+  
+* `script_file` (string): A file path or URL that can be accessed by http or https. The file's content will be executed. You can't use `script_file` and `script` at the same time.
