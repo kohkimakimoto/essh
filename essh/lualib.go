@@ -659,8 +659,14 @@ func toMap(v lua.LValue) (map[string]interface{}, bool) {
 }
 
 func toSlice(v lua.LValue) ([]interface{}, bool) {
-	if lv, ok := toGoValue(v).([]interface{}); ok {
+	gov := toGoValue(v)
+	if lv, ok := gov.([]interface{}); ok {
 		return lv, true
+	} else if lv, ok := gov.(map[string]interface{}); ok {
+		if len(lv) == 0 {
+			return []interface{}{}, true
+		}
+		return nil, false
 	} else {
 		return nil, false
 	}
@@ -787,6 +793,8 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		if targetsStr, ok := toString(value); ok {
 			task.Targets = []string{targetsStr}
 		} else if targetsSlice, ok := toSlice(value); ok {
+			task.Targets = []string{}
+
 			for _, target := range targetsSlice {
 				if targetStr, ok := target.(string); ok {
 					task.Targets = append(task.Targets, targetStr)
@@ -799,6 +807,8 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		if filtersStr, ok := toString(value); ok {
 			task.Filters = []string{filtersStr}
 		} else if filtersSlice, ok := toSlice(value); ok {
+			task.Filters = []string{}
+
 			for _, filter := range filtersSlice {
 				if filterStr, ok := filter.(string); ok {
 					task.Filters = append(task.Filters, filterStr)
@@ -925,6 +935,18 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 
 				task.Props[propsKeyStr] = propsValueStr
 			})
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "args":
+		if argsSlice, ok := toSlice(value); ok {
+			task.Args = []string{}
+
+			for _, arg := range argsSlice {
+				if argStr, ok := arg.(string); ok {
+					task.Args = append(task.Args, argStr)
+				}
+			}
 		} else {
 			panic("invalid value of a task's field '" + key + "'.")
 		}

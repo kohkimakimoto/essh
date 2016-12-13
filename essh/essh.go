@@ -806,7 +806,7 @@ func Run(osArgs []string) (exitStatus int) {
 			task.Prefix = prefixStringVar
 		}
 
-		err := runTask(outputConfig, task)
+		err := runTask(outputConfig, task, []string{}, L)
 		if err != nil {
 			printError(err)
 			return ExitErr
@@ -819,17 +819,19 @@ func Run(osArgs []string) (exitStatus int) {
 			taskName := args[0]
 			task := GetEnabledTask(taskName, os.Getenv("ESSH_JOB_NAME"))
 			if task != nil {
+				var taskargs []string
 				if len(args) >= 2 {
-					printError("too many arguments.")
-					return ExitErr
+					taskargs = args[1:]
 				} else {
-					err := runTask(outputConfig, task)
-					if err != nil {
-						printError(err)
-						return ExitErr
-					}
-					return
+					taskargs = []string{}
 				}
+
+				err := runTask(outputConfig, task, taskargs, L)
+				if err != nil {
+					printError(err)
+					return ExitErr
+				}
+				return
 			}
 		}
 
@@ -877,9 +879,10 @@ func UpdateSSHConfig(outputConfig string, enabledHosts []*Host) ([]byte, error) 
 	return content, nil
 }
 
-func runTask(config string, task *Task) error {
+func runTask(config string, task *Task, args []string, L *lua.LState) error {
 	if debugFlag {
 		fmt.Printf("[essh debug] run task: %s\n", task.Name)
+		fmt.Printf("[essh debug] task's args: %v\n", args)
 	}
 
 	if task.Job != nil {
@@ -910,6 +913,13 @@ func runTask(config string, task *Task) error {
 		// change current registry
 		CurrentRegistry = task.Registry
 	}
+
+	// compose args
+	argstb := L.NewTable()
+	for i := 0; i < len(args); i++ {
+		L.RawSet(argstb, lua.LNumber(i+1), lua.LString(args[i]))
+	}
+	updateTask(L, task, "args", argstb)
 
 	if task.Prepare != nil {
 		if debugFlag {
