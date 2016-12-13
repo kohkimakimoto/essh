@@ -24,6 +24,7 @@ type Task struct {
 	UsePrefix   bool
 	Registry    *Registry
 	Job         *Job
+	Args        []string
 	LValues     map[string]lua.LValue
 	Parent      *Task
 	Child       *Task
@@ -49,6 +50,7 @@ func NewTask() *Task {
 		Filters: []string{},
 		Backend: TASK_BACKEND_LOCAL,
 		Script:  []map[string]string{},
+		Args:    []string{},
 		LValues: map[string]lua.LValue{},
 	}
 }

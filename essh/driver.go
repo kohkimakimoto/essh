@@ -68,6 +68,9 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 		"ToUpper":      strings.ToUpper,
 		"ToLower":      strings.ToLower,
 		"EnvKeyEscape": EnvKeyEscape,
+		"Add": func(x, y int) int {
+			return x + y
+		},
 	}
 
 	dict := map[string]interface{}{
@@ -112,6 +115,9 @@ export ESSH_SSH_CONFIG={{.SSHConfigPath}}
 export ESSH_DEBUG="{{if .Debug}}1{{end}}"
 {{range $key, $value := .Task.Props -}}
 export ESSH_TASK_PROPS_{{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape }}
+{{end -}}
+{{range $index, $value := .Task.Args -}}
+export ESSH_TASK_ARGS_{{Add $index 1 }}={{$value | ShellEscape }}
 {{end -}}
 {{if .Host -}}
 export ESSH_HOSTNAME={{.Host.Name | ShellEscape}}
