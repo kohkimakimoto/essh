@@ -1,5 +1,5 @@
 +++
-title = "Using Modules"
+title = "モジュールを使う | イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"

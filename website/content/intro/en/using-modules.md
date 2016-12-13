@@ -1,5 +1,5 @@
 +++
-title = "Using Modules"
+title = "Using Modules | Introduction"
 type = "docs"
 category = "intro"
 lang = "en"

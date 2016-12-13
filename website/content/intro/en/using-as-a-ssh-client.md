@@ -1,5 +1,5 @@
 +++
-title = "Using As A SSH Client"
+title = "Using As A SSH Client | Introduction"
 type = "docs"
 category = "intro"
 lang = "en"

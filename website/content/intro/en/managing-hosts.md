@@ -1,5 +1,5 @@
 +++
-title = "Managing Hosts"
+title = "Managing Hosts | Introduction"
 type = "docs"
 category = "intro"
 lang = "en"

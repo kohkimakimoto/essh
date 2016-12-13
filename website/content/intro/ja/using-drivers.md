@@ -1,5 +1,5 @@
 +++
-title = "Using Drivers"
+title = "ドライバを使う | イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"
@@ -58,7 +58,7 @@ echo bbb
 {{end}}
 ~~~
 
-`{{template environment"}}` は環境変数を生成します。上の例でこの部分は以下のコードになります。
+`{{template "environment" .}}` は環境変数を生成します。上の例でこの部分は以下のコードになります。
 
 ~~~
 export ESSH_TASK_NAME='example'

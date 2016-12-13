@@ -1,5 +1,5 @@
 +++
-title = "Managing Hosts"
+title = "ホストの管理 | イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"

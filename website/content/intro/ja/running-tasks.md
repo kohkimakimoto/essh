@@ -1,5 +1,5 @@
 +++
-title = "Running Tasks"
+title = "タスクを実行する | イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"

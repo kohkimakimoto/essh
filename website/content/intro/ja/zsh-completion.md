@@ -1,5 +1,5 @@
 +++
-title = "Zsh Completion"
+title = "Zsh補完 | イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"

@@ -1,5 +1,5 @@
 +++
-title = "Using Hooks"
+title = "フックを使う | イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"

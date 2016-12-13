@@ -1,5 +1,5 @@
 +++
-title = "Introduction"
+title = "イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"

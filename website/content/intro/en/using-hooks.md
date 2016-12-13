@@ -1,5 +1,5 @@
 +++
-title = "Using Hooks"
+title = "Using Hooks | Introduction"
 type = "docs"
 category = "intro"
 lang = "en"

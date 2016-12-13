@@ -1,5 +1,5 @@
 +++
-title = "Using Lua Libraries"
+title = "Using Lua Libraries | Introduction"
 type = "docs"
 category = "intro"
 lang = "en"

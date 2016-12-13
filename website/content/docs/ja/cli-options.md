@@ -1,5 +1,5 @@
 +++
-title = "CLI Options | Documentation"
+title = "CLI オプション | ドキュメント"
 type = "docs"
 category = "docs"
 lang = "ja"

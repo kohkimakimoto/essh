@@ -1,5 +1,5 @@
 +++
-title = "Installation"
+title = "Installation | Introduction"
 type = "docs"
 category = "intro"
 lang = "en"

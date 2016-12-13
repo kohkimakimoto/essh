@@ -1,5 +1,5 @@
 +++
-title = "Running Commands"
+title = "コマンドを実行する | イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"

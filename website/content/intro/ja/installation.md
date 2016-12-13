@@ -1,5 +1,5 @@
 +++
-title = "Installation"
+title = "インストール | イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"

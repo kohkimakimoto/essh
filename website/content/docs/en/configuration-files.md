@@ -1,5 +1,5 @@
 +++
-title = "configuration Files | Documentation"
+title = "Configuration Files | Documentation"
 type = "docs"
 category = "docs"
 lang = "en"
