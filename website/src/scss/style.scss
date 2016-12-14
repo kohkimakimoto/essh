@@ -6,4 +6,6 @@ $fa-font-path: "./fonts";
 $simple-line-font-path: "./fonts/";
 @import "../../node_modules/simple-line-icons/scss/simple-line-icons.scss";
 
-@import "./new-age.scss";
+@import "./angled-edges";
+
+@import "./new-age";

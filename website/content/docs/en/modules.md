@@ -85,7 +85,7 @@ At default, Essh updates only modules in `.essh/modules`. If you want to update 
 $ essh --update --with-global
 ~~~
 
-### Creating Modules
+## Creating Modules
 
 Creating new modules is easy. A minimum module is a directory that includes only `index.lua`.
 Try to create `my_module` directory and `index.lua` file in the directory.
