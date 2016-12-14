@@ -8,7 +8,7 @@ basename = "defining-jobs.html"
 
 # Defining Jobs
 
-Jobs in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a job can be used only by the tasks in the same job. 
+Jobs in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a job can be used only by the tasks in the same job. It prevents to conflict public hosts with task's hosts.
 
 Edit your `esshconfig.lua`:
 

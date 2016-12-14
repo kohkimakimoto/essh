@@ -46,4 +46,4 @@ foo
 
 モジュールの詳細については[モジュール](/docs/ja/modules.html)セクションを参照してください。
 
-次のセクション: [ドライバを使う](using-drivers.html)
+次のセクションに進みましょう: [ドライバを使う](using-drivers.html)

@@ -66,7 +66,7 @@ export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh
 export ESSH_DEBUG="1"
 ~~~
 
-その後、Esshはスクリプトテキストを新しい行コードと連結します。
+その後、Esshはスクリプトテキストを改行コードで連結します。
 
 ~~~
 {{range $i, $script := .Scripts}}{{$script.code}}
@@ -166,4 +166,4 @@ task "example" {
 
 ドライバの詳細については、[ドライバ](/docs/ja/drivers.html)のセクションを参照してください。
 
-次のセクション: [ジョブを定義する](defining-jobs.html)
+次のセクションに進みましょう: [ジョブを定義する](defining-jobs.html)

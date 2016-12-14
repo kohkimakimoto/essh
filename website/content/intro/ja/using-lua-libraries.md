@@ -42,4 +42,4 @@ foo
 
 Luaライブラリの詳細については、[Lua VM](/docs/ja/lua-vm.html)セクションを参照してください。
 
-次のセクション: [モジュールを使う](using-modules.html)
+次のセクションに進みましょう: [モジュールを使う](using-modules.html)

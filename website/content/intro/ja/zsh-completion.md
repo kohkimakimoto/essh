@@ -61,4 +61,4 @@ host "web01.localhost" {
 
 ホストの詳細については、[ホスト](/docs/ja/hosts.html) セクションを参照してください。
 
-次のセクション: [フックを使う](using-hooks.html)
+次のセクションに進みましょう: [フックを使う](using-hooks.html)

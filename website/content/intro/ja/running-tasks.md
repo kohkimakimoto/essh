@@ -51,4 +51,4 @@ $ essh hello
 
 タスクの詳細については,[タスク](/docs/ja/tasks.html)セクションを参照してください。
 
-次のセクション: [Luaライブラリを使う](using-lua-libraries.html)
+次のセクションに進みましょう: [Luaライブラリを使う](using-lua-libraries.html)

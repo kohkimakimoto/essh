@@ -28,4 +28,4 @@ Usage: essh [<options>] [<ssh options and args...>]
 
 ~~~
 
-次のセクション: [SSHクライアントとして使う](using-as-a-ssh-client.html)
+次のセクションに進みましょう: [SSHクライアントとして使う](using-as-a-ssh-client.html)

@@ -81,4 +81,4 @@ web02.localhost        web02 development server        web               false
 
 ホストの詳細については、[ホスト](/docs/ja/hosts.html) セクションを参照してください。
 
-次のセクション: [コマンドを実行する](running-commands.html)
+次のセクションに進みましょう: [コマンドを実行する](running-commands.html)

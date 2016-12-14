@@ -75,7 +75,10 @@ Host web02.localhost
     User kohkimakimoto
 ~~~
 
-
 プロセスが終了すると、Esshは自動的に一時ファイルを削除します。したがって、通常の操作で実際のssh設定を意識する必要はありません。
 
-次のセクション: [Zsh補完](zsh-completion.html)
+Esshの設定ファイルは `~/.essh/config.lua`に置くこともできます。これは `~/.ssh/config`のようなユーザごとの設定ファイルです。
+
+設定ファイルについての詳細は[設定ファイル](/docs/ja/configuration-files.html)セクションを参照してください。
+
+次のセクションに進みましょう: [Zsh補完](zsh-completion.html)

@@ -77,4 +77,8 @@ Host web02.localhost
 
 Essh also automatically removes the temporary file when the process finishes. So you don't have to be conscious of the real ssh configuration in the normal operations.
 
+Essh configuration file can also be placed at `~/.essh/config.lua`. This is a per user's configuration file like a `~/.ssh/config`.
+
+For more information on configuration files, see the [Configuration Files](/docs/en/configuration-files.html) section.
+
 Let's read next section: [Zsh Completion](zsh-completion.html).
