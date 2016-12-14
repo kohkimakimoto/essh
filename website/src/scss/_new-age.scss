@@ -505,9 +505,9 @@ section {
   }
   
   &.download {
-    @include angled-edge('outside top','upper right', #efefef);
+    @include angled-edge('outside top','upper right', #dbf1ff);
     padding-bottom: 100px;
-    background-color: #efefef;
+    background-color: #dbf1ff;
 
     .section-heading {
       margin-bottom: 50px;
