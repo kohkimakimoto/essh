@@ -37,7 +37,7 @@ All the options are listed below.
 
 * `--filter <tag|host>`: (Using with `--hosts` option) Filter selected hosts with tags or hosts.
 
-* `--job <job>`: (Using with --hosts option) Get hosts from specific job.
+* `--job <job>`: (Using with `--hosts` option) Get hosts from specific job.
 
 * `--ssh-config`: (Using with `--hosts` option) Output selected hosts as ssh_config format.
 
@@ -83,7 +83,7 @@ All the options are listed below.
 
 * `--pty`: (Using with `--exec` option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
 
-* `--file`: (Using with `--exec` option) Load commands from a file.
+* `--script-file`: (Using with `--exec` option) Load commands from a file.
 
 * `--driver`: (Using with `--exec` option) Specify a driver.
 

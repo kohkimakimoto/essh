@@ -339,7 +339,7 @@ func Run(osArgs []string) (exitStatus int) {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--backend=") {
 			backendVar = strings.Split(arg, "=")[1]
-		} else if arg == "--file" {
+		} else if arg == "--script-file" {
 			fileFlag = true
 		} else if arg == "--pty" {
 			ptyFlag = true
@@ -1714,7 +1714,7 @@ Options:
   --privileged                  (Using with --exec option) Run by the privileged user.
   --parallel                    (Using with --exec option) Run in parallel.
   --pty                         (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
-  --file                        (Using with --exec option) Load commands from a file.
+  --script-file                 (Using with --exec option) Load commands from a file.
   --driver                      (Using with --exec option) Specify a driver.
 
   (Completion)
@@ -1898,7 +1898,7 @@ _essh_exec_options() {
         '--privileged:Run by the privileged user.'
         '--parallel:Run in parallel.'
         '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
-        '--file:Load commands from a file.'
+        '--script-file:Load commands from a file.'
         '--driver:Specify a driver.'
      )
     _describe -t option "option" __essh_options
@@ -1972,7 +1972,7 @@ _essh () {
             case $last_arg in
                 --print|--help|--version|--gen)
                     ;;
-                --file|--config)
+                --script-file|--config)
                     _files
                     ;;
                 --select|--target|--filter)
