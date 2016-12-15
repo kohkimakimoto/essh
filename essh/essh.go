@@ -1853,9 +1853,6 @@ _essh_jobs() {
     _describe -t tag "job" __essh_jobs
 }
 
-_essh_global_options() {
-}
-
 _essh_options() {
     local -a __essh_options
     __essh_options=(
@@ -2018,8 +2015,8 @@ _essh () {
                     _essh_tags
                     ;;
                 --job)
-                	_essh_jobs
-                	;;
+                    _essh_jobs
+                    ;;
                 --backend)
                     _essh_backends
                     ;;
@@ -2058,17 +2055,88 @@ var BASH_COMPLETION = `# This is zsh completion code.
 #   eval "$(essh --bash-completion)"
 
 _essh_hosts() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --zsh-completion-hosts | awk -F'\t' '{print $1}')" -- $cur) )
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --hosts --quiet)" -- $cur) )
 }
 
 _essh_tasks() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --zsh-completion-tasks | awk -F'\t' '{print $1}')" -- $cur) )
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --tasks --quiet)" -- $cur) )
 }
 
 _essh_hosts_and_tasks() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --zsh-completion-hosts | awk -F'\t' '{print $1}') $({{.Executable}} --zsh-completion-tasks | awk -F'\t' '{print $1}')" -- $cur) )
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --hosts --quiet) $({{.Executable}} --tasks --quiet)" -- $cur) )
 }
 
+_essh_hosts_and_tags() {
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --hosts --quiet) $({{.Executable}} --tags --quiet)" -- $cur) )
+}
+
+_essh_jobs() {
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --jobs --quiet)" -- $cur) )
+}
+
+_essh_registry_options() {
+    COMPREPLY=( $(compgen -W "
+        --with-global
+    " -- $cur) )
+}
+
+_essh_backends() {
+    COMPREPLY=( $(compgen -W "
+        local
+        remote
+    " -- $cur) )
+}
+
+_essh_hosts_options() {
+    COMPREPLY=( $(compgen -W "
+        --debug
+        --quiet
+        --select
+        --filter
+        --job
+        --ssh-config
+    " -- $cur) )
+}
+
+_essh_tasks_options() {
+    COMPREPLY=( $(compgen -W "
+        --debug
+        --quiet
+        --all
+    " -- $cur) )
+}
+
+_essh_jobs_options() {
+    COMPREPLY=( $(compgen -W "
+        --debug
+        --quiet
+    " -- $cur) )
+}
+
+_essh_tags_options() {
+    COMPREPLY=( $(compgen -W "
+        --debug
+        --quiet
+    " -- $cur) )
+}
+
+_essh_exec_options() {
+    local -a __essh_options
+    __essh_options=(
+        '--debug:Output debug log.'
+        '--backend:Run the commands on local or remote hosts.'
+        '--target:Target hosts to run the commands.'
+        '--filter:Filter target hosts with tags or hosts.'
+        '--prefix:Disable outputing prefix.'
+        '--prefix-string:Custom string of the prefix.'
+        '--privileged:Run by the privileged user.'
+        '--parallel:Run in parallel.'
+        '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
+        '--script-file:Load commands from a file.'
+        '--driver:Specify a driver.'
+     )
+    _describe -t option "option" __essh_options
+}
 
 _essh_options() {
     COMPREPLY=( $(compgen -W "
@@ -2097,6 +2165,10 @@ _essh_options() {
 }
 
 _essh() {
+    COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+
+    local last_arg arg execMode hostsMode tasksMode tagsMode jobsMode
+
     local cur=${COMP_WORDS[COMP_CWORD]}
     case "$COMP_CWORD" in
         1)
@@ -2110,7 +2182,64 @@ _essh() {
             esac
             ;;
         *)
+            last_arg="${COMP_WORDS[COMP_CWORD-1]}"
+            for arg in ${COMP_WORDS[@]}; do
+                case $arg in
+                    --exec)
+                        execMode="on"
+                        ;;
+                    --hosts)
+                        hostsMode="on"
+                        ;;
+                    --tasks)
+                        tasksMode="on"
+                        ;;
+                    --tags)
+                        tagsMode="on"
+                        ;;
+                    --jobs)
+                        jobsMode="on"
+                        ;;
+                    *)
+                        ;;
+                esac
+            done
+
+            case "$last_arg" in
+                --print|--help|--version|--gen)
+                    ;;
+                --script-file|--config)
+                    ;;
+                --select|--target|--filter)
+                    _essh_hosts_and_tags
+                    ;;
+                --job)
+                    _essh_jobs
+                    ;;
+                --backend)
+                    _essh_backends
+                    ;;
+                --clean-modules|--clean-tmp|--clean-all|--update)
+                    _essh_registry_options
+                    ;;
+                *)
+                    if [ "$execMode" = "on" ]; then
+                        _essh_hosts
+                    elif [ "$hostsMode" = "on" ]; then
+                        _essh_hosts_options
+                    elif [ "$tasksMode" = "on" ]; then
+                        _essh_tasks_options
+                    elif [ "$tagsMode" = "on" ]; then
+                        _essh_tags_options
+                    elif [ "$jobsMode" = "on" ]; then
+                        _essh_jobs_options
+                    else
+                        _essh_options
+                    fi
+                    ;;
+            esac
             ;;
+
     esac
 }
 
