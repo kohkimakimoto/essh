@@ -36,48 +36,56 @@ var (
 
 // flags
 var (
-	versionFlag            bool
-	helpFlag               bool
-	printFlag              bool
-	colorFlag              bool
-	noColorFlag            bool
-	debugFlag              bool
-	hostsFlag              bool
-	quietFlag              bool
-	allFlag                bool
-	tagsFlag               bool
-	tasksFlag              bool
-	jobsFlag               bool
-	genFlag                bool
-	updateFlag             bool
-	withGlobalFlag         bool
-	cleanAllFlag           bool
-	cleanModulesFlag       bool
-	cleanTmpFlag           bool
+	versionFlag      bool
+	helpFlag         bool
+	printFlag        bool
+	colorFlag        bool
+	noColorFlag      bool
+	debugFlag        bool
+	hostsFlag        bool
+	quietFlag        bool
+	allFlag          bool
+	tagsFlag         bool
+	tasksFlag        bool
+	jobsFlag         bool
+	genFlag          bool
+	updateFlag       bool
+	withGlobalFlag   bool
+	cleanAllFlag     bool
+	cleanModulesFlag bool
+	cleanTmpFlag     bool
+
 	zshCompletionModeFlag  bool
 	zshCompletionFlag      bool
 	zshCompletionHostsFlag bool
 	zshCompletionTagsFlag  bool
 	zshCompletionTasksFlag bool
 	zshCompletionJobsFlag  bool
-	bashCompletionFlag     bool
-	aliasesFlag            bool
-	execFlag               bool
-	fileFlag               bool
-	prefixFlag             bool
-	parallelFlag           bool
-	privilegedFlag         bool
-	ptyFlag                bool
-	SSHConfigFlag          bool
-	workindDirVar          string
-	configVar              string
-	selectVar              []string
-	jobVar                 string
-	targetVar              []string
-	filterVar              []string
-	backendVar             string
-	prefixStringVar        string
-	driverVar              string
+
+	bashCompletionModeFlag  bool
+	bashCompletionFlag      bool
+	bashCompletionHostsFlag bool
+	bashCompletionTagsFlag  bool
+	bashCompletionTasksFlag bool
+	bashCompletionJobsFlag  bool
+
+	aliasesFlag     bool
+	execFlag        bool
+	fileFlag        bool
+	prefixFlag      bool
+	parallelFlag    bool
+	privilegedFlag  bool
+	ptyFlag         bool
+	SSHConfigFlag   bool
+	workindDirVar   string
+	configVar       string
+	selectVar       []string
+	jobVar          string
+	targetVar       []string
+	filterVar       []string
+	backendVar      string
+	prefixStringVar string
+	driverVar       string
 )
 
 const (
@@ -109,7 +117,12 @@ func initResources() {
 	zshCompletionTagsFlag = false
 	zshCompletionTasksFlag = false
 	zshCompletionJobsFlag = false
+	bashCompletionModeFlag = false
 	bashCompletionFlag = false
+	bashCompletionHostsFlag = false
+	bashCompletionTagsFlag  = false
+	bashCompletionTasksFlag = false
+	bashCompletionJobsFlag  = false
 	aliasesFlag = false
 	execFlag = false
 	fileFlag = false
@@ -157,6 +170,11 @@ func Run(osArgs []string) (exitStatus int) {
 		if e := recover(); e != nil {
 			exitStatus = ExitErr
 			if zshCompletionModeFlag && !debugFlag {
+				// suppress printing error in running completion code.
+				return
+			}
+
+			if bashCompletionModeFlag && !debugFlag {
 				// suppress printing error in running completion code.
 				return
 			}
@@ -255,8 +273,20 @@ func Run(osArgs []string) (exitStatus int) {
 			zshCompletionJobsFlag = true
 			zshCompletionModeFlag = true
 		} else if arg == "--bash-completion" {
-			// TODO
 			bashCompletionFlag = true
+			bashCompletionModeFlag = true
+		} else if arg == "--bash-completion-hosts" {
+			bashCompletionHostsFlag = true
+			bashCompletionModeFlag = true
+		} else if arg == "--bash-completion-tags" {
+			bashCompletionTagsFlag = true
+			bashCompletionModeFlag = true
+		} else if arg == "--bash-completion-tasks" {
+			bashCompletionTasksFlag = true
+			bashCompletionModeFlag = true
+		} else if arg == "--bash-completion-jobs" {
+			bashCompletionJobsFlag = true
+			bashCompletionModeFlag = true
 		} else if arg == "--aliases" {
 			aliasesFlag = true
 		} else if arg == "--working-dir" {
@@ -432,8 +462,8 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
-	if aliasesFlag {
-		s, err := sprintByTemplate(ALIASES_CODE)
+	if bashCompletionFlag {
+		s, err := sprintByTemplate(BASH_COMPLETION)
 		if err != nil {
 			printError(err)
 			return ExitErr
@@ -443,8 +473,14 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
-	if bashCompletionFlag {
-		fmt.Print(BASH_COMPLETION)
+	if aliasesFlag {
+		s, err := sprintByTemplate(ALIASES_CODE)
+		if err != nil {
+			printError(err)
+			return ExitErr
+		}
+
+		fmt.Print(s)
 		return
 	}
 
@@ -1719,6 +1755,7 @@ Options:
 
   (Completion)
   --zsh-completion              Output zsh completion code.
+  --bash-completion             Output bash completion code.
   --aliases                     Output aliases code.
 
   (Help)
@@ -1841,6 +1878,7 @@ _essh_options() {
         '--debug:Output debug log.'
         '--exec:Execute commands with the hosts.'
         '--zsh-completion:Output zsh completion code.'
+        '--bash-completion:Output bash completion code.'
         '--aliases:Output aliases code.'
      )
     _describe -t option "option" __essh_options
@@ -2015,6 +2053,14 @@ _essh () {
 compdef _essh essh
 `
 
+var BASH_COMPLETION = `# This is zsh completion code.
+# If you want to use it. write the following code in your '.zshrc'
+#   eval "$(essh --bash-completion)"
+
+
+`
+
+
 var ALIASES_CODE = `# This is aliases code.
 # If you want to use it. write the following code in your '.zshrc'
 #   eval "$(essh --aliases)"
@@ -2026,4 +2072,3 @@ function ersync() {
 }
 `
 
-var BASH_COMPLETION = ``
