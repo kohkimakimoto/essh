@@ -2057,7 +2057,64 @@ var BASH_COMPLETION = `# This is zsh completion code.
 # If you want to use it. write the following code in your '.zshrc'
 #   eval "$(essh --bash-completion)"
 
+_essh_hosts() {
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --zsh-completion-hosts | awk -F'\t' '{print $1}')" -- $cur) )
+}
 
+_essh_tasks() {
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --zsh-completion-tasks | awk -F'\t' '{print $1}')" -- $cur) )
+}
+
+_essh_hosts_and_tasks() {
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --zsh-completion-hosts | awk -F'\t' '{print $1}') $({{.Executable}} --zsh-completion-tasks | awk -F'\t' '{print $1}')" -- $cur) )
+}
+
+
+_essh_options() {
+    COMPREPLY=( $(compgen -W "
+        --version
+        --help
+        --print
+        --color
+        --no-color
+        --gen
+        --update
+        --clean-modules
+        --clean-tmp
+        --clean-all
+        --working-dir
+        --config
+        --hosts
+        --tags
+        --tasks
+        --jobs
+        --debug
+        --exec
+        --zsh-completion
+        --bash-completion
+        --aliases
+    " -- $cur) )
+}
+
+_essh() {
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    case "$COMP_CWORD" in
+        1)
+            case "$cur" in
+                -*)
+                    _essh_options
+                    ;;
+                *)
+                    _essh_hosts_and_tasks
+                    ;;
+            esac
+            ;;
+        *)
+            ;;
+    esac
+}
+
+complete -o default -o nospace -F _essh essh
 `
 
 
