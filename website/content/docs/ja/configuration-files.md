@@ -78,11 +78,10 @@ Esshはいくつかの異なる場所から設定ファイルを読み込みま�
 1. カレントディレクトリの`esshconfig_override.lua`
 1. `~/.essh/config_override.lua`
 
-`--config` コマンドラインオプションを使用した場合、Esshはユーザごとの設定ファイル(`~/.essh/config.lua`と`~/.essh/config_override.lua`)を無視します。このケースでは設定は次の順序で適用されます。
+`--config`コマンドラインオプションまたは`ESSH_CONFIG`環境変数を使用した場合、Esshはユーザごとの設定ファイル(`~/.essh/config.lua`と`~/.essh/config_override.lua`)を無視します。このケースでは設定は次の順序で適用されます。
 
-1. コマンドラインオプションの`--config`で指定したファイル
-1. コマンドラインオプションの`--config`で指定したファイル名の最後に`_override`をつけたファイル。例)`--config=myconfig.lua`なら`myconfig_override.lua`
-
+1. コマンドラインオプションの`--config`または環境変数`ESSH_CONFIG`で指定したファイル
+1. コマンドラインオプションの`--config`または環境変数`ESSH_CONFIG`で指定したファイル名の最後に`_override`をつけたファイル。例)`--config=myconfig.lua`なら`myconfig_override.lua`
 
 ## Lua
 

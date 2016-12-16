@@ -78,10 +78,10 @@ Essh loads configuration files from several different places. All configuration 
 1. Loads `esshconfig_override.lua` in the current directory.
 1. Loads `~/.essh/config_override.lua`.
 
-If you use `--config` command line option, Essh loads the file and the per-user configuration files (`~/.essh/config.lua` and `~/.essh/config_override.lua`) will be ignored. In this case, configuration are applied in the following order:
+If you use `--config` command line option or `ESSH_CONFIG` environment variable, Essh loads the file and the per-user configuration files (`~/.essh/config.lua` and `~/.essh/config_override.lua`) will be ignored. In this case, configuration are applied in the following order:
 
-1. Loads a file specified by `--config` command line option.
-1. Loads a file the name of which end in `_override`, that specified by `--config` command line option. ex) If you use `--config=myconfig.lua`, valid file name is `myconfig_override.lua`.
+1. Loads a file specified by `--config` command line option or `ESSH_CONFIG` environment variable.
+1. Loads a file the name of which end in `_override`, that specified by `--config` command line option or `ESSH_CONFIG` environment variable. ex) If you use `--config=myconfig.lua`, valid file name is `myconfig_override.lua`.
 
 ## Lua
 
