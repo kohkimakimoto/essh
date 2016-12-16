@@ -41,12 +41,12 @@ print(jsontext)
 * `json`: [layeh/gopher-json](https://github.com/layeh/gopher-json).
 * `fs`: [kohkimakimoto/gluafs](https://github.com/kohkimakimoto/gluafs).
 * `yaml`: [kohkimakimoto/gluayaml](https://github.com/kohkimakimoto/gluayaml).
-* `question`: [kohkimakimoto/question](https://github.com/kohkimakimoto/gluaquestion).
+* `question`: [kohkimakimoto/gluaquestion](https://github.com/kohkimakimoto/gluaquestion).
 * `template`: [kohkimakimoto/gluatemplate](https://github.com/kohkimakimoto/gluatemplate).
 * `env`: [kohkimakimoto/gluaenv](https://github.com/kohkimakimoto/gluaenv).
 * `http`: [cjoudrey/gluahttp](https://github.com/cjoudrey/gluahttp).
 * `re`: [yuin/gluare](https://github.com/yuin/gluare)
-* `sh`:[otm/gluash](https://github.com/otm/gluash)
+* `sh`: [otm/gluash](https://github.com/otm/gluash)
 
 ## 定義済みの変数
 
