@@ -120,9 +120,9 @@ func initResources() {
 	bashCompletionModeFlag = false
 	bashCompletionFlag = false
 	bashCompletionHostsFlag = false
-	bashCompletionTagsFlag  = false
+	bashCompletionTagsFlag = false
 	bashCompletionTasksFlag = false
-	bashCompletionJobsFlag  = false
+	bashCompletionJobsFlag = false
 	aliasesFlag = false
 	execFlag = false
 	fileFlag = false
@@ -422,6 +422,11 @@ func Run(osArgs []string) (exitStatus int) {
 	workingDirConfigFileName := workingDirConfigFileBasename[0 : len(workingDirConfigFileBasename)-len(workingDirConfigFileBasenameExtension)]
 
 	WorkingDirOverrideConfigFile = filepath.Join(workingDirConfigFileDir, workingDirConfigFileName+"_override"+workingDirConfigFileBasenameExtension)
+
+	// use config file path from environment variable if it set.
+	if os.Getenv("ESSH_CONFIG") != "" {
+		configVar = os.Getenv("ESSH_CONFIG")
+	}
 
 	// overwrite config file path by --config option.
 	if configVar != "" {
@@ -2246,7 +2251,6 @@ _essh() {
 complete -o default -o nospace -F _essh essh
 `
 
-
 var ALIASES_CODE = `# This is aliases code.
 # If you want to use it. write the following code in your '.zshrc'
 #   eval "$(essh --aliases)"
@@ -2257,4 +2261,3 @@ function ersync() {
     {{.Executable}} --exec 'rsync -e "ssh -F $ESSH_SSH_CONFIG"' "$@"
 }
 `
-
