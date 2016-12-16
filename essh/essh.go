@@ -416,13 +416,6 @@ func Run(osArgs []string) (exitStatus int) {
 	WorkingDataDir = filepath.Join(wd, ".essh")
 	WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
 
-	workingDirConfigFileBasename := filepath.Base(WorkingDirConfigFile)
-	workingDirConfigFileDir := filepath.Dir(WorkingDirConfigFile)
-	workingDirConfigFileBasenameExtension := filepath.Ext(workingDirConfigFileBasename)
-	workingDirConfigFileName := workingDirConfigFileBasename[0 : len(workingDirConfigFileBasename)-len(workingDirConfigFileBasenameExtension)]
-
-	WorkingDirOverrideConfigFile = filepath.Join(workingDirConfigFileDir, workingDirConfigFileName+"_override"+workingDirConfigFileBasenameExtension)
-
 	// use config file path from environment variable if it set.
 	if os.Getenv("ESSH_CONFIG") != "" {
 		configVar = os.Getenv("ESSH_CONFIG")
@@ -432,10 +425,19 @@ func Run(osArgs []string) (exitStatus int) {
 	if configVar != "" {
 		if filepath.IsAbs(configVar) {
 			WorkingDirConfigFile = configVar
+			WorkingDataDir = filepath.Join(filepath.Dir(WorkingDirConfigFile), ".essh")
 		} else {
 			WorkingDirConfigFile = filepath.Join(wd, configVar)
+			WorkingDataDir = filepath.Join(filepath.Dir(WorkingDirConfigFile), ".essh")
 		}
 	}
+
+	workingDirConfigFileBasename := filepath.Base(WorkingDirConfigFile)
+	workingDirConfigFileDir := filepath.Dir(WorkingDirConfigFile)
+	workingDirConfigFileBasenameExtension := filepath.Ext(workingDirConfigFileBasename)
+	workingDirConfigFileName := workingDirConfigFileBasename[0 : len(workingDirConfigFileBasename)-len(workingDirConfigFileBasenameExtension)]
+
+	WorkingDirOverrideConfigFile = filepath.Join(workingDirConfigFileDir, workingDirConfigFileName+"_override"+workingDirConfigFileBasenameExtension)
 
 	if helpFlag {
 		printHelp()
