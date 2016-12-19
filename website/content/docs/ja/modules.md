@@ -71,7 +71,9 @@ task "example" {
 
 詳細は[hashicorp/go-getter](https://github.com/hashicorp/go-getter)を参照してください。
 
-モジュールはEsshの実行時に自動的にインストールされます。インストールされたモジュールは、`import`が書かれた設定ファイルが現在のディレクトリの`esshconfig.lua`である場合、`.essh/modules`ディレクトリに保存されます。設定ファイルが`~/.essh/config.lua`の場合、モジュールは`~/.essh/modules`ディレクトリに保存されます。
+## モジュールのインストール
+
+モジュールはEsshの実行時に自動的にインストールされます。インストールされたモジュールは、`import`が書かれた設定ファイルが`esshconfig.lua`である場合、`.essh/modules`ディレクトリに保存されます。設定ファイルが`~/.essh/config.lua`の場合、モジュールは`~/.essh/modules`ディレクトリに保存されます。
 
 インストールされたモジュールを更新する必要がある場合は`essh --update`を実行してください。
 

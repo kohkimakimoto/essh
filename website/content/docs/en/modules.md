@@ -70,7 +70,9 @@ So the task displays indented output.
 
 For detail, see [hashicorp/go-getter](https://github.com/hashicorp/go-getter).
 
-Modules are installed automatically when Essh runs. The installed modules are stored in `.essh/modules` directory if the config file that is written `import` is `esshconfig.lua` or in the current directory.
+## Installing Modules
+
+Modules are installed automatically when Essh runs. The installed modules are stored in `.essh/modules` directory if the config file that is written `import` is `esshconfig.lua`.
 If the config file is `~/.essh/config.lua`, the modules are stored in `~/.essh/modules` directory.
 
 If you need to update installed modules, runs `essh --update`.

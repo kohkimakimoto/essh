@@ -59,6 +59,8 @@ host "web01.localhost" {
 
 `description`と`hidden`は最初の文字が小文字であることにお気づきですか。その他は大文字です。これは重要なポイントです。 Esshは一時ファイルに生成されるssh_configに最初の文字が大文字のプロパティを使用します。最初の文字が小文字のプロパティはssh_configではなく、Esshの機能の特殊な目的に使用されます。
 
+> zshではなくbashを使用している場合は、`eval "$(essh --bash-completion)"`を使用できます。 だたしbash補完は説明の表示はサポートしていません。
+
 ホストの詳細については、[ホスト](/docs/ja/hosts.html) セクションを参照してください。
 
 次のセクションに進みましょう: [フックを使う](using-hooks.html)

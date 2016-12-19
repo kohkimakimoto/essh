@@ -646,6 +646,16 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
+	if bashCompletionHostsFlag {
+		for _, host := range NewHostQuery().GetHostsOrderByName() {
+			if !host.Hidden {
+				fmt.Printf("%s\n", ColonEscape(host.Name))
+			}
+		}
+
+		return
+	}
+
 	// show tasks for zsh completion
 	if zshCompletionTasksFlag {
 		for _, task := range NewTaskQuery().GetTasksOrderByName() {
@@ -656,14 +666,24 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
-	if zshCompletionTagsFlag {
+	if bashCompletionTasksFlag {
+		for _, task := range NewTaskQuery().GetTasksOrderByName() {
+			if !task.Disabled && !task.Hidden {
+				fmt.Printf("%s\n", ColonEscape(task.PublicName()))
+			}
+		}
+		return
+	}
+
+
+	if zshCompletionTagsFlag || bashCompletionTagsFlag {
 		for _, tag := range GetTags(Hosts) {
 			fmt.Printf("%s\n", ColonEscape(tag))
 		}
 		return
 	}
 
-	if zshCompletionJobsFlag {
+	if zshCompletionJobsFlag || bashCompletionJobsFlag {
 		for _, job := range SortedJobs() {
 			fmt.Printf("%s\n", ColonEscape(job.Name))
 		}
@@ -2062,23 +2082,23 @@ var BASH_COMPLETION = `# This is zsh completion code.
 #   eval "$(essh --bash-completion)"
 
 _essh_hosts() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --hosts --quiet)" -- $cur) )
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-hosts)" -- $cur) )
 }
 
 _essh_tasks() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --tasks --quiet)" -- $cur) )
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-tasks)" -- $cur) )
 }
 
 _essh_hosts_and_tasks() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --hosts --quiet) $({{.Executable}} --tasks --quiet)" -- $cur) )
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-hosts) $({{.Executable}} --bash-completion-tasks)" -- $cur) )
 }
 
 _essh_hosts_and_tags() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --hosts --quiet) $({{.Executable}} --tags --quiet)" -- $cur) )
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-hosts) $({{.Executable}} --bash-completion-tags)" -- $cur) )
 }
 
 _essh_jobs() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --jobs --quiet)" -- $cur) )
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-jobs)" -- $cur) )
 }
 
 _essh_registry_options() {

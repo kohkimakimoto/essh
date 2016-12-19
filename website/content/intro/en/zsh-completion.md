@@ -59,6 +59,8 @@ host "web01.localhost" {
 
 You notice that the first characters of the `description` and `hidden` are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as **ssh_config** generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.
 
+> If you are using bash instead of zsh, you can use `eval "$(essh --bash-completion)"`. but the bash completion does not support to display description.
+
 For more information on hosts, see the [Hosts](/docs/en/hosts.html) section.
 
 Let's read next section: [Using Hooks](using-hooks.html)
