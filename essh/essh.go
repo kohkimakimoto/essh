@@ -417,7 +417,7 @@ func Run(osArgs []string) (exitStatus int) {
 	WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
 
 	// use config file path from environment variable if it set.
-	if configVar != "" && os.Getenv("ESSH_CONFIG") != "" {
+	if configVar == "" && os.Getenv("ESSH_CONFIG") != "" {
 		configVar = os.Getenv("ESSH_CONFIG")
 	}
 
