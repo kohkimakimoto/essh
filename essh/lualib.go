@@ -8,7 +8,7 @@ import (
 	"github.com/kohkimakimoto/gluaquestion"
 	"github.com/kohkimakimoto/gluatemplate"
 	"github.com/kohkimakimoto/gluayaml"
-	gluajson "github.com/layeh/gopher-json"
+	gluajson "layeh.com/gopher-json"
 	"github.com/otm/gluash"
 	"github.com/yuin/gluare"
 	"github.com/yuin/gopher-lua"
