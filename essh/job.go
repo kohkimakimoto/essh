@@ -8,7 +8,8 @@ import (
 type Job struct {
 	Name        string
 	Description string
-	Props       map[string]string
+	// Props       map[string]string
+	Hidden      bool
 	Prepare     func() error
 	Hosts       map[string]*Host
 	Tasks       map[string]*Task

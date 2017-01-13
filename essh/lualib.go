@@ -1423,15 +1423,21 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 	job.LValues[key] = value
 
 	switch key {
-	case "base":
-		if tb, ok := toLTable(value); ok {
-			setupJob(L, job, tb)
-		} else {
-			panic(fmt.Sprintf("expected table but got '%v'\n", value))
-		}
+	//case "base":
+	//	if tb, ok := toLTable(value); ok {
+	//		setupJob(L, job, tb)
+	//	} else {
+	//		panic(fmt.Sprintf("expected table but got '%v'\n", value))
+	//	}
 	case "description":
 		if descStr, ok := toString(value); ok {
 			job.Description = descStr
+		} else {
+			panic("invalid value of a job's field '" + key + "'.")
+		}
+	case "hidden":
+		if hiddenBool, ok := toBool(value); ok {
+			job.Hidden = hiddenBool
 		} else {
 			panic("invalid value of a job's field '" + key + "'.")
 		}
@@ -1466,26 +1472,26 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 			L.RaiseError("prepare have to be a function.")
 		}
 
-	case "props":
-		if propsTb, ok := toLTable(value); ok {
-			// initialize
-			job.Props = map[string]string{}
-
-			propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
-				propsKeyStr, ok := toString(propsKey)
-				if !ok {
-					L.RaiseError("props table's key must be a string: %v", propsKey)
-				}
-				propsValueStr, ok := toString(propsValue)
-				if !ok {
-					L.RaiseError("props table's value must be a string: %v", propsValue)
-				}
-
-				job.Props[propsKeyStr] = propsValueStr
-			})
-		} else {
-			panic("invalid value of a job's field '" + key + "'.")
-		}
+	//case "props":
+	//	if propsTb, ok := toLTable(value); ok {
+	//		// initialize
+	//		job.Props = map[string]string{}
+	//
+	//		propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
+	//			propsKeyStr, ok := toString(propsKey)
+	//			if !ok {
+	//				L.RaiseError("props table's key must be a string: %v", propsKey)
+	//			}
+	//			propsValueStr, ok := toString(propsValue)
+	//			if !ok {
+	//				L.RaiseError("props table's value must be a string: %v", propsValue)
+	//			}
+	//
+	//			job.Props[propsKeyStr] = propsValueStr
+	//		})
+	//	} else {
+	//		panic("invalid value of a job's field '" + key + "'.")
+	//	}
 	case "hosts":
 		if tb, ok := toLTable(value); ok {
 			// initialize

@@ -106,9 +106,6 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 const EnvironmentTemplate = `{{define "environment" -}}
 {{if .Task.Job -}}
 export ESSH_JOB_NAME={{.Task.Job.Name | ShellEscape}}
-{{range $key, $value := .Task.Job.Props -}}
-export ESSH_TASK_PROPS_{{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape }}
-{{end -}}
 {{end -}}
 export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
 export ESSH_SSH_CONFIG={{.SSHConfigPath}}

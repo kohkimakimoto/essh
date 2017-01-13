@@ -768,14 +768,20 @@ func Run(osArgs []string) (exitStatus int) {
 	if tasksFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION", "DISABLED", "HIDDEN"})
+			tb.SetHeader([]string{"NAME", "DESCRIPTION", "HIDDEN"})
 		}
 		for _, t := range NewTaskQuery().GetTasksOrderByName() {
-			if (!t.Hidden && !t.Disabled) || allFlag {
+			hidden := false
+			if t.Job != nil && t.Job.Hidden {
+				hidden = true
+			} else {
+				hidden = t.Hidden
+			}
+			if (!hidden && !t.Disabled) || allFlag {
 				if quietFlag {
 					tb.Append([]string{t.PublicName()})
 				} else {
-					tb.Append([]string{t.PublicName(), t.Description, fmt.Sprintf("%v", t.Disabled), fmt.Sprintf("%v", t.Hidden)})
+					tb.Append([]string{t.PublicName(), t.Description, fmt.Sprintf("%v", t.Hidden)})
 				}
 			}
 		}

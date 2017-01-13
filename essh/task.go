@@ -18,6 +18,7 @@ type Task struct {
 	Filters     []string
 	Parallel    bool
 	Privileged  bool
+	// deprecated? use only hidden?
 	Disabled    bool
 	Hidden      bool
 	Prefix      string
