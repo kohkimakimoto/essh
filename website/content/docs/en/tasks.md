@@ -64,8 +64,6 @@ $ essh example foo bar
 
 * `privileged` (boolean): If it is true, runs task's script by privileged user. If you use it, you have to configure your machine to be able to be used `sudo` without password.
 
-* `disabled` (boolean): If it is true, this task does not run and is not displayed in tasks list.
-
 * `hidden` (boolean): If it is true, this task is not displayed in tasks list.
 
 * `targets` (string|table): Host names or tags that the task's scripts is executed for.

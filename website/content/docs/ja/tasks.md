@@ -65,8 +65,6 @@ $ essh example foo bar
 
 * `privileged` (boolean): trueに設定すると、特権ユーザーがタスクのスクリプトを実行します。これを使用する場合は、パスワードなしでsudoを使用できるようにマシンを設定する必要があります。
 
-* `disabled` (boolean): trueの場合、このタスクは実行されず、タスクリストに表示されません。
-
 * `hidden` (boolean): trueの場合、このタスクはタスクリストに表示されません。
 
 * `targets` (string|table): タスクのスクリプトが実行されるホスト名またはタグ。
