@@ -127,8 +127,6 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
     * `path` (string): A path to the module.
     
     * `import_path` (string): A path that was used by import function's argument.
-    
-* `current_registry` (function): Gets a current registry object.
 
 * `host` (function): An alias of `host` function.
 

@@ -79,24 +79,49 @@ func esshDebug(L *lua.LState) int {
 }
 
 func esshHost(L *lua.LState) int {
-	name := L.CheckString(1)
-	if L.GetTop() == 1 {
-		// object or DSL style
-		h := registerHost(L, name)
-		L.Push(newLHost(L, h))
+	value := L.CheckAny(1)
+	if tb, ok := toLTable(value); ok {
 
-		return 1
-	} else if L.GetTop() == 2 {
-		// function style
-		tb := L.CheckTable(2)
-		h := registerHost(L, name)
-		setupHost(L, h, tb)
-		L.Push(newLHost(L, h))
+		hostsTb := L.NewTable()
+		tb.ForEach(func(k, v lua.LValue) {
+			name, ok := toString(k)
+			if !ok {
+				panic(fmt.Sprintf("expected string of host's name but got '%v'\n", k))
+			}
 
+			config, ok := toLTable(v)
+			if !ok {
+				panic(fmt.Sprintf("expected table of host's config but got '%v'\n", v))
+			}
+
+			h := registerHost(L, name)
+			setupHost(L, h, config)
+			hostsTb.RawSetString(name, newLHost(L, h))
+		})
+
+		L.Push(hostsTb)
 		return 1
+	} else if name, ok := toString(value); ok {
+		if L.GetTop() == 1 {
+			// object or DSL style
+			h := registerHost(L, name)
+			L.Push(newLHost(L, h))
+
+			return 1
+		} else if L.GetTop() == 2 {
+			// function style
+			tb := L.CheckTable(2)
+			h := registerHost(L, name)
+			setupHost(L, h, tb)
+			L.Push(newLHost(L, h))
+
+			return 1
+		} else {
+			panic("host requires 1 or 2 arguments")
+		}
+	} else {
+		panic(fmt.Sprintf("expected table or string but got '%v'\n", value))
 	}
-
-	panic("host requires 1 or 2 arguments")
 }
 
 func esshTask(L *lua.LState) int {
@@ -1423,12 +1448,6 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 	job.LValues[key] = value
 
 	switch key {
-	//case "base":
-	//	if tb, ok := toLTable(value); ok {
-	//		setupJob(L, job, tb)
-	//	} else {
-	//		panic(fmt.Sprintf("expected table but got '%v'\n", value))
-	//	}
 	case "description":
 		if descStr, ok := toString(value); ok {
 			job.Description = descStr
@@ -1471,27 +1490,6 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 		} else {
 			L.RaiseError("prepare have to be a function.")
 		}
-
-	//case "props":
-	//	if propsTb, ok := toLTable(value); ok {
-	//		// initialize
-	//		job.Props = map[string]string{}
-	//
-	//		propsTb.ForEach(func(propsKey lua.LValue, propsValue lua.LValue) {
-	//			propsKeyStr, ok := toString(propsKey)
-	//			if !ok {
-	//				L.RaiseError("props table's key must be a string: %v", propsKey)
-	//			}
-	//			propsValueStr, ok := toString(propsValue)
-	//			if !ok {
-	//				L.RaiseError("props table's value must be a string: %v", propsValue)
-	//			}
-	//
-	//			job.Props[propsKeyStr] = propsValueStr
-	//		})
-	//	} else {
-	//		panic("invalid value of a job's field '" + key + "'.")
-	//	}
 	case "hosts":
 		if tb, ok := toLTable(value); ok {
 			// initialize

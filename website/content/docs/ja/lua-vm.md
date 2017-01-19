@@ -129,8 +129,6 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
     
     * `import_path` (string): import関数の引数に使用されたパス
 
-* `current_registry` (function): 現在のレジストリオブジェクトを取得します。
-
 * `host` (function): `host` 関数のエイリアス。
 
 * `task` (function): `task` 関数のエイリアス。
