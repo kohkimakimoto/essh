@@ -19,16 +19,16 @@ type Task struct {
 	Parallel    bool
 	Privileged  bool
 	// deprecated? use only hidden?
-	Disabled    bool
-	Hidden      bool
-	Prefix      string
-	UsePrefix   bool
-	Registry    *Registry
-	Job         *Job
-	Args        []string
-	LValues     map[string]lua.LValue
-	Parent      *Task
-	Child       *Task
+	Disabled  bool
+	Hidden    bool
+	Prefix    string
+	UsePrefix bool
+	Registry  *Registry
+	Job       *Job
+	Args      []string
+	LValues   map[string]lua.LValue
+	Parent    *Task
+	Child     *Task
 }
 
 var Tasks map[string]*Task

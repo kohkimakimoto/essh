@@ -675,7 +675,6 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
-
 	if zshCompletionTagsFlag || bashCompletionTagsFlag {
 		for _, tag := range GetTags(Hosts) {
 			fmt.Printf("%s\n", ColonEscape(tag))
