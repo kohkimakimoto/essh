@@ -658,18 +658,31 @@ func Run(osArgs []string) (exitStatus int) {
 
 	// show tasks for zsh completion
 	if zshCompletionTasksFlag {
-		for _, task := range NewTaskQuery().GetTasksOrderByName() {
-			if !task.Disabled && !task.Hidden {
-				fmt.Printf("%s\t%s\n", ColonEscape(task.PublicName()), ColonEscape(task.DescriptionOrDefault()))
+		for _, t := range NewTaskQuery().GetTasksOrderByName() {
+			hidden := false
+			if t.Job != nil && t.Job.Hidden {
+				hidden = true
+			} else {
+				hidden = t.Hidden
+			}
+			if !t.Disabled && !hidden {
+				fmt.Printf("%s\t%s\n", ColonEscape(t.PublicName()), ColonEscape(t.DescriptionOrDefault()))
 			}
 		}
 		return
 	}
 
 	if bashCompletionTasksFlag {
-		for _, task := range NewTaskQuery().GetTasksOrderByName() {
-			if !task.Disabled && !task.Hidden {
-				fmt.Printf("%s\n", ColonEscape(task.PublicName()))
+		for _, t := range NewTaskQuery().GetTasksOrderByName() {
+			hidden := false
+			if t.Job != nil && t.Job.Hidden {
+				hidden = true
+			} else {
+				hidden = t.Hidden
+			}
+
+			if !t.Disabled && !hidden {
+				fmt.Printf("%s\n", ColonEscape(t.PublicName()))
 			}
 		}
 		return
