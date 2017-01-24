@@ -8,19 +8,25 @@ This module provides `hooks_after_connect` hook for using [sshrc](https://github
 local sshrc = import "github.com/kohkimakimoto/essh/modules/sshrc"
 
 host "your-server" {
-   HostName = "192.168.56.12",
-   Port = "22",
-   hooks_after_connect = {
-         sshrc,
-   },
+    HostName = "192.168.56.12",
+    Port = "22",
+    hooks_after_connect = {
+        sshrc,
+    },
 }
 ```
 
 You can modify `SSHHOME`.
 
 ```lua
--- sshhome default is `~`.
-sshrc { sshhome = "path/to/sshhome" }
+host "your-server" {
+    HostName = "192.168.56.12",
+    Port = "22",
+    hooks_after_connect = {
+        -- sshhome default is `~`.
+        sshrc({sshhome = "path/to/sshhome"}),
+    },
+}
 ```
 
 see also: [Russell91/sshrc](https://github.com/Russell91/sshrc)
