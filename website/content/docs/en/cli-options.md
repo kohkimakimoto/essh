@@ -15,13 +15,13 @@ All the options are listed below.
 
 ## General
 
-* `--print`: Print generated ssh config.
+* `--print`: Print generated ssh_config.
 
-* `--gen`: Only generate ssh config.
+* `--gen`: Only generate ssh_config.
 
 * `--working-dir <dir>`: Change working directory.
 
-* `--config <file>`: Load per-project configuration from the file.
+* `--config <file>`: Load configuration from the file.
 
 * `--color`: Force ANSI output.
 

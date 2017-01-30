@@ -15,19 +15,19 @@ basename = "cli-options.html"
 
 ## General
 
-* `--print`: Print generated ssh config.
+* `--print`: 生成されるssh_configを表示する。
 
-* `--gen`: Only generate ssh config.
+* `--gen`: ssh_configを生成することのみを行う。
 
-* `--working-dir <dir>`: Change working directory.
+* `--working-dir <dir>`: 作業ディレクトリを変更する
 
-* `--config <file>`: Load per-project configuration from the file.
+* `--config <file>`: コンフィグをファイルからロードする
 
-* `--color`: Force ANSI output.
+* `--color`: ANSI出力を強制する。
 
-* `--no-color`: Disable ANSI output.
+* `--no-color`: ANSI出力を行わない。
 
-* `--debug`: Output debug log.
+* `--debug`: デバッグログを出力する。
 
 ## Manage Hosts, Tags And Tasks
 

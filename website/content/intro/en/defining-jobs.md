@@ -46,7 +46,7 @@ job "myjob" {
 }
 ~~~
 
-A Job's tasks have a prefix that is their job's name, So you will run the task like the following
+A Job's tasks have a prefix that is their job's name, So you can run the task like the following
 
 ~~~
 $ essh myjob:hello
