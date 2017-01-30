@@ -1,6 +1,6 @@
 # Essh Bash Module
 
-Collection of the bash code for Essh script.
+Collection of the bash code for Essh script. This module is just example for developers who want to create own modules.
 
 ## Usage 
 

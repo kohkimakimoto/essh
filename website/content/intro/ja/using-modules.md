@@ -10,7 +10,7 @@ basename = "using-modules.html"
 
 
 Esshには設定のための再利用可能なコードを簡単に使用できるモジュラーシステムがあります。
-たとえば、Esshタスクで使用するbashスクリプトのコレクションである[bash module](https://github.com/kohkimakimoto/essh/tree/master/modules/bash)があります。
+例として、Esshタスクで使用するbashスクリプトのコレクションである[bash module](https://github.com/kohkimakimoto/essh/tree/master/modules/bash)があります。
 モジュールは`import`関数を使ってロードすることができます。
 
 例:
