@@ -47,7 +47,7 @@ var (
 	allFlag          bool
 	tagsFlag         bool
 	tasksFlag        bool
-	jobsFlag         bool
+	namespacesFlag   bool
 	genFlag          bool
 	updateFlag       bool
 	withGlobalFlag   bool
@@ -55,19 +55,19 @@ var (
 	cleanModulesFlag bool
 	cleanTmpFlag     bool
 
-	zshCompletionModeFlag  bool
-	zshCompletionFlag      bool
-	zshCompletionHostsFlag bool
-	zshCompletionTagsFlag  bool
-	zshCompletionTasksFlag bool
-	zshCompletionJobsFlag  bool
+	zshCompletionModeFlag       bool
+	zshCompletionFlag           bool
+	zshCompletionHostsFlag      bool
+	zshCompletionTagsFlag       bool
+	zshCompletionTasksFlag      bool
+	zshCompletionNamespacesFlag bool
 
-	bashCompletionModeFlag  bool
-	bashCompletionFlag      bool
-	bashCompletionHostsFlag bool
-	bashCompletionTagsFlag  bool
-	bashCompletionTasksFlag bool
-	bashCompletionJobsFlag  bool
+	bashCompletionModeFlag       bool
+	bashCompletionFlag           bool
+	bashCompletionHostsFlag      bool
+	bashCompletionTagsFlag       bool
+	bashCompletionTasksFlag      bool
+	bashCompletionNamespacesFlag bool
 
 	aliasesFlag     bool
 	execFlag        bool
@@ -80,7 +80,7 @@ var (
 	workindDirVar   string
 	configVar       string
 	selectVar       []string
-	jobVar          string
+	namespaceVar    string
 	targetVar       []string
 	filterVar       []string
 	backendVar      string
@@ -104,7 +104,7 @@ func initResources() {
 	allFlag = false
 	tagsFlag = false
 	tasksFlag = false
-	jobsFlag = false
+	namespacesFlag = false
 	genFlag = false
 	updateFlag = false
 	withGlobalFlag = false
@@ -116,13 +116,13 @@ func initResources() {
 	zshCompletionHostsFlag = false
 	zshCompletionTagsFlag = false
 	zshCompletionTasksFlag = false
-	zshCompletionJobsFlag = false
+	zshCompletionNamespacesFlag = false
 	bashCompletionModeFlag = false
 	bashCompletionFlag = false
 	bashCompletionHostsFlag = false
 	bashCompletionTagsFlag = false
 	bashCompletionTasksFlag = false
-	bashCompletionJobsFlag = false
+	bashCompletionNamespacesFlag = false
 	aliasesFlag = false
 	execFlag = false
 	fileFlag = false
@@ -134,7 +134,7 @@ func initResources() {
 	workindDirVar = ""
 	configVar = ""
 	selectVar = []string{}
-	jobVar = ""
+	namespaceVar = ""
 	targetVar = []string{}
 	filterVar = []string{}
 	backendVar = ""
@@ -232,8 +232,8 @@ func Run(osArgs []string) (exitStatus int) {
 			allFlag = true
 		} else if arg == "--tasks" {
 			tasksFlag = true
-		} else if arg == "--jobs" {
-			jobsFlag = true
+		} else if arg == "--namespaces" {
+			namespacesFlag = true
 		} else if arg == "--select" {
 			if len(osArgs) < 2 {
 				printError("--select reguires an argument.")
@@ -269,8 +269,8 @@ func Run(osArgs []string) (exitStatus int) {
 		} else if arg == "--zsh-completion-tasks" {
 			zshCompletionTasksFlag = true
 			zshCompletionModeFlag = true
-		} else if arg == "--zsh-completion-jobs" {
-			zshCompletionJobsFlag = true
+		} else if arg == "--zsh-completion-namespaces" {
+			zshCompletionNamespacesFlag = true
 			zshCompletionModeFlag = true
 		} else if arg == "--bash-completion" {
 			bashCompletionFlag = true
@@ -284,8 +284,8 @@ func Run(osArgs []string) (exitStatus int) {
 		} else if arg == "--bash-completion-tasks" {
 			bashCompletionTasksFlag = true
 			bashCompletionModeFlag = true
-		} else if arg == "--bash-completion-jobs" {
-			bashCompletionJobsFlag = true
+		} else if arg == "--bash-completion-namespaces" {
+			bashCompletionNamespacesFlag = true
 			bashCompletionModeFlag = true
 		} else if arg == "--aliases" {
 			aliasesFlag = true
@@ -333,15 +333,15 @@ func Run(osArgs []string) (exitStatus int) {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--driver=") {
 			driverVar = strings.Split(arg, "=")[1]
-		} else if arg == "--job" {
+		} else if arg == "--namespace" {
 			if len(osArgs) < 2 {
-				printError("--job reguires an argument.")
+				printError("--namespace reguires an argument.")
 				return ExitErr
 			}
-			jobVar = osArgs[1]
+			namespaceVar = osArgs[1]
 			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--job=") {
-			jobVar = strings.Split(arg, "=")[1]
+		} else if strings.HasPrefix(arg, "--namespace=") {
+			namespaceVar = strings.Split(arg, "=")[1]
 		} else if arg == "--target" {
 			if len(osArgs) < 2 {
 				printError("--target reguires an argument.")
@@ -695,9 +695,9 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
-	if zshCompletionJobsFlag || bashCompletionJobsFlag {
-		for _, job := range SortedJobs() {
-			fmt.Printf("%s\n", ColonEscape(job.Name))
+	if zshCompletionNamespacesFlag || bashCompletionNamespacesFlag {
+		for _, namespace := range SortedNamespaces() {
+			fmt.Printf("%s\n", ColonEscape(namespace.Name))
 		}
 		return
 	}
@@ -711,13 +711,13 @@ func Run(osArgs []string) (exitStatus int) {
 
 		var filteredHosts []*Host
 
-		if jobVar != "" {
-			job := Namespaces[jobVar]
-			if job == nil {
-				printError(fmt.Errorf("not found '%s' job.", jobVar))
+		if namespaceVar != "" {
+			namespace := Namespaces[namespaceVar]
+			if namespace == nil {
+				printError(fmt.Errorf("not found '%s' namespace.", namespaceVar))
 			}
 
-			filteredHosts = NewHostQuery().SetDatasource(job.Hosts).AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
+			filteredHosts = NewHostQuery().SetDatasource(namespace.Hosts).AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
 		} else {
 			filteredHosts = NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
 		}
@@ -802,16 +802,16 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
-	if jobsFlag {
+	if namespacesFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
 			tb.SetHeader([]string{"NAME", "DESCRIPTION"})
 		}
-		for _, job := range SortedJobs() {
+		for _, namespace := range SortedNamespaces() {
 			if quietFlag {
-				tb.Append([]string{job.Name})
+				tb.Append([]string{namespace.Name})
 			} else {
-				tb.Append([]string{job.Name, job.Description})
+				tb.Append([]string{namespace.Name, namespace.Description})
 			}
 
 		}
@@ -969,7 +969,7 @@ func runTask(config string, task *Task, args []string, L *lua.LState) error {
 	if task.Namespace != nil {
 		if task.Namespace.Prepare != nil {
 			if debugFlag {
-				fmt.Printf("[essh debug] run job's prepare function.\n")
+				fmt.Printf("[essh debug] run namespace's prepare function.\n")
 			}
 
 			err := task.Namespace.Prepare()
@@ -978,7 +978,7 @@ func runTask(config string, task *Task, args []string, L *lua.LState) error {
 			}
 		}
 
-		// re generate ssh_config if it in a job
+		// re generate ssh_config if it in a namespace
 		hosts := NewHostQuery().SetDatasource(task.Namespace.Hosts).GetHostsOrderByName()
 		_, err := UpdateSSHConfig(config, hosts)
 		if err != nil {
@@ -1649,11 +1649,11 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
-func validateResources(tasks map[string]*Task, hosts map[string]*Host, job *Namespace) error {
+func validateResources(tasks map[string]*Task, hosts map[string]*Host, namespace *Namespace) error {
 	// check duplication of the host, task and tag names
 	for _, task := range tasks {
 		var taskName string
-		if job == nil {
+		if namespace == nil {
 			taskName = task.PublicName()
 		} else {
 			taskName = task.Name
@@ -1770,13 +1770,13 @@ Options:
   --hosts                       List hosts.
   --select <tag|host>           (Using with --hosts option) Get only the hosts filtered with tags or hosts.
   --filter <tag|host>           (Using with --hosts option) Filter selected hosts with tags or hosts.
-  --job <job>                   (Using with --hosts option) Get hosts from specific job.
+  --namespace <namespace>                   (Using with --hosts option) Get hosts from specific namespace.
   --ssh-config                  (Using with --hosts option) Output selected hosts as ssh_config format.
   --tasks                       List tasks.
   --all                         (Using with --tasks option) Show all that include hidden objects.
   --tags                        List tags.
-  --quiet                       (Using with --hosts, --tasks, --tags or --jobs option) Show only names.
-  --jobs                        List jobs.
+  --quiet                       (Using with --hosts, --tasks, --tags or --namespaces option) Show only names.
+  --namespaces                  List namespaces.
 
   (Manage Modules)
   --update                      Update modules.
@@ -1889,13 +1889,13 @@ _essh_tags() {
     _describe -t tag "tag" __essh_tags
 }
 
-_essh_jobs() {
-    local -a __essh_jobs
+_essh_namespaces() {
+    local -a __essh_namespaces
     PRE_IFS=$IFS
     IFS=$'\n'
-    __essh_jobs=($({{.Executable}} --zsh-completion-jobs))
+    __essh_namespaces=($({{.Executable}} --zsh-completion-namespaces))
     IFS=$PRE_IFS
-    _describe -t tag "job" __essh_jobs
+    _describe -t tag "namespace" __essh_namespaces
 }
 
 _essh_options() {
@@ -1916,7 +1916,7 @@ _essh_options() {
         '--hosts:List hosts.'
         '--tags:List tags.'
         '--tasks:List tasks.'
-        '--jobs:List jobs.'
+        '--namespaces:List namespaces.'
         '--debug:Output debug log.'
         '--exec:Execute commands with the hosts.'
         '--zsh-completion:Output zsh completion code.'
@@ -1933,7 +1933,7 @@ _essh_hosts_options() {
         '--quiet:Show only names.'
         '--select:Get only the hosts filtered with tags or hosts.'
         '--filter:Filter selected hosts with tags or hosts.'
-        '--job:Get hosts from specific job.'
+        '--namespace:Get hosts from specific namespace.'
         '--ssh-config:Output selected hosts as ssh_config format.'
      )
     _describe -t option "option" __essh_options
@@ -1949,7 +1949,7 @@ _essh_tasks_options() {
     _describe -t option "option" __essh_options
 }
 
-_essh_jobs_options() {
+_essh_namespaces_options() {
     local -a __essh_options
     __essh_options=(
         '--debug:Output debug log.'
@@ -2003,7 +2003,7 @@ _essh_backends() {
 
 _essh () {
     local curcontext="$curcontext" state line
-    local last_arg arg execMode hostsMode tasksMode tagsMode jobsMode
+    local last_arg arg execMode hostsMode tasksMode tagsMode namespacesMode
 
     typeset -A opt_args
 
@@ -2041,8 +2041,8 @@ _essh () {
                     --tags)
                         tagsMode="on"
                         ;;
-                    --jobs)
-                        jobsMode="on"
+                    --namespaces)
+                        namespacesMode="on"
                         ;;
                     *)
                         ;;
@@ -2059,8 +2059,8 @@ _essh () {
                     _essh_hosts
                     _essh_tags
                     ;;
-                --job)
-                    _essh_jobs
+                --namespace)
+                    _essh_namespaces
                     ;;
                 --backend)
                     _essh_backends
@@ -2077,8 +2077,8 @@ _essh () {
                         _essh_tasks_options
                     elif [ "$tagsMode" = "on" ]; then
                         _essh_tags_options
-                    elif [ "$jobsMode" = "on" ]; then
-                        _essh_jobs_options
+                    elif [ "$namespacesMode" = "on" ]; then
+                        _essh_namespaces_options
                     else
                         _essh_options
                         _files
@@ -2115,8 +2115,8 @@ _essh_hosts_and_tags() {
     COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-hosts) $({{.Executable}} --bash-completion-tags)" -- $cur) )
 }
 
-_essh_jobs() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-jobs)" -- $cur) )
+_essh_namespaces() {
+    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-namespaces)" -- $cur) )
 }
 
 _essh_registry_options() {
@@ -2138,7 +2138,7 @@ _essh_hosts_options() {
         --quiet
         --select
         --filter
-        --job
+        --namespace
         --ssh-config
     " -- $cur) )
 }
@@ -2151,7 +2151,7 @@ _essh_tasks_options() {
     " -- $cur) )
 }
 
-_essh_jobs_options() {
+_essh_namespaces_options() {
     COMPREPLY=( $(compgen -W "
         --debug
         --quiet
@@ -2200,7 +2200,7 @@ _essh_options() {
         --hosts
         --tags
         --tasks
-        --jobs
+        --namespaces
         --debug
         --exec
         --zsh-completion
@@ -2212,7 +2212,7 @@ _essh_options() {
 _essh() {
     COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
 
-    local last_arg arg execMode hostsMode tasksMode tagsMode jobsMode
+    local last_arg arg execMode hostsMode tasksMode tagsMode namespacesMode
 
     local cur=${COMP_WORDS[COMP_CWORD]}
     case "$COMP_CWORD" in
@@ -2242,8 +2242,8 @@ _essh() {
                     --tags)
                         tagsMode="on"
                         ;;
-                    --jobs)
-                        jobsMode="on"
+                    --namespaces)
+                        namespacesMode="on"
                         ;;
                     *)
                         ;;
@@ -2258,8 +2258,8 @@ _essh() {
                 --select|--target|--filter)
                     _essh_hosts_and_tags
                     ;;
-                --job)
-                    _essh_jobs
+                --namespace)
+                    _essh_namespaces
                     ;;
                 --backend)
                     _essh_backends
@@ -2276,8 +2276,8 @@ _essh() {
                         _essh_tasks_options
                     elif [ "$tagsMode" = "on" ]; then
                         _essh_tags_options
-                    elif [ "$jobsMode" = "on" ]; then
-                        _essh_jobs_options
+                    elif [ "$namespacesMode" = "on" ]; then
+                        _essh_namespaces_options
                     else
                         _essh_options
                     fi

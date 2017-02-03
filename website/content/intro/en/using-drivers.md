@@ -166,4 +166,4 @@ This code outputs the result like the following.
 
 For more information on drivers, see the [Drivers](/docs/en/drivers.html) section.
 
-Let's read next section: [Defining Jobs](defining-jobs.html).
+Let's read next section: [Defining Namespaces](defining-namespaces.html).

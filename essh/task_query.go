@@ -10,13 +10,13 @@ type TaskQuery struct {
 }
 
 func NewTaskQuery() *TaskQuery {
-	// merge tasks and job's tasks
+	// merge tasks and namespace's tasks
 	datasource := Tasks
 
 	if len(Namespaces) > 0 {
-		for _, job := range Namespaces {
+		for _, namespace := range Namespaces {
 
-			for _, task := range job.Tasks {
+			for _, task := range namespace.Tasks {
 				datasource[task.PublicName()] = task
 			}
 		}
@@ -68,9 +68,9 @@ func (taskQuery *TaskQuery) getTasksList() []*Task {
 	return tasksSlice
 }
 
-func GetEnabledTask(name string, jobName string) *Task {
-	if jobName != "" && !strings.Contains(name, ":") && jobName != DefaultNamespaceName {
-		name = jobName + ":" + name
+func GetEnabledTask(name string, namespaceName string) *Task {
+	if namespaceName != "" && !strings.Contains(name, ":") && namespaceName != DefaultNamespaceName {
+		name = namespaceName + ":" + name
 	}
 
 	for _, t := range NewTaskQuery().GetTasksOrderByName() {

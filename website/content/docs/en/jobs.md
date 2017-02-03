@@ -1,23 +1,23 @@
 +++
-title = "Jobs | Documentation"
+title = "Namespaces | Documentation"
 type = "docs"
 category = "docs"
 lang = "en"
-basename = "jobs.html"
+basename = "namespaces.html"
 +++
 
-# Jobs
+# Namespaces
 
-Jobs in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a job can be used only by the tasks in the same job.
+Namespaces in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a namespace can be used only by the tasks in the same namespace.
 
 ## Example
 
 ~~~lua
-job "myjob" {
-    -- define description of the job
-    description = "this is my job",
+namespace "mynamespace" {
+    -- define description of the namespace
+    description = "this is my namespace",
     
-    -- If you set it true, defined tasks in this job are hidden at default.
+    -- If you set it true, defined tasks in this namespace are hidden at default.
     hidden = false,
     
     -- prepare function 
@@ -58,7 +58,7 @@ job "myjob" {
 You can also define hosts, drivers and tasks by using tables. see below example:
 
 ~~~lua
-job "myjob" {
+namespace "mynamespace" {
     hosts = {
         ["web01.localhost"] = {
             -- ...
@@ -87,20 +87,20 @@ job "myjob" {
 }
 ~~~
 
-## Running job's task
+## Running namespace's task
 
-A Job’s tasks have a prefix that is their job’s name, So you can run the task like the following
+A Namespace’s tasks have a prefix that is their namespace’s name, So you can run the task like the following
 
 ~~~
-$ essh myjob:foo
+$ essh mynamespace:foo
 ~~~
 
-## Default job 
+## Default namespace 
 
-If you define `default` job like the following. This job's tasks can be run without prefix.
+If you define `default` namespace like the following. This namespace's tasks can be run without prefix.
 
 ~~~lua
-job "default" {
+namespace "default" {
     task "foo" {
         -- ...
     }

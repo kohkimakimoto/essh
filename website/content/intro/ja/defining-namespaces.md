@@ -3,7 +3,7 @@ title = "ジョブを定義する | イントロダクション"
 type = "docs"
 category = "intro"
 lang = "ja"
-basename = "defining-jobs.html"
+basename = "defining-namespaces.html"
 +++
 
 # ジョブを定義する
@@ -13,7 +13,7 @@ Esshのジョブはタスク、ホスト、ドライバをカプセル化しま�
 `esshconfig.lua`を編集してください。
 
 ~~~lua
-job "myjob" {
+namespace "mynamespace" {
     host "web01.localhost" {
         ForwardAgent = "yes",
         HostName = "192.168.0.11",
@@ -49,10 +49,10 @@ job "myjob" {
 ジョブのタスクには、ジョブの名前でプレフィックスが付きます。そのため以下のようにしてタスクを実行します。
 
 ~~~
-$ essh myjob:hello
+$ essh mynamespace:hello
 ~~~
 
-ジョブの詳細については、[ジョブ](/docs/ja/jobs.html)のセクションを参照してください。
+ジョブの詳細については、[ジョブ](/docs/ja/namespaces.html)のセクションを参照してください。
 
 ## 次のステップ
 

@@ -32,38 +32,38 @@ func NewNamespace() *Namespace {
 	}
 }
 
-func (job *Namespace) DescriptionOrDefault() string {
-	if job.Description == "" {
-		return job.Name + " job"
+func (namespace *Namespace) DescriptionOrDefault() string {
+	if namespace.Description == "" {
+		return namespace.Name + " namespace"
 	}
 
-	return job.Description
+	return namespace.Description
 }
 
-func (job *Namespace) RegisterHost(host *Host) {
-	job.Hosts[host.Name] = host
-	host.Job = job
+func (namespace *Namespace) RegisterHost(host *Host) {
+	namespace.Hosts[host.Name] = host
+	host.Namespace = namespace
 	removeHostInGlobalSpace(host)
 }
 
-func (job *Namespace) RegisterTask(task *Task) {
-	job.Tasks[task.Name] = task
-	task.Namespace = job
+func (namespace *Namespace) RegisterTask(task *Task) {
+	namespace.Tasks[task.Name] = task
+	task.Namespace = namespace
 	removeTaskInGlobalSpace(task)
 }
 
-func (job *Namespace) RegisterDriver(driver *Driver) {
-	job.Drivers[driver.Name] = driver
-	driver.Namespace = job
+func (namespace *Namespace) RegisterDriver(driver *Driver) {
+	namespace.Drivers[driver.Name] = driver
+	driver.Namespace = namespace
 	removeDriverInGlobalSpace(driver)
 }
 
-func (job *Namespace) SortedTasks() []*Task {
+func (namespace *Namespace) SortedTasks() []*Task {
 	names := []string{}
 	namesMap := map[string]bool{}
 	tasks := []*Task{}
 
-	for name, _ := range job.Tasks {
+	for name, _ := range namespace.Tasks {
 		if namesMap[name] {
 			// already registerd to names
 			continue
@@ -84,10 +84,10 @@ func (job *Namespace) SortedTasks() []*Task {
 	return tasks
 }
 
-func SortedJobs() []*Namespace {
+func SortedNamespaces() []*Namespace {
 	names := []string{}
 	namesMap := map[string]bool{}
-	jobs := []*Namespace{}
+	namespaces := []*Namespace{}
 
 	for name, _ := range Namespaces {
 		if namesMap[name] {
@@ -103,9 +103,9 @@ func SortedJobs() []*Namespace {
 
 	for _, name := range names {
 		if j, ok := Namespaces[name]; ok {
-			jobs = append(jobs, j)
+			namespaces = append(namespaces, j)
 		}
 	}
 
-	return jobs
+	return namespaces
 }

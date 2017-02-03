@@ -20,7 +20,7 @@ EsshはLuaで書かれた設定ファイルを読み込むために[GopherLua](h
 
 * `driver`: ドライバを定義します。[ドライバ](/docs/ja/drivers.html)を参照してください。
 
-* `job`: ジョブを定義します。[ジョブ](/docs/ja/jobs.html)を参照してください。
+* `namespace`: ジョブを定義します。[ジョブ](/docs/ja/namespaces.html)を参照してください。
 
 * `import`: モジュールをインポートします。[モジュール](/docs/ja/modules.html)を参照してください。
 
@@ -113,10 +113,10 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
     end
     ~~~
 
-* `get_job` (function): ジョブを取得します。以下の例を参照してください。
+* `get_namespace` (function): ジョブを取得します。以下の例を参照してください。
 
     ~~~lua
-    for _, h in pairs(essh.get_job("myjob"):select_hosts():get()) do
+    for _, h in pairs(essh.get_namespace("mynamespace"):select_hosts():get()) do
         if h.ForwardAgent == nil then
             h.ForwardAgent = "yes"
         end
@@ -135,7 +135,7 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
 
 * `driver` (function): `driver` 関数のエイリアス。
 
-* `job` (function): `job` 関数のエイリアス。
+* `namespace` (function): `namespace` 関数のエイリアス。
 
 * `import` (function): `import` 関数のエイリアス。
 

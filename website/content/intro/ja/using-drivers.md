@@ -166,4 +166,4 @@ task "example" {
 
 ドライバの詳細については、[ドライバ](/docs/ja/drivers.html)のセクションを参照してください。
 
-次のセクションに進みましょう: [ジョブを定義する](defining-jobs.html)
+次のセクションに進みましょう: [ジョブを定義する](defining-namespaces.html)
