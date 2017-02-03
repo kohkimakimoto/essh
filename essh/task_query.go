@@ -13,8 +13,8 @@ func NewTaskQuery() *TaskQuery {
 	// merge tasks and job's tasks
 	datasource := Tasks
 
-	if len(Jobs) > 0 {
-		for _, job := range Jobs {
+	if len(Namespaces) > 0 {
+		for _, job := range Namespaces {
 
 			for _, task := range job.Tasks {
 				datasource[task.PublicName()] = task
@@ -69,7 +69,7 @@ func (taskQuery *TaskQuery) getTasksList() []*Task {
 }
 
 func GetEnabledTask(name string, jobName string) *Task {
-	if jobName != "" && !strings.Contains(name, ":") && jobName != DefaultJobName {
+	if jobName != "" && !strings.Contains(name, ":") && jobName != DefaultNamespaceName {
 		name = jobName + ":" + name
 	}
 

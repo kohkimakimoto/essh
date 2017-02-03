@@ -150,7 +150,7 @@ func initResources() {
 	Hosts = map[string]*Host{}
 	Tasks = map[string]*Task{}
 	Drivers = map[string]*Driver{}
-	Jobs = map[string]*Job{}
+	Namespaces = map[string]*Namespace{}
 
 	// set built-in drivers
 	driver := NewDriver()
@@ -660,7 +660,7 @@ func Run(osArgs []string) (exitStatus int) {
 	if zshCompletionTasksFlag {
 		for _, t := range NewTaskQuery().GetTasksOrderByName() {
 			hidden := false
-			if t.Job != nil && t.Job.Hidden {
+			if t.Namespace != nil && t.Namespace.Hidden {
 				hidden = true
 			} else {
 				hidden = t.Hidden
@@ -675,7 +675,7 @@ func Run(osArgs []string) (exitStatus int) {
 	if bashCompletionTasksFlag {
 		for _, t := range NewTaskQuery().GetTasksOrderByName() {
 			hidden := false
-			if t.Job != nil && t.Job.Hidden {
+			if t.Namespace != nil && t.Namespace.Hidden {
 				hidden = true
 			} else {
 				hidden = t.Hidden
@@ -712,7 +712,7 @@ func Run(osArgs []string) (exitStatus int) {
 		var filteredHosts []*Host
 
 		if jobVar != "" {
-			job := Jobs[jobVar]
+			job := Namespaces[jobVar]
 			if job == nil {
 				printError(fmt.Errorf("not found '%s' job.", jobVar))
 			}
@@ -784,7 +784,7 @@ func Run(osArgs []string) (exitStatus int) {
 		}
 		for _, t := range NewTaskQuery().GetTasksOrderByName() {
 			hidden := false
-			if t.Job != nil && t.Job.Hidden {
+			if t.Namespace != nil && t.Namespace.Hidden {
 				hidden = true
 			} else {
 				hidden = t.Hidden
@@ -966,26 +966,26 @@ func runTask(config string, task *Task, args []string, L *lua.LState) error {
 		fmt.Printf("[essh debug] task's args: %v\n", args)
 	}
 
-	if task.Job != nil {
-		if task.Job.Prepare != nil {
+	if task.Namespace != nil {
+		if task.Namespace.Prepare != nil {
 			if debugFlag {
 				fmt.Printf("[essh debug] run job's prepare function.\n")
 			}
 
-			err := task.Job.Prepare()
+			err := task.Namespace.Prepare()
 			if err != nil {
 				return err
 			}
 		}
 
 		// re generate ssh_config if it in a job
-		hosts := NewHostQuery().SetDatasource(task.Job.Hosts).GetHostsOrderByName()
+		hosts := NewHostQuery().SetDatasource(task.Namespace.Hosts).GetHostsOrderByName()
 		_, err := UpdateSSHConfig(config, hosts)
 		if err != nil {
 			return err
 		}
 
-		if err := validateResources(task.Job.Tasks, task.Job.Hosts, task.Job); err != nil {
+		if err := validateResources(task.Namespace.Tasks, task.Namespace.Hosts, task.Namespace); err != nil {
 			return err
 		}
 	}
@@ -1020,9 +1020,9 @@ func runTask(config string, task *Task, args []string, L *lua.LState) error {
 		if len(task.TargetsSlice()) == 0 {
 			hosts = []*Host{}
 		} else {
-			if task.Job != nil {
+			if task.Namespace != nil {
 				hosts = NewHostQuery().
-					SetDatasource(task.Job.Hosts).
+					SetDatasource(task.Namespace.Hosts).
 					AppendSelections(task.TargetsSlice()).
 					AppendFilters(task.FiltersSlice()).
 					GetHostsOrderByName()
@@ -1076,9 +1076,9 @@ func runTask(config string, task *Task, args []string, L *lua.LState) error {
 		if len(task.TargetsSlice()) == 0 {
 			hosts = []*Host{}
 		} else {
-			if task.Job != nil {
+			if task.Namespace != nil {
 				hosts = NewHostQuery().
-					SetDatasource(task.Job.Hosts).
+					SetDatasource(task.Namespace.Hosts).
 					AppendSelections(task.TargetsSlice()).
 					AppendFilters(task.FiltersSlice()).
 					GetHostsOrderByName()
@@ -1158,8 +1158,8 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 	}
 
 	var drivers map[string]*Driver
-	if task.Job != nil {
-		drivers = task.Job.Drivers
+	if task.Namespace != nil {
+		drivers = task.Namespace.Drivers
 	} else {
 		drivers = Drivers
 	}
@@ -1295,8 +1295,8 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 	}
 
 	var drivers map[string]*Driver
-	if task.Job != nil {
-		drivers = task.Job.Drivers
+	if task.Namespace != nil {
+		drivers = task.Namespace.Drivers
 	} else {
 		drivers = Drivers
 	}
@@ -1649,7 +1649,7 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
-func validateResources(tasks map[string]*Task, hosts map[string]*Host, job *Job) error {
+func validateResources(tasks map[string]*Task, hosts map[string]*Host, job *Namespace) error {
 	// check duplication of the host, task and tag names
 	for _, task := range tasks {
 		var taskName string

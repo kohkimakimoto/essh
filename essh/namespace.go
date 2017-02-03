@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-type Job struct {
+type Namespace struct {
 	Name        string
 	Description string
 	// Props       map[string]string
@@ -17,12 +17,12 @@ type Job struct {
 	LValues map[string]lua.LValue
 }
 
-var Jobs map[string]*Job
+var Namespaces map[string]*Namespace
 
-var DefaultJobName = "default"
+var DefaultNamespaceName = "default"
 
-func NewJob() *Job {
-	return &Job{
+func NewNamespace() *Namespace {
+	return &Namespace{
 		Hosts: map[string]*Host{},
 		Tasks: map[string]*Task{},
 		Drivers: map[string]*Driver{
@@ -32,7 +32,7 @@ func NewJob() *Job {
 	}
 }
 
-func (job *Job) DescriptionOrDefault() string {
+func (job *Namespace) DescriptionOrDefault() string {
 	if job.Description == "" {
 		return job.Name + " job"
 	}
@@ -40,25 +40,25 @@ func (job *Job) DescriptionOrDefault() string {
 	return job.Description
 }
 
-func (job *Job) RegisterHost(host *Host) {
+func (job *Namespace) RegisterHost(host *Host) {
 	job.Hosts[host.Name] = host
 	host.Job = job
 	removeHostInGlobalSpace(host)
 }
 
-func (job *Job) RegisterTask(task *Task) {
+func (job *Namespace) RegisterTask(task *Task) {
 	job.Tasks[task.Name] = task
-	task.Job = job
+	task.Namespace = job
 	removeTaskInGlobalSpace(task)
 }
 
-func (job *Job) RegisterDriver(driver *Driver) {
+func (job *Namespace) RegisterDriver(driver *Driver) {
 	job.Drivers[driver.Name] = driver
-	driver.Job = job
+	driver.Namespace = job
 	removeDriverInGlobalSpace(driver)
 }
 
-func (job *Job) SortedTasks() []*Task {
+func (job *Namespace) SortedTasks() []*Task {
 	names := []string{}
 	namesMap := map[string]bool{}
 	tasks := []*Task{}
@@ -84,12 +84,12 @@ func (job *Job) SortedTasks() []*Task {
 	return tasks
 }
 
-func SortedJobs() []*Job {
+func SortedJobs() []*Namespace {
 	names := []string{}
 	namesMap := map[string]bool{}
-	jobs := []*Job{}
+	jobs := []*Namespace{}
 
-	for name, _ := range Jobs {
+	for name, _ := range Namespaces {
 		if namesMap[name] {
 			// already registerd to names
 			continue
@@ -102,7 +102,7 @@ func SortedJobs() []*Job {
 	sort.Strings(names)
 
 	for _, name := range names {
-		if j, ok := Jobs[name]; ok {
+		if j, ok := Namespaces[name]; ok {
 			jobs = append(jobs, j)
 		}
 	}

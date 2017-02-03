@@ -24,7 +24,7 @@ type Task struct {
 	Prefix    string
 	UsePrefix bool
 	Registry  *Registry
-	Job       *Job
+	Namespace *Namespace
 	Args      []string
 	LValues   map[string]lua.LValue
 	Parent    *Task
@@ -63,12 +63,12 @@ func (t *Task) MapLValuesToLTable(tb *lua.LTable) {
 }
 
 func (t *Task) PublicName() string {
-	if t.Job != nil && t.Job.Name != DefaultJobName {
+	if t.Namespace != nil && t.Namespace.Name != DefaultNamespaceName {
 		if t.Name == DefaultTaskName {
-			return t.Job.Name
+			return t.Namespace.Name
 		}
 
-		return t.Job.Name + ":" + t.Name
+		return t.Namespace.Name + ":" + t.Name
 	}
 
 	return t.Name

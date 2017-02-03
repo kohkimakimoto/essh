@@ -31,8 +31,11 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
-	L.SetGlobal("job", L.NewFunction(esshJob))
+	L.SetGlobal("namespace", L.NewFunction(esshNamespace))
 	L.SetGlobal("import", L.NewFunction(esshImport))
+
+	// temporary code for BC
+	L.SetGlobal("job", L.NewFunction(esshNamespace))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -54,11 +57,11 @@ func InitLuaState(L *lua.LState) {
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
-		"host":   esshHost,
-		"task":   esshTask,
-		"driver": esshDriver,
-		"job":    esshJob,
-		"import": esshImport,
+		"host":      esshHost,
+		"task":      esshTask,
+		"driver":    esshDriver,
+		"namespace": esshNamespace,
+		"import":    esshImport,
 
 		// utility functions
 		"debug":            esshDebug,
@@ -186,13 +189,13 @@ func esshDriver(L *lua.LState) int {
 	panic("driver requires 1 or 2 arguments")
 }
 
-func esshJob(L *lua.LState) int {
+func esshNamespace(L *lua.LState) int {
 	first := L.CheckAny(1)
 	if tb, ok := toLTable(first); ok {
-		name := DefaultJobName
-		j := registerJob(L, name)
-		setupJob(L, j, tb)
-		L.Push(newLJob(L, j))
+		name := DefaultNamespaceName
+		j := registerNamespace(L, name)
+		setupNamespace(L, j, tb)
+		L.Push(newLNamespace(L, j))
 
 		return 1
 	}
@@ -200,21 +203,21 @@ func esshJob(L *lua.LState) int {
 	name := L.CheckString(1)
 	if L.GetTop() == 1 {
 		// object or DSL style
-		j := registerJob(L, name)
-		L.Push(newLJob(L, j))
+		j := registerNamespace(L, name)
+		L.Push(newLNamespace(L, j))
 
 		return 1
 	} else if L.GetTop() == 2 {
 		// function style
 		tb := L.CheckTable(2)
-		j := registerJob(L, name)
-		setupJob(L, j, tb)
-		L.Push(newLJob(L, j))
+		j := registerNamespace(L, name)
+		setupNamespace(L, j, tb)
+		L.Push(newLNamespace(L, j))
 
 		return 1
 	}
 
-	panic("job requires 1 or 2 arguments")
+	panic("namespace requires 1 or 2 arguments")
 }
 
 func esshImport(L *lua.LState) int {
@@ -280,11 +283,11 @@ func esshSelectHosts(L *lua.LState) int {
 		panic("select_hosts can receive max 2 argument.")
 	}
 
-	var job *Job
+	var job *Namespace
 
 	first := L.Get(1)
 	if ud, ok := first.(*lua.LUserData); ok {
-		if v, ok := ud.Value.(*Job); ok {
+		if v, ok := ud.Value.(*Namespace); ok {
 			job = v
 		} else {
 			panic("expected a job but got an other userdata.")
@@ -339,8 +342,8 @@ func esshSelectHosts(L *lua.LState) int {
 
 func esshJobs(L *lua.LState) int {
 	tb := L.NewTable()
-	for _, job := range Jobs {
-		tb.Append(newLJob(L, job))
+	for _, job := range Namespaces {
+		tb.Append(newLNamespace(L, job))
 	}
 
 	L.Push(tb)
@@ -349,13 +352,13 @@ func esshJobs(L *lua.LState) int {
 
 func esshGetJob(L *lua.LState) int {
 	name := L.CheckString(1)
-	job := Jobs[name]
+	job := Namespaces[name]
 	if job == nil {
 		L.Push(lua.LNil)
 		return 1
 	}
 
-	L.Push(newLJob(L, job))
+	L.Push(newLNamespace(L, job))
 	return 1
 }
 
@@ -419,15 +422,15 @@ func registerDriver(L *lua.LState, name string) *Driver {
 	return d
 }
 
-func registerJob(L *lua.LState, name string) *Job {
+func registerNamespace(L *lua.LState, name string) *Namespace {
 	if debugFlag {
 		fmt.Printf("[essh debug] register job: %s\n", name)
 	}
 
-	j := NewJob()
+	j := NewNamespace()
 	j.Name = name
 
-	Jobs[j.Name] = j
+	Namespaces[j.Name] = j
 
 	return j
 }
@@ -1313,16 +1316,16 @@ func registerJobClass(L *lua.LState) {
 	mt.RawSetString("__newindex", L.NewFunction(jobNewindex))
 }
 
-func newLJob(L *lua.LState, job *Job) *lua.LUserData {
+func newLNamespace(L *lua.LState, job *Namespace) *lua.LUserData {
 	ud := L.NewUserData()
 	ud.Value = job
 	L.SetMetatable(ud, L.GetTypeMetatable(LJobClass))
 	return ud
 }
 
-func checkJob(L *lua.LState) *Job {
+func checkJob(L *lua.LState) *Namespace {
 	ud := L.CheckUserData(1)
-	if v, ok := ud.Value.(*Job); ok {
+	if v, ok := ud.Value.(*Namespace); ok {
 		return v
 	}
 	L.ArgError(1, "Job object expected")
@@ -1333,7 +1336,7 @@ func jobCall(L *lua.LState) int {
 	job := checkJob(L)
 	tb := L.CheckTable(2)
 
-	setupJob(L, job, tb)
+	setupNamespace(L, job, tb)
 
 	return 0
 }
@@ -1371,7 +1374,7 @@ func jobNewindex(L *lua.LState) int {
 	return 0
 }
 
-func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
+func setupNamespace(L *lua.LState, job *Namespace, config *lua.LTable) {
 	// guarantee evaluating a key/value dictionary at first.
 	config.ForEach(func(k, v lua.LValue) {
 		if kstr, ok := toString(k); ok {
@@ -1444,7 +1447,7 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 	})
 }
 
-func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
+func updateJob(L *lua.LState, job *Namespace, key string, value lua.LValue) {
 	job.LValues[key] = value
 
 	switch key {
@@ -1467,7 +1470,7 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 					Fn:      prepareFn,
 					NRet:    1,
 					Protect: false,
-				}, newLJob(L, job))
+				}, newLNamespace(L, job))
 				if err != nil {
 					return err
 				}
