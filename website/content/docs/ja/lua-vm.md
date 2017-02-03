@@ -20,7 +20,7 @@ EsshはLuaで書かれた設定ファイルを読み込むために[GopherLua](h
 
 * `driver`: ドライバを定義します。[ドライバ](/docs/ja/drivers.html)を参照してください。
 
-* `namespace`: ジョブを定義します。[ジョブ](/docs/ja/namespaces.html)を参照してください。
+* `namespace`: ネームスペースを定義します。[ネームスペース](/docs/ja/namespaces.html)を参照してください。
 
 * `import`: モジュールをインポートします。[モジュール](/docs/ja/modules.html)を参照してください。
 
@@ -113,7 +113,7 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
     end
     ~~~
 
-* `get_namespace` (function): ジョブを取得します。以下の例を参照してください。
+* `get_namespace` (function): ネームスペースを取得します。以下の例を参照してください。
 
     ~~~lua
     for _, h in pairs(essh.get_namespace("mynamespace"):select_hosts():get()) do
