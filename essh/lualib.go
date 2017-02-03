@@ -69,6 +69,10 @@ func InitLuaState(L *lua.LState) {
 		"namespaces":       esshNamespaces,
 		"get_namespace":    esshGetNamespace,
 		"current_registry": esshCurrentRegistry,
+
+		// temporary code for BC
+		"jobs":    esshNamespaces,
+		"get_job": esshGetNamespace,
 	})
 }
 
