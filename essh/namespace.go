@@ -8,7 +8,6 @@ import (
 type Namespace struct {
 	Name        string
 	Description string
-	// Props       map[string]string
 	Hidden  bool
 	Prepare func() error
 	Hosts   map[string]*Host

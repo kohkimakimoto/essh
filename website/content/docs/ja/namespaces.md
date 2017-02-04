@@ -14,17 +14,6 @@ Namespaces in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that 
 
 ~~~lua
 namespace "mynamespace" {
-    -- define description of the namespace
-    description = "this is my namespace",
-    
-    -- If you set it true, defined tasks in this namespace are hidden at default.
-    hidden = false,
-    
-    -- prepare function 
-    prepare = function()
-    
-    end,
-    
     -- defining hosts
     host "web01.localhost" {
         -- ...
@@ -51,7 +40,6 @@ namespace "mynamespace" {
     task "bar" {
         -- ...
     },
-    
 }
 ~~~
 
@@ -67,6 +55,7 @@ namespace "mynamespace" {
             -- ...
         },
     },
+
     drivers = {
         ["default"] = {
             -- ...
@@ -75,6 +64,7 @@ namespace "mynamespace" {
             -- ...
         },
     }
+
     tasks = {
         ["foo"] = {
             --- ...
@@ -83,7 +73,6 @@ namespace "mynamespace" {
             --- ...
         }
     }
-    
 }
 ~~~
 

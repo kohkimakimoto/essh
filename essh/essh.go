@@ -898,7 +898,7 @@ func Run(osArgs []string) (exitStatus int) {
 		// try to get a task.
 		if len(args) > 0 {
 			taskName := args[0]
-			task := GetEnabledTask(taskName, os.Getenv("ESSH_JOB_NAME"))
+			task := GetEnabledTask(taskName, os.Getenv("ESSH_NAMESPACE_NAME"))
 			if task != nil {
 				var taskargs []string
 				if len(args) >= 2 {
@@ -1770,7 +1770,7 @@ Options:
   --hosts                       List hosts.
   --select <tag|host>           (Using with --hosts option) Get only the hosts filtered with tags or hosts.
   --filter <tag|host>           (Using with --hosts option) Filter selected hosts with tags or hosts.
-  --namespace <namespace>                   (Using with --hosts option) Get hosts from specific namespace.
+  --namespace <namespace>       (Using with --hosts option) Get hosts from specific namespace.
   --ssh-config                  (Using with --hosts option) Output selected hosts as ssh_config format.
   --tasks                       List tasks.
   --all                         (Using with --tasks option) Show all that include hidden objects.
