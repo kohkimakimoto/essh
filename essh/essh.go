@@ -805,15 +805,10 @@ func Run(osArgs []string) (exitStatus int) {
 	if namespacesFlag {
 		tb := helper.NewPlainTable(os.Stdout)
 		if !quietFlag {
-			tb.SetHeader([]string{"NAME", "DESCRIPTION"})
+			tb.SetHeader([]string{"NAME"})
 		}
 		for _, namespace := range SortedNamespaces() {
-			if quietFlag {
 				tb.Append([]string{namespace.Name})
-			} else {
-				tb.Append([]string{namespace.Name, namespace.Description})
-			}
-
 		}
 		tb.Render()
 
