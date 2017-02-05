@@ -1455,48 +1455,6 @@ func updateNamespace(L *lua.LState, namespace *Namespace, key string, value lua.
 	namespace.LValues[key] = value
 
 	switch key {
-	case "description":
-		if descStr, ok := toString(value); ok {
-			namespace.Description = descStr
-		} else {
-			panic("invalid value of a namespace's field '" + key + "'.")
-		}
-	case "hidden":
-		if hiddenBool, ok := toBool(value); ok {
-			namespace.Hidden = hiddenBool
-		} else {
-			panic("invalid value of a namespace's field '" + key + "'.")
-		}
-	case "prepare":
-		if prepareFn, ok := value.(*lua.LFunction); ok {
-			namespace.Prepare = func() error {
-				err := L.CallByParam(lua.P{
-					Fn:      prepareFn,
-					NRet:    1,
-					Protect: false,
-				}, newLNamespace(L, namespace))
-				if err != nil {
-					return err
-				}
-
-				ret := L.Get(-1) // returned value
-				L.Pop(1)
-
-				if ret == lua.LNil {
-					return nil
-				} else if retB, ok := ret.(lua.LBool); ok {
-					if retB {
-						return nil
-					} else {
-						return fmt.Errorf("returned false from the prepare function.")
-					}
-				}
-
-				return nil
-			}
-		} else {
-			L.RaiseError("prepare have to be a function.")
-		}
 	case "hosts":
 		if tb, ok := toLTable(value); ok {
 			// initialize

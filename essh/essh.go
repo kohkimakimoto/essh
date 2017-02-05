@@ -659,12 +659,7 @@ func Run(osArgs []string) (exitStatus int) {
 	// show tasks for zsh completion
 	if zshCompletionTasksFlag {
 		for _, t := range NewTaskQuery().GetTasksOrderByName() {
-			hidden := false
-			if t.Namespace != nil && t.Namespace.Hidden {
-				hidden = true
-			} else {
-				hidden = t.Hidden
-			}
+			hidden := t.Hidden
 			if !t.Disabled && !hidden {
 				fmt.Printf("%s\t%s\n", ColonEscape(t.PublicName()), ColonEscape(t.DescriptionOrDefault()))
 			}
@@ -674,13 +669,7 @@ func Run(osArgs []string) (exitStatus int) {
 
 	if bashCompletionTasksFlag {
 		for _, t := range NewTaskQuery().GetTasksOrderByName() {
-			hidden := false
-			if t.Namespace != nil && t.Namespace.Hidden {
-				hidden = true
-			} else {
-				hidden = t.Hidden
-			}
-
+			hidden := t.Hidden
 			if !t.Disabled && !hidden {
 				fmt.Printf("%s\n", ColonEscape(t.PublicName()))
 			}
@@ -783,12 +772,7 @@ func Run(osArgs []string) (exitStatus int) {
 			tb.SetHeader([]string{"NAME", "DESCRIPTION", "HIDDEN"})
 		}
 		for _, t := range NewTaskQuery().GetTasksOrderByName() {
-			hidden := false
-			if t.Namespace != nil && t.Namespace.Hidden {
-				hidden = true
-			} else {
-				hidden = t.Hidden
-			}
+			hidden := t.Hidden
 			if (!hidden && !t.Disabled) || allFlag {
 				if quietFlag {
 					tb.Append([]string{t.PublicName()})
@@ -962,17 +946,6 @@ func runTask(config string, task *Task, args []string, L *lua.LState) error {
 	}
 
 	if task.Namespace != nil {
-		if task.Namespace.Prepare != nil {
-			if debugFlag {
-				fmt.Printf("[essh debug] run namespace's prepare function.\n")
-			}
-
-			err := task.Namespace.Prepare()
-			if err != nil {
-				return err
-			}
-		}
-
 		// re generate ssh_config if it in a namespace
 		hosts := NewHostQuery().SetDatasource(task.Namespace.Hosts).GetHostsOrderByName()
 		_, err := UpdateSSHConfig(config, hosts)

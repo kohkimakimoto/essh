@@ -7,9 +7,6 @@ import (
 
 type Namespace struct {
 	Name        string
-	Description string
-	Hidden  bool
-	Prepare func() error
 	Hosts   map[string]*Host
 	Tasks   map[string]*Task
 	Drivers map[string]*Driver
@@ -29,14 +26,6 @@ func NewNamespace() *Namespace {
 		},
 		LValues: map[string]lua.LValue{},
 	}
-}
-
-func (namespace *Namespace) DescriptionOrDefault() string {
-	if namespace.Description == "" {
-		return namespace.Name + " namespace"
-	}
-
-	return namespace.Description
 }
 
 func (namespace *Namespace) RegisterHost(host *Host) {
