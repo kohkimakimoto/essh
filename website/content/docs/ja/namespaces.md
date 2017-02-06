@@ -8,7 +8,7 @@ basename = "namespaces.html"
 
 # ネームスペース
 
-Namespaces in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a namespace can be used only by the tasks in the same namespace.
+Esshのネームスペースは、タスク、ホスト、ドライバをカプセル化します。名前空間に定義されているホストとドライバは、同じ名前空間内のタスクでのみ使用できます。
 
 ## Example
 
