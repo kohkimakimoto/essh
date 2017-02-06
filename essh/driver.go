@@ -10,14 +10,15 @@ import (
 )
 
 type Driver struct {
-	Name     string
-	Props    map[string]interface{}
-	Engine   func(*Driver) (string, error)
-	Registry *Registry
-	Job      *Job
-	LValues  map[string]lua.LValue
-	Parent   *Driver
-	Child    *Driver
+	Name      string
+	Props     map[string]interface{}
+	Engine    func(*Driver) (string, error)
+	Registry  *Registry
+	Namespace *Namespace
+	Group     *Group
+	LValues   map[string]lua.LValue
+	Parent    *Driver
+	Child     *Driver
 }
 
 var Drivers map[string]*Driver
@@ -104,8 +105,8 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 }
 
 const EnvironmentTemplate = `{{define "environment" -}}
-{{if .Task.Job -}}
-export ESSH_JOB_NAME={{.Task.Job.Name | ShellEscape}}
+{{if .Task.Namespace -}}
+export ESSH_NAMESPACE_NAME={{.Task.Namespace.Name | ShellEscape}}
 {{end -}}
 export ESSH_TASK_NAME={{.Task.Name | ShellEscape}}
 export ESSH_SSH_CONFIG={{.SSHConfigPath}}

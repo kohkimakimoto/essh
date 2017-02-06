@@ -37,7 +37,7 @@ All the options are listed below.
 
 * `--filter <tag|host>`: (Using with `--hosts` option) Filter selected hosts with tags or hosts.
 
-* `--job <job>`: (Using with `--hosts` option) Get hosts from specific job.
+* `--namespace <namespace>`: (Using with `--hosts` option) Get hosts from specific namespace.
 
 * `--ssh-config`: (Using with `--hosts` option) Output selected hosts as ssh_config format.
 
@@ -47,7 +47,7 @@ All the options are listed below.
 
 * `--tags`: List tags.
 
-* `--jobs`: List jobs.
+* `--namespaces`: List namespaces.
 
 * `--quiet`: (Using with `--hosts`, `--tasks` or `--tags` option) Show only names.
 

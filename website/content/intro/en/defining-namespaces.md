@@ -1,19 +1,19 @@
 +++
-title = "Defining Jobs | Introduction"
+title = "Defining Namespaces | Introduction"
 type = "docs"
 category = "intro"
 lang = "en"
-basename = "defining-jobs.html"
+basename = "defining-namespaces.html"
 +++
 
-# Defining Jobs
+# Defining Namespaces
 
-Jobs in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a job can be used only by the tasks in the same job. It prevents to conflict public hosts with task's hosts.
+Namespaces in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a namespace can be used only by the tasks in the same namespace. It prevents to conflict public hosts with task's hosts.
 
 Edit your `esshconfig.lua`:
 
 ~~~lua
-job "myjob" {
+namespace "mynamespace" {
     host "web01.localhost" {
         ForwardAgent = "yes",
         HostName = "192.168.0.11",
@@ -46,13 +46,13 @@ job "myjob" {
 }
 ~~~
 
-A Job's tasks have a prefix that is their job's name, So you can run the task like the following
+A Namespace's tasks have a prefix that is their namespace's name, So you can run the task like the following
 
 ~~~
-$ essh myjob:hello
+$ essh mynamespace:hello
 ~~~
 
-For more information on jobs, see the [Jobs](/docs/en/jobs.html) section.
+For more information on namespaces, see the [Namespaces](/docs/en/namespaces.html) section.
 
 
 ## Next Steps

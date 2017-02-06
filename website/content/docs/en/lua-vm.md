@@ -20,7 +20,7 @@ As you already seen `host` and `task` functions, Essh core features consist of b
 
 * `driver`: Defines a driver. See [Drivers](/docs/en/drivers.html).
 
-* `job`: Defines a job. See [Jobs](/docs/en/jobs.html).
+* `namespace`: Defines a namespace. See [Namespaces](/docs/en/namespaces.html).
 
 * `import`: Imports a module. See [Modules](/docs/en/modules.html).
 
@@ -112,10 +112,10 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
     end
     ~~~
 
-* `get_job` (function): Get a job. See the following examples:
+* `get_namespace` (function): Get a namespace. See the following examples:
 
     ~~~lua
-    for _, h in pairs(essh.get_job("myjob"):select_hosts():get()) do
+    for _, h in pairs(essh.get_namespace("mynamespace"):select_hosts():get()) do
         if h.ForwardAgent == nil then
             h.ForwardAgent = "yes"
         end
@@ -134,7 +134,7 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
 
 * `driver` (function): An alias of `driver` function.
 
-* `job` (function): An alias of `job` function.
+* `namespace` (function): An alias of `namespace` function.
 
 * `import` (function): An alias of `import` function.
 

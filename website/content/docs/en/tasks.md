@@ -143,6 +143,6 @@ $ essh example foo bar
 
   * `ESSH_HOST_PROPS_{KEY}`: The value that is set by host's `props`. See [Hosts](hosts.html).
 
-  * `ESSH_JOB_NAME`: Job name. See [Jobs](jobs.html).
+  * `ESSH_JOB_NAME`: Namespace name. See [Namespaces](namespaces.html).
   
 * `script_file` (string): A file path or URL that can be accessed by http or https. The file's content will be executed. You can't use `script_file` and `script` at the same time.

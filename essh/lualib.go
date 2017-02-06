@@ -25,14 +25,19 @@ func InitLuaState(L *lua.LState) {
 	registerHostQueryClass(L)
 	registerDriverClass(L)
 	registerRegistryClass(L)
-	registerJobClass(L)
+	registerNamespaceClass(L)
+	registerGroupClass(L)
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
-	L.SetGlobal("job", L.NewFunction(esshJob))
+	L.SetGlobal("namespace", L.NewFunction(esshNamespace))
+	L.SetGlobal("group", L.NewFunction(esshGroup))
 	L.SetGlobal("import", L.NewFunction(esshImport))
+
+	// temporary code for BC
+	L.SetGlobal("job", L.NewFunction(esshNamespace))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -54,18 +59,23 @@ func InitLuaState(L *lua.LState) {
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
-		"host":   esshHost,
-		"task":   esshTask,
-		"driver": esshDriver,
-		"job":    esshJob,
-		"import": esshImport,
+		"host":      esshHost,
+		"task":      esshTask,
+		"driver":    esshDriver,
+		"namespace": esshNamespace,
+		"group":     esshGroup,
+		"import":    esshImport,
 
 		// utility functions
 		"debug":            esshDebug,
 		"select_hosts":     esshSelectHosts,
-		"jobs":             esshJobs,
-		"get_job":          esshGetJob,
+		"namespaces":       esshNamespaces,
+		"get_namespace":    esshGetNamespace,
 		"current_registry": esshCurrentRegistry,
+
+		// temporary code for BC
+		"jobs":    esshNamespaces,
+		"get_job": esshGetNamespace,
 	})
 }
 
@@ -186,13 +196,13 @@ func esshDriver(L *lua.LState) int {
 	panic("driver requires 1 or 2 arguments")
 }
 
-func esshJob(L *lua.LState) int {
+func esshNamespace(L *lua.LState) int {
 	first := L.CheckAny(1)
 	if tb, ok := toLTable(first); ok {
-		name := DefaultJobName
-		j := registerJob(L, name)
-		setupJob(L, j, tb)
-		L.Push(newLJob(L, j))
+		name := DefaultNamespaceName
+		j := registerNamespace(L, name)
+		setupNamespace(L, j, tb)
+		L.Push(newLNamespace(L, j))
 
 		return 1
 	}
@@ -200,21 +210,29 @@ func esshJob(L *lua.LState) int {
 	name := L.CheckString(1)
 	if L.GetTop() == 1 {
 		// object or DSL style
-		j := registerJob(L, name)
-		L.Push(newLJob(L, j))
+		j := registerNamespace(L, name)
+		L.Push(newLNamespace(L, j))
 
 		return 1
 	} else if L.GetTop() == 2 {
 		// function style
 		tb := L.CheckTable(2)
-		j := registerJob(L, name)
-		setupJob(L, j, tb)
-		L.Push(newLJob(L, j))
+		j := registerNamespace(L, name)
+		setupNamespace(L, j, tb)
+		L.Push(newLNamespace(L, j))
 
 		return 1
 	}
 
-	panic("job requires 1 or 2 arguments")
+	panic("namespace requires 1 or 2 arguments")
+}
+
+func esshGroup(L *lua.LState) int {
+	first := L.CheckTable(1)
+	j := registerGroup(L)
+	setupGroup(L, j, first)
+	L.Push(newLGroup(L, j))
+	return 1
 }
 
 func esshImport(L *lua.LState) int {
@@ -280,19 +298,19 @@ func esshSelectHosts(L *lua.LState) int {
 		panic("select_hosts can receive max 2 argument.")
 	}
 
-	var job *Job
+	var namespace *Namespace
 
 	first := L.Get(1)
 	if ud, ok := first.(*lua.LUserData); ok {
-		if v, ok := ud.Value.(*Job); ok {
-			job = v
+		if v, ok := ud.Value.(*Namespace); ok {
+			namespace = v
 		} else {
-			panic("expected a job but got an other userdata.")
+			panic("expected a namespace but got an other userdata.")
 		}
 	}
 
 	if L.GetTop() == 1 {
-		if job == nil {
+		if namespace == nil {
 			value := L.CheckAny(1)
 			selections := []string{}
 
@@ -309,10 +327,10 @@ func esshSelectHosts(L *lua.LState) int {
 			}
 			hostQuery.AppendSelections(selections)
 		} else {
-			hostQuery.SetDatasource(job.Hosts)
+			hostQuery.SetDatasource(namespace.Hosts)
 		}
 	} else if L.GetTop() == 2 {
-		if job != nil {
+		if namespace != nil {
 			value := L.CheckAny(2)
 			selections := []string{}
 
@@ -328,34 +346,34 @@ func esshSelectHosts(L *lua.LState) int {
 				panic("select_hosts can receive string or array table of strings.")
 			}
 
-			hostQuery.SetDatasource(job.Hosts).AppendSelections(selections)
+			hostQuery.SetDatasource(namespace.Hosts).AppendSelections(selections)
 		} else {
-			panic("expected a job but got an other userdata.")
+			panic("expected a namespace but got an other userdata.")
 		}
 	}
 	L.Push(newLHostQuery(L, hostQuery))
 	return 1
 }
 
-func esshJobs(L *lua.LState) int {
+func esshNamespaces(L *lua.LState) int {
 	tb := L.NewTable()
-	for _, job := range Jobs {
-		tb.Append(newLJob(L, job))
+	for _, namespace := range Namespaces {
+		tb.Append(newLNamespace(L, namespace))
 	}
 
 	L.Push(tb)
 	return 1
 }
 
-func esshGetJob(L *lua.LState) int {
+func esshGetNamespace(L *lua.LState) int {
 	name := L.CheckString(1)
-	job := Jobs[name]
-	if job == nil {
+	namespace := Namespaces[name]
+	if namespace == nil {
 		L.Push(lua.LNil)
 		return 1
 	}
 
-	L.Push(newLJob(L, job))
+	L.Push(newLNamespace(L, namespace))
 	return 1
 }
 
@@ -389,7 +407,7 @@ func registerTask(L *lua.LState, name string) *Task {
 	t.Registry = CurrentRegistry
 
 	if task := Tasks[t.Name]; task != nil {
-		// detect same name host
+		// detect same name task
 		t.Child = task
 		task.Parent = t
 	}
@@ -409,7 +427,7 @@ func registerDriver(L *lua.LState, name string) *Driver {
 	d.Registry = CurrentRegistry
 
 	if driver := Drivers[d.Name]; driver != nil {
-		// detect same name host
+		// detect same name driver
 		d.Child = driver
 		driver.Parent = d
 	}
@@ -419,16 +437,21 @@ func registerDriver(L *lua.LState, name string) *Driver {
 	return d
 }
 
-func registerJob(L *lua.LState, name string) *Job {
+func registerNamespace(L *lua.LState, name string) *Namespace {
 	if debugFlag {
-		fmt.Printf("[essh debug] register job: %s\n", name)
+		fmt.Printf("[essh debug] register namespace: %s\n", name)
 	}
 
-	j := NewJob()
+	j := NewNamespace()
 	j.Name = name
 
-	Jobs[j.Name] = j
+	Namespaces[j.Name] = j
 
+	return j
+}
+
+func registerGroup(L *lua.LState) *Group {
+	j := NewGroup()
 	return j
 }
 
@@ -1304,54 +1327,54 @@ func registryType(L *lua.LState) int {
 	return 1
 }
 
-const LJobClass = "Job*"
+const LNamespaceClass = "Namespace*"
 
-func registerJobClass(L *lua.LState) {
-	mt := L.NewTypeMetatable(LJobClass)
-	mt.RawSetString("__call", L.NewFunction(jobCall))
-	mt.RawSetString("__index", L.NewFunction(jobIndex))
-	mt.RawSetString("__newindex", L.NewFunction(jobNewindex))
+func registerNamespaceClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LNamespaceClass)
+	mt.RawSetString("__call", L.NewFunction(namespaceCall))
+	mt.RawSetString("__index", L.NewFunction(namespaceIndex))
+	mt.RawSetString("__newindex", L.NewFunction(namespaceNewindex))
 }
 
-func newLJob(L *lua.LState, job *Job) *lua.LUserData {
+func newLNamespace(L *lua.LState, namespace *Namespace) *lua.LUserData {
 	ud := L.NewUserData()
-	ud.Value = job
-	L.SetMetatable(ud, L.GetTypeMetatable(LJobClass))
+	ud.Value = namespace
+	L.SetMetatable(ud, L.GetTypeMetatable(LNamespaceClass))
 	return ud
 }
 
-func checkJob(L *lua.LState) *Job {
+func checkNamespace(L *lua.LState) *Namespace {
 	ud := L.CheckUserData(1)
-	if v, ok := ud.Value.(*Job); ok {
+	if v, ok := ud.Value.(*Namespace); ok {
 		return v
 	}
-	L.ArgError(1, "Job object expected")
+	L.ArgError(1, "Namespace object expected")
 	return nil
 }
 
-func jobCall(L *lua.LState) int {
-	job := checkJob(L)
+func namespaceCall(L *lua.LState) int {
+	namespace := checkNamespace(L)
 	tb := L.CheckTable(2)
 
-	setupJob(L, job, tb)
+	setupNamespace(L, namespace, tb)
 
 	return 0
 }
 
-func jobIndex(L *lua.LState) int {
-	job := checkJob(L)
+func namespaceIndex(L *lua.LState) int {
+	namespace := checkNamespace(L)
 	index := L.CheckString(2)
 
 	switch index {
 	case "name":
 		L.Push(L.NewFunction(func(L *lua.LState) int {
-			L.Push(lua.LString(job.Name))
+			L.Push(lua.LString(namespace.Name))
 			return 1
 		}))
 	case "select_hosts":
 		L.Push(L.NewFunction(esshSelectHosts))
 	default:
-		v, ok := job.LValues[index]
+		v, ok := namespace.LValues[index]
 		if v == nil || !ok {
 			v = lua.LNil
 		}
@@ -1361,21 +1384,21 @@ func jobIndex(L *lua.LState) int {
 	return 1
 }
 
-func jobNewindex(L *lua.LState) int {
-	job := checkJob(L)
+func namespaceNewindex(L *lua.LState) int {
+	namespace := checkNamespace(L)
 	index := L.CheckString(2)
 	value := L.CheckAny(3)
 
-	updateJob(L, job, index, value)
+	updateNamespace(L, namespace, index, value)
 
 	return 0
 }
 
-func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
+func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 	// guarantee evaluating a key/value dictionary at first.
 	config.ForEach(func(k, v lua.LValue) {
 		if kstr, ok := toString(k); ok {
-			updateJob(L, job, kstr, v)
+			updateNamespace(L, namespace, kstr, v)
 		}
 	})
 
@@ -1392,10 +1415,10 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 			switch resource := lv.Value.(type) {
 			case *Host:
 				// set host table data
-				if job.LValues["hosts"] == nil {
-					job.LValues["hosts"] = L.NewTable()
+				if namespace.LValues["hosts"] == nil {
+					namespace.LValues["hosts"] = L.NewTable()
 				}
-				hosts, ok := toLTable(job.LValues["hosts"])
+				hosts, ok := toLTable(namespace.LValues["hosts"])
 				if !ok {
 					panic("broken 'hosts' table")
 				}
@@ -1404,13 +1427,13 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 				hosts.RawSetString(resource.Name, host)
 
 				// register host object
-				job.RegisterHost(resource)
+				namespace.RegisterHost(resource)
 			case *Task:
 				// set task table data
-				if job.LValues["tasks"] == nil {
-					job.LValues["tasks"] = L.NewTable()
+				if namespace.LValues["tasks"] == nil {
+					namespace.LValues["tasks"] = L.NewTable()
 				}
-				tasks, ok := toLTable(job.LValues["tasks"])
+				tasks, ok := toLTable(namespace.LValues["tasks"])
 				if !ok {
 					panic("broken 'tasks' table")
 				}
@@ -1419,13 +1442,13 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 				tasks.RawSetString(resource.Name, task)
 
 				// register task object
-				job.RegisterTask(resource)
+				namespace.RegisterTask(resource)
 			case *Driver:
 				// set task table data
-				if job.LValues["drivers"] == nil {
-					job.LValues["drivers"] = L.NewTable()
+				if namespace.LValues["drivers"] == nil {
+					namespace.LValues["drivers"] = L.NewTable()
 				}
-				drivers, ok := toLTable(job.LValues["drivers"])
+				drivers, ok := toLTable(namespace.LValues["drivers"])
 				if !ok {
 					panic("broken 'drivers' table")
 				}
@@ -1434,7 +1457,61 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 				drivers.RawSetString(resource.Name, driver)
 
 				// register task object
-				job.RegisterDriver(resource)
+				namespace.RegisterDriver(resource)
+			case *Group:
+				switch resource.Type {
+				case GroupTypeHosts:
+					for _, obj := range resource.Hosts {
+						// set host table data
+						if namespace.LValues["hosts"] == nil {
+							namespace.LValues["hosts"] = L.NewTable()
+						}
+						hosts, ok := toLTable(namespace.LValues["hosts"])
+						if !ok {
+							panic("broken 'hosts' table")
+						}
+						host := L.NewTable()
+						obj.MapLValuesToLTable(host)
+						hosts.RawSetString(obj.Name, host)
+
+						// register host object
+						namespace.RegisterHost(obj)
+					}
+				case GroupTypeTasks:
+					for _, obj := range resource.Tasks {
+						// set task table data
+						if namespace.LValues["tasks"] == nil {
+							namespace.LValues["tasks"] = L.NewTable()
+						}
+						tasks, ok := toLTable(namespace.LValues["tasks"])
+						if !ok {
+							panic("broken 'tasks' table")
+						}
+						task := L.NewTable()
+						obj.MapLValuesToLTable(task)
+						tasks.RawSetString(obj.Name, task)
+
+						// register task object
+						namespace.RegisterTask(obj)
+					}
+				case GroupTypeDrivers:
+					for _, obj := range resource.Drivers {
+						// set task table data
+						if namespace.LValues["drivers"] == nil {
+							namespace.LValues["drivers"] = L.NewTable()
+						}
+						drivers, ok := toLTable(namespace.LValues["drivers"])
+						if !ok {
+							panic("broken 'drivers' table")
+						}
+						driver := L.NewTable()
+						obj.MapLValuesToLTable(driver)
+						drivers.RawSetString(obj.Name, driver)
+
+						// register task object
+						namespace.RegisterDriver(obj)
+					}
+				}
 			default:
 				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", resource))
 			}
@@ -1444,56 +1521,14 @@ func setupJob(L *lua.LState, job *Job, config *lua.LTable) {
 	})
 }
 
-func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
-	job.LValues[key] = value
+func updateNamespace(L *lua.LState, namespace *Namespace, key string, value lua.LValue) {
+	namespace.LValues[key] = value
 
 	switch key {
-	case "description":
-		if descStr, ok := toString(value); ok {
-			job.Description = descStr
-		} else {
-			panic("invalid value of a job's field '" + key + "'.")
-		}
-	case "hidden":
-		if hiddenBool, ok := toBool(value); ok {
-			job.Hidden = hiddenBool
-		} else {
-			panic("invalid value of a job's field '" + key + "'.")
-		}
-	case "prepare":
-		if prepareFn, ok := value.(*lua.LFunction); ok {
-			job.Prepare = func() error {
-				err := L.CallByParam(lua.P{
-					Fn:      prepareFn,
-					NRet:    1,
-					Protect: false,
-				}, newLJob(L, job))
-				if err != nil {
-					return err
-				}
-
-				ret := L.Get(-1) // returned value
-				L.Pop(1)
-
-				if ret == lua.LNil {
-					return nil
-				} else if retB, ok := ret.(lua.LBool); ok {
-					if retB {
-						return nil
-					} else {
-						return fmt.Errorf("returned false from the prepare function.")
-					}
-				}
-
-				return nil
-			}
-		} else {
-			L.RaiseError("prepare have to be a function.")
-		}
 	case "hosts":
 		if tb, ok := toLTable(value); ok {
 			// initialize
-			job.Hosts = map[string]*Host{}
+			namespace.Hosts = map[string]*Host{}
 
 			tb.ForEach(func(k, v lua.LValue) {
 				name, ok := toString(k)
@@ -1508,7 +1543,7 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 
 				h := registerHost(L, name)
 				setupHost(L, h, config)
-				job.RegisterHost(h)
+				namespace.RegisterHost(h)
 			})
 		} else {
 			panic(fmt.Sprintf("expected table but got '%v'\n", value))
@@ -1516,7 +1551,7 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 	case "tasks":
 		if tb, ok := toLTable(value); ok {
 			// initialize
-			job.Tasks = map[string]*Task{}
+			namespace.Tasks = map[string]*Task{}
 
 			tb.ForEach(func(k, v lua.LValue) {
 				name, ok := toString(k)
@@ -1531,7 +1566,7 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 
 				t := registerTask(L, name)
 				setupTask(L, t, config)
-				job.RegisterTask(t)
+				namespace.RegisterTask(t)
 			})
 		} else {
 			panic(fmt.Sprintf("expected table but got '%v'\n", value))
@@ -1539,7 +1574,7 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 	case "drivers":
 		if tb, ok := toLTable(value); ok {
 			// initialize
-			job.Drivers = map[string]*Driver{
+			namespace.Drivers = map[string]*Driver{
 				DefaultDriverName: DefaultDriver,
 			}
 
@@ -1556,13 +1591,289 @@ func updateJob(L *lua.LState, job *Job, key string, value lua.LValue) {
 
 				d := registerDriver(L, name)
 				setupDriver(L, d, config)
-				job.RegisterDriver(d)
+				namespace.RegisterDriver(d)
 			})
 		} else {
 			panic(fmt.Sprintf("expected table but got '%v'\n", value))
 		}
 	default:
-		panic("unsupported job's field '" + key + "'.")
+		panic("unsupported namespace's field '" + key + "'.")
+	}
+}
+
+const LGroupClass = "Group*"
+
+func registerGroupClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LGroupClass)
+	mt.RawSetString("__call", L.NewFunction(groupCall))
+	mt.RawSetString("__index", L.NewFunction(groupIndex))
+	mt.RawSetString("__newindex", L.NewFunction(groupNewindex))
+}
+
+func newLGroup(L *lua.LState, group *Group) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = group
+	L.SetMetatable(ud, L.GetTypeMetatable(LGroupClass))
+	return ud
+}
+
+func checkGroup(L *lua.LState) *Group {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Group); ok {
+		return v
+	}
+	L.ArgError(1, "Group object expected")
+	return nil
+}
+
+func groupCall(L *lua.LState) int {
+	group := checkGroup(L)
+	tb := L.CheckTable(2)
+
+	setupGroup(L, group, tb)
+
+	return 0
+}
+
+func groupIndex(L *lua.LState) int {
+	group := checkGroup(L)
+	index := L.CheckString(2)
+
+	switch index {
+	default:
+		v, ok := group.LValues[index]
+		if v == nil || !ok {
+			v = lua.LNil
+		}
+		L.Push(v)
 	}
 
+	return 1
+}
+
+func groupNewindex(L *lua.LState) int {
+	panic("unsupport to override group's properties")
+
+	return 0
+}
+
+func setupGroup(L *lua.LState, group *Group, config *lua.LTable) {
+	// guarantee evaluating a key/value dictionary at first.
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateGroup(L, group, kstr, v)
+		}
+	})
+
+	config.ForEach(func(k, v lua.LValue) {
+		if _, ok := toString(k); ok {
+			return
+		} else if _, ok := toFloat64(k); ok {
+			// set a host, task or driver
+			lv, ok := v.(*lua.LUserData)
+			if !ok {
+				panic(fmt.Sprintf("expected userdata (host, task or driver) but got '%v'\n", v))
+			}
+
+			switch resource := lv.Value.(type) {
+			case *Host:
+				if group.Type != GroupTypeUndefined && group.Type != GroupTypeHosts {
+					panic("group can use only one type of resources. \n")
+				}
+
+				// set host table data
+				if group.LValues["hosts"] == nil {
+					group.LValues["hosts"] = L.NewTable()
+				}
+				hosts, ok := toLTable(group.LValues["hosts"])
+				if !ok {
+					panic("broken 'hosts' table")
+				}
+				host := L.NewTable()
+				resource.MapLValuesToLTable(host)
+				hosts.RawSetString(resource.Name, host)
+
+				// register host object
+				group.RegisterHost(resource)
+			case *Task:
+				if group.Type != GroupTypeUndefined && group.Type != GroupTypeTasks {
+					panic("group can use only one type of resources. \n")
+				}
+
+				// set task table data
+				if group.LValues["tasks"] == nil {
+					group.LValues["tasks"] = L.NewTable()
+				}
+				tasks, ok := toLTable(group.LValues["tasks"])
+				if !ok {
+					panic("broken 'tasks' table")
+				}
+				task := L.NewTable()
+				resource.MapLValuesToLTable(task)
+				tasks.RawSetString(resource.Name, task)
+
+				// register task object
+				group.RegisterTask(resource)
+			case *Driver:
+				if group.Type != GroupTypeUndefined && group.Type != GroupTypeDrivers {
+					panic("group can use only one type of resources. \n")
+				}
+
+				// set task table data
+				if group.LValues["drivers"] == nil {
+					group.LValues["drivers"] = L.NewTable()
+				}
+				drivers, ok := toLTable(group.LValues["drivers"])
+				if !ok {
+					panic("broken 'drivers' table")
+				}
+				driver := L.NewTable()
+				resource.MapLValuesToLTable(driver)
+				drivers.RawSetString(resource.Name, driver)
+
+				// register task object
+				group.RegisterDriver(resource)
+			default:
+				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", resource))
+			}
+		} else {
+			panic("invalid operation\n")
+		}
+	})
+
+	applyGroupDefaultValues(L, group)
+}
+
+func updateGroup(L *lua.LState, group *Group, key string, value lua.LValue) {
+	group.LValues[key] = value
+
+	switch key {
+	case "hosts":
+		if tb, ok := toLTable(value); ok {
+			if group.Type != GroupTypeUndefined && group.Type != GroupTypeHosts {
+				panic("group can use only one type of resources. \n")
+			}
+
+			// initialize
+			group.Hosts = map[string]*Host{}
+
+			tb.ForEach(func(k, v lua.LValue) {
+				name, ok := toString(k)
+				if !ok {
+					panic(fmt.Sprintf("expected string of host's name but got '%v'\n", k))
+				}
+
+				config, ok := toLTable(v)
+				if !ok {
+					panic(fmt.Sprintf("expected table of host's config but got '%v'\n", v))
+				}
+
+				h := registerHost(L, name)
+				setupHost(L, h, config)
+				group.RegisterHost(h)
+			})
+		} else {
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
+		}
+	case "tasks":
+		if tb, ok := toLTable(value); ok {
+			if group.Type != GroupTypeUndefined && group.Type != GroupTypeTasks {
+				panic("group can use only one type of resources. \n")
+			}
+
+			// initialize
+			group.Tasks = map[string]*Task{}
+
+			tb.ForEach(func(k, v lua.LValue) {
+				name, ok := toString(k)
+				if !ok {
+					panic(fmt.Sprintf("expected string of task's name but got '%v'\n", k))
+				}
+
+				config, ok := toLTable(v)
+				if !ok {
+					panic(fmt.Sprintf("expected table of task's config but got '%v'\n", v))
+				}
+
+				t := registerTask(L, name)
+				setupTask(L, t, config)
+				group.RegisterTask(t)
+			})
+		} else {
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
+		}
+	case "drivers":
+		if tb, ok := toLTable(value); ok {
+			if group.Type != GroupTypeUndefined && group.Type != GroupTypeDrivers {
+				panic("group can use only one type of resources. \n")
+			}
+
+			// initialize
+			group.Drivers = map[string]*Driver{
+				DefaultDriverName: DefaultDriver,
+			}
+
+			tb.ForEach(func(k, v lua.LValue) {
+				name, ok := toString(k)
+				if !ok {
+					panic(fmt.Sprintf("expected string of driver's name but got '%v'\n", k))
+				}
+
+				config, ok := toLTable(v)
+				if !ok {
+					panic(fmt.Sprintf("expected table of driver's config but got '%v'\n", v))
+				}
+
+				d := registerDriver(L, name)
+				setupDriver(L, d, config)
+				group.RegisterDriver(d)
+			})
+		} else {
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
+		}
+	}
+}
+
+func applyGroupDefaultValues(L *lua.LState, group *Group) {
+
+	isSkipKey := func(k string) bool {
+		if k == "hosts" || k == "tasks" || k == "drivers" {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	switch group.Type {
+	case GroupTypeHosts:
+		for _, h := range group.Hosts {
+			for k, v := range group.LValues {
+				if !isSkipKey(k) {
+					if h.LValues[k] == nil {
+						updateHost(L, h, k, v)
+					}
+				}
+			}
+		}
+	case GroupTypeTasks:
+		for _, t := range group.Tasks {
+			for k, v := range group.LValues {
+				if !isSkipKey(k) {
+					if t.LValues[k] == nil {
+						updateTask(L, t, k, v)
+					}
+				}
+			}
+		}
+	case GroupTypeDrivers:
+		for _, d := range group.Drivers {
+			for k, v := range group.LValues {
+				if !isSkipKey(k) {
+					if d.LValues[k] == nil {
+						updateDriver(L, d, k, v)
+					}
+				}
+			}
+		}
+	}
 }

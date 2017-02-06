@@ -5,24 +5,20 @@ import (
 	"sort"
 )
 
-type Job struct {
-	Name        string
-	Description string
-	// Props       map[string]string
-	Hidden  bool
-	Prepare func() error
+type Namespace struct {
+	Name    string
 	Hosts   map[string]*Host
 	Tasks   map[string]*Task
 	Drivers map[string]*Driver
 	LValues map[string]lua.LValue
 }
 
-var Jobs map[string]*Job
+var Namespaces map[string]*Namespace
 
-var DefaultJobName = "default"
+var DefaultNamespaceName = "default"
 
-func NewJob() *Job {
-	return &Job{
+func NewNamespace() *Namespace {
+	return &Namespace{
 		Hosts: map[string]*Host{},
 		Tasks: map[string]*Task{},
 		Drivers: map[string]*Driver{
@@ -32,38 +28,30 @@ func NewJob() *Job {
 	}
 }
 
-func (job *Job) DescriptionOrDefault() string {
-	if job.Description == "" {
-		return job.Name + " job"
-	}
-
-	return job.Description
-}
-
-func (job *Job) RegisterHost(host *Host) {
-	job.Hosts[host.Name] = host
-	host.Job = job
+func (namespace *Namespace) RegisterHost(host *Host) {
+	namespace.Hosts[host.Name] = host
+	host.Namespace = namespace
 	removeHostInGlobalSpace(host)
 }
 
-func (job *Job) RegisterTask(task *Task) {
-	job.Tasks[task.Name] = task
-	task.Job = job
+func (namespace *Namespace) RegisterTask(task *Task) {
+	namespace.Tasks[task.Name] = task
+	task.Namespace = namespace
 	removeTaskInGlobalSpace(task)
 }
 
-func (job *Job) RegisterDriver(driver *Driver) {
-	job.Drivers[driver.Name] = driver
-	driver.Job = job
+func (namespace *Namespace) RegisterDriver(driver *Driver) {
+	namespace.Drivers[driver.Name] = driver
+	driver.Namespace = namespace
 	removeDriverInGlobalSpace(driver)
 }
 
-func (job *Job) SortedTasks() []*Task {
+func (namespace *Namespace) SortedTasks() []*Task {
 	names := []string{}
 	namesMap := map[string]bool{}
 	tasks := []*Task{}
 
-	for name, _ := range job.Tasks {
+	for name, _ := range namespace.Tasks {
 		if namesMap[name] {
 			// already registerd to names
 			continue
@@ -84,12 +72,12 @@ func (job *Job) SortedTasks() []*Task {
 	return tasks
 }
 
-func SortedJobs() []*Job {
+func SortedNamespaces() []*Namespace {
 	names := []string{}
 	namesMap := map[string]bool{}
-	jobs := []*Job{}
+	namespaces := []*Namespace{}
 
-	for name, _ := range Jobs {
+	for name, _ := range Namespaces {
 		if namesMap[name] {
 			// already registerd to names
 			continue
@@ -102,10 +90,10 @@ func SortedJobs() []*Job {
 	sort.Strings(names)
 
 	for _, name := range names {
-		if j, ok := Jobs[name]; ok {
-			jobs = append(jobs, j)
+		if j, ok := Namespaces[name]; ok {
+			namespaces = append(namespaces, j)
 		}
 	}
 
-	return jobs
+	return namespaces
 }
