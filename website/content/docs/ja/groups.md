@@ -6,4 +6,5 @@ lang = "ja"
 basename = "groups.html"
 +++
 
-# ホスト
+# グループ
+
