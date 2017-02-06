@@ -25,6 +25,7 @@ type Task struct {
 	UsePrefix bool
 	Registry  *Registry
 	Namespace *Namespace
+	Group     *Group
 	Args      []string
 	LValues   map[string]lua.LValue
 	Parent    *Task

@@ -6,7 +6,7 @@ import (
 )
 
 type Namespace struct {
-	Name        string
+	Name    string
 	Hosts   map[string]*Host
 	Tasks   map[string]*Task
 	Drivers map[string]*Driver

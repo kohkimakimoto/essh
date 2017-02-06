@@ -15,6 +15,7 @@ type Driver struct {
 	Engine    func(*Driver) (string, error)
 	Registry  *Registry
 	Namespace *Namespace
+	Group     *Group
 	LValues   map[string]lua.LValue
 	Parent    *Driver
 	Child     *Driver

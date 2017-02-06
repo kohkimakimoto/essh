@@ -792,7 +792,7 @@ func Run(osArgs []string) (exitStatus int) {
 			tb.SetHeader([]string{"NAME"})
 		}
 		for _, namespace := range SortedNamespaces() {
-				tb.Append([]string{namespace.Name})
+			tb.Append([]string{namespace.Name})
 		}
 		tb.Render()
 

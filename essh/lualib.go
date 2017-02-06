@@ -26,12 +26,14 @@ func InitLuaState(L *lua.LState) {
 	registerDriverClass(L)
 	registerRegistryClass(L)
 	registerNamespaceClass(L)
+	registerGroupClass(L)
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 	L.SetGlobal("namespace", L.NewFunction(esshNamespace))
+	L.SetGlobal("group", L.NewFunction(esshGroup))
 	L.SetGlobal("import", L.NewFunction(esshImport))
 
 	// temporary code for BC
@@ -61,6 +63,7 @@ func InitLuaState(L *lua.LState) {
 		"task":      esshTask,
 		"driver":    esshDriver,
 		"namespace": esshNamespace,
+		"group":     esshGroup,
 		"import":    esshImport,
 
 		// utility functions
@@ -222,6 +225,14 @@ func esshNamespace(L *lua.LState) int {
 	}
 
 	panic("namespace requires 1 or 2 arguments")
+}
+
+func esshGroup(L *lua.LState) int {
+	first := L.CheckTable(1)
+	j := registerGroup(L)
+	setupGroup(L, j, first)
+	L.Push(newLGroup(L, j))
+	return 1
 }
 
 func esshImport(L *lua.LState) int {
@@ -396,7 +407,7 @@ func registerTask(L *lua.LState, name string) *Task {
 	t.Registry = CurrentRegistry
 
 	if task := Tasks[t.Name]; task != nil {
-		// detect same name host
+		// detect same name task
 		t.Child = task
 		task.Parent = t
 	}
@@ -416,7 +427,7 @@ func registerDriver(L *lua.LState, name string) *Driver {
 	d.Registry = CurrentRegistry
 
 	if driver := Drivers[d.Name]; driver != nil {
-		// detect same name host
+		// detect same name driver
 		d.Child = driver
 		driver.Parent = d
 	}
@@ -436,6 +447,11 @@ func registerNamespace(L *lua.LState, name string) *Namespace {
 
 	Namespaces[j.Name] = j
 
+	return j
+}
+
+func registerGroup(L *lua.LState) *Group {
+	j := NewGroup()
 	return j
 }
 
@@ -1442,6 +1458,60 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 
 				// register task object
 				namespace.RegisterDriver(resource)
+			case *Group:
+				switch resource.Type {
+				case GroupTypeHosts:
+					for _, obj := range resource.Hosts {
+						// set host table data
+						if namespace.LValues["hosts"] == nil {
+							namespace.LValues["hosts"] = L.NewTable()
+						}
+						hosts, ok := toLTable(namespace.LValues["hosts"])
+						if !ok {
+							panic("broken 'hosts' table")
+						}
+						host := L.NewTable()
+						obj.MapLValuesToLTable(host)
+						hosts.RawSetString(obj.Name, host)
+
+						// register host object
+						namespace.RegisterHost(obj)
+					}
+				case GroupTypeTasks:
+					for _, obj := range resource.Tasks {
+						// set task table data
+						if namespace.LValues["tasks"] == nil {
+							namespace.LValues["tasks"] = L.NewTable()
+						}
+						tasks, ok := toLTable(namespace.LValues["tasks"])
+						if !ok {
+							panic("broken 'tasks' table")
+						}
+						task := L.NewTable()
+						obj.MapLValuesToLTable(task)
+						tasks.RawSetString(obj.Name, task)
+
+						// register task object
+						namespace.RegisterTask(obj)
+					}
+				case GroupTypeDrivers:
+					for _, obj := range resource.Drivers {
+						// set task table data
+						if namespace.LValues["drivers"] == nil {
+							namespace.LValues["drivers"] = L.NewTable()
+						}
+						drivers, ok := toLTable(namespace.LValues["drivers"])
+						if !ok {
+							panic("broken 'drivers' table")
+						}
+						driver := L.NewTable()
+						obj.MapLValuesToLTable(driver)
+						drivers.RawSetString(obj.Name, driver)
+
+						// register task object
+						namespace.RegisterDriver(obj)
+					}
+				}
 			default:
 				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", resource))
 			}
@@ -1529,5 +1599,145 @@ func updateNamespace(L *lua.LState, namespace *Namespace, key string, value lua.
 	default:
 		panic("unsupported namespace's field '" + key + "'.")
 	}
+}
 
+const LGroupClass = "Group*"
+
+func registerGroupClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LGroupClass)
+	mt.RawSetString("__call", L.NewFunction(groupCall))
+	mt.RawSetString("__index", L.NewFunction(groupIndex))
+	mt.RawSetString("__newindex", L.NewFunction(groupNewindex))
+}
+
+func newLGroup(L *lua.LState, group *Group) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = group
+	L.SetMetatable(ud, L.GetTypeMetatable(LGroupClass))
+	return ud
+}
+
+func checkGroup(L *lua.LState) *Group {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Group); ok {
+		return v
+	}
+	L.ArgError(1, "Group object expected")
+	return nil
+}
+
+func groupCall(L *lua.LState) int {
+	group := checkGroup(L)
+	tb := L.CheckTable(2)
+
+	setupGroup(L, group, tb)
+
+	return 0
+}
+
+func groupIndex(L *lua.LState) int {
+	group := checkGroup(L)
+	index := L.CheckString(2)
+
+	switch index {
+	default:
+		v, ok := group.LValues[index]
+		if v == nil || !ok {
+			v = lua.LNil
+		}
+		L.Push(v)
+	}
+
+	return 1
+}
+
+func groupNewindex(L *lua.LState) int {
+	panic("unsupport to override group's properties")
+
+	return 0
+}
+
+func setupGroup(L *lua.LState, group *Group, config *lua.LTable) {
+	// guarantee evaluating a key/value dictionary at first.
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateGroup(L, group, kstr, v)
+		}
+	})
+
+	config.ForEach(func(k, v lua.LValue) {
+		if _, ok := toString(k); ok {
+			return
+		} else if _, ok := toFloat64(k); ok {
+			// set a host, task or driver
+			lv, ok := v.(*lua.LUserData)
+			if !ok {
+				panic(fmt.Sprintf("expected userdata (host, task or driver) but got '%v'\n", v))
+			}
+
+			switch resource := lv.Value.(type) {
+			case *Host:
+				if group.Type != GroupTypeUndefined && group.Type != GroupTypeHosts {
+					panic("group can use only one type of resources. \n")
+				}
+
+				// register host object
+				group.RegisterHost(resource)
+			case *Task:
+				if group.Type != GroupTypeUndefined && group.Type != GroupTypeTasks {
+					panic("group can use only one type of resources. \n")
+				}
+
+				// register task object
+				group.RegisterTask(resource)
+			case *Driver:
+				if group.Type != GroupTypeUndefined && group.Type != GroupTypeDrivers {
+					panic("group can use only one type of resources. \n")
+				}
+
+				// register task object
+				group.RegisterDriver(resource)
+			default:
+				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", resource))
+			}
+		} else {
+			panic("invalid operation\n")
+		}
+	})
+
+	applyGroupDefaultValues(L, group)
+}
+
+func updateGroup(L *lua.LState, group *Group, key string, value lua.LValue) {
+	group.LValues[key] = value
+
+}
+
+func applyGroupDefaultValues(L *lua.LState, group *Group) {
+	switch group.Type {
+	case GroupTypeHosts:
+		for _, h := range group.Hosts {
+			for k, v := range group.LValues {
+				if h.LValues[k] == nil {
+					updateHost(L, h, k, v)
+				}
+			}
+		}
+	case GroupTypeTasks:
+		for _, t := range group.Tasks {
+			for k, v := range group.LValues {
+				if t.LValues[k] == nil {
+					updateTask(L, t, k, v)
+				}
+			}
+		}
+	case GroupTypeDrivers:
+		for _, d := range group.Drivers {
+			for k, v := range group.LValues {
+				if d.LValues[k] == nil {
+					updateDriver(L, d, k, v)
+				}
+			}
+		}
+	}
 }
