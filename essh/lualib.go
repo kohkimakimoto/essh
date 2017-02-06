@@ -1681,6 +1681,18 @@ func setupGroup(L *lua.LState, group *Group, config *lua.LTable) {
 					panic("group can use only one type of resources. \n")
 				}
 
+				// set host table data
+				if group.LValues["hosts"] == nil {
+					group.LValues["hosts"] = L.NewTable()
+				}
+				hosts, ok := toLTable(group.LValues["hosts"])
+				if !ok {
+					panic("broken 'hosts' table")
+				}
+				host := L.NewTable()
+				resource.MapLValuesToLTable(host)
+				hosts.RawSetString(resource.Name, host)
+
 				// register host object
 				group.RegisterHost(resource)
 			case *Task:
@@ -1688,12 +1700,36 @@ func setupGroup(L *lua.LState, group *Group, config *lua.LTable) {
 					panic("group can use only one type of resources. \n")
 				}
 
+				// set task table data
+				if group.LValues["tasks"] == nil {
+					group.LValues["tasks"] = L.NewTable()
+				}
+				tasks, ok := toLTable(group.LValues["tasks"])
+				if !ok {
+					panic("broken 'tasks' table")
+				}
+				task := L.NewTable()
+				resource.MapLValuesToLTable(task)
+				tasks.RawSetString(resource.Name, task)
+
 				// register task object
 				group.RegisterTask(resource)
 			case *Driver:
 				if group.Type != GroupTypeUndefined && group.Type != GroupTypeDrivers {
 					panic("group can use only one type of resources. \n")
 				}
+
+				// set task table data
+				if group.LValues["drivers"] == nil {
+					group.LValues["drivers"] = L.NewTable()
+				}
+				drivers, ok := toLTable(group.LValues["drivers"])
+				if !ok {
+					panic("broken 'drivers' table")
+				}
+				driver := L.NewTable()
+				resource.MapLValuesToLTable(driver)
+				drivers.RawSetString(resource.Name, driver)
 
 				// register task object
 				group.RegisterDriver(resource)
@@ -1711,31 +1747,131 @@ func setupGroup(L *lua.LState, group *Group, config *lua.LTable) {
 func updateGroup(L *lua.LState, group *Group, key string, value lua.LValue) {
 	group.LValues[key] = value
 
+	switch key {
+	case "hosts":
+		if tb, ok := toLTable(value); ok {
+			if group.Type != GroupTypeUndefined && group.Type != GroupTypeHosts {
+				panic("group can use only one type of resources. \n")
+			}
+
+			// initialize
+			group.Hosts = map[string]*Host{}
+
+			tb.ForEach(func(k, v lua.LValue) {
+				name, ok := toString(k)
+				if !ok {
+					panic(fmt.Sprintf("expected string of host's name but got '%v'\n", k))
+				}
+
+				config, ok := toLTable(v)
+				if !ok {
+					panic(fmt.Sprintf("expected table of host's config but got '%v'\n", v))
+				}
+
+				h := registerHost(L, name)
+				setupHost(L, h, config)
+				group.RegisterHost(h)
+			})
+		} else {
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
+		}
+	case "tasks":
+		if tb, ok := toLTable(value); ok {
+			if group.Type != GroupTypeUndefined && group.Type != GroupTypeTasks {
+				panic("group can use only one type of resources. \n")
+			}
+
+			// initialize
+			group.Tasks = map[string]*Task{}
+
+			tb.ForEach(func(k, v lua.LValue) {
+				name, ok := toString(k)
+				if !ok {
+					panic(fmt.Sprintf("expected string of task's name but got '%v'\n", k))
+				}
+
+				config, ok := toLTable(v)
+				if !ok {
+					panic(fmt.Sprintf("expected table of task's config but got '%v'\n", v))
+				}
+
+				t := registerTask(L, name)
+				setupTask(L, t, config)
+				group.RegisterTask(t)
+			})
+		} else {
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
+		}
+	case "drivers":
+		if tb, ok := toLTable(value); ok {
+			if group.Type != GroupTypeUndefined && group.Type != GroupTypeDrivers {
+				panic("group can use only one type of resources. \n")
+			}
+
+			// initialize
+			group.Drivers = map[string]*Driver{
+				DefaultDriverName: DefaultDriver,
+			}
+
+			tb.ForEach(func(k, v lua.LValue) {
+				name, ok := toString(k)
+				if !ok {
+					panic(fmt.Sprintf("expected string of driver's name but got '%v'\n", k))
+				}
+
+				config, ok := toLTable(v)
+				if !ok {
+					panic(fmt.Sprintf("expected table of driver's config but got '%v'\n", v))
+				}
+
+				d := registerDriver(L, name)
+				setupDriver(L, d, config)
+				group.RegisterDriver(d)
+			})
+		} else {
+			panic(fmt.Sprintf("expected table but got '%v'\n", value))
+		}
+	}
 }
 
 func applyGroupDefaultValues(L *lua.LState, group *Group) {
+
+	isSkipKey := func(k string) bool {
+		if k == "hosts" || k == "tasks" || k == "drivers" {
+			return true
+		} else {
+			return false
+		}
+	}
+
 	switch group.Type {
 	case GroupTypeHosts:
 		for _, h := range group.Hosts {
 			for k, v := range group.LValues {
-				if h.LValues[k] == nil {
-					updateHost(L, h, k, v)
+				if !isSkipKey(k) {
+					if h.LValues[k] == nil {
+						updateHost(L, h, k, v)
+					}
 				}
 			}
 		}
 	case GroupTypeTasks:
 		for _, t := range group.Tasks {
 			for k, v := range group.LValues {
-				if t.LValues[k] == nil {
-					updateTask(L, t, k, v)
+				if !isSkipKey(k) {
+					if t.LValues[k] == nil {
+						updateTask(L, t, k, v)
+					}
 				}
 			}
 		}
 	case GroupTypeDrivers:
 		for _, d := range group.Drivers {
 			for k, v := range group.LValues {
-				if d.LValues[k] == nil {
-					updateDriver(L, d, k, v)
+				if !isSkipKey(k) {
+					if d.LValues[k] == nil {
+						updateDriver(L, d, k, v)
+					}
 				}
 			}
 		}
