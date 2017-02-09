@@ -144,6 +144,6 @@ $ essh example foo bar
 
   * `ESSH_HOST_PROPS_{KEY}`: ホストの`props`によって設定される値。[ホスト](hosts.html)を参照してください。
 
-  * `ESSH_JOB_NAME`: ネームスペース名。[ネームスペース](namespaces.html)を参照してください。
+  * `ESSH_NAMESPACE_NAME`: ネームスペース名。[ネームスペース](namespaces.html)を参照してください。
   
 * `script_file` (string): ファイルパスまたはhttpまたはhttpsでアクセスできるURL。ファイルの内容が実行されます。 `script_file`と` script`を同時に使うことはできません。
