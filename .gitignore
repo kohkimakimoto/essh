@@ -9,6 +9,7 @@ Thumbs.db
 /_build/dev/*
 /_build/dist/*
 Vagrantfile
+.vscode/
 
 .essh
 esshconfig.lua
