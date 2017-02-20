@@ -24,10 +24,10 @@ testv:
 # 	cd tests && ./run.sh
 
 deps:
-	gom install
+	glide install
 
 deps_update:
-	rm Gomfile.lock; rm -rf vendor; gom install && gom lock
+	glide up
 
 website:
 	cd website && make deps && make

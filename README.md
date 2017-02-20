@@ -31,7 +31,8 @@ Features:
 Requirements
 
 * Go 1.7 or later (my development env)
-* [Gom](https://github.com/mattn/gom)
+* [Glide](https://glide.sh/)
+* [gox](https://github.com/mitchellh/gox)
 
 Installing dependences
 
