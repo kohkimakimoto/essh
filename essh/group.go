@@ -14,20 +14,20 @@ const (
 )
 
 type Group struct {
-	Type      GroupType
+	Type    GroupType
 	Hosts   map[string]*Host
 	Tasks   map[string]*Task
 	Drivers map[string]*Driver
-	LValues   map[string]lua.LValue
+	LValues map[string]lua.LValue
 }
 
 func NewGroup() *Group {
 	return &Group{
-		Type: GroupTypeUndefined,
-		Hosts: map[string]*Host{},
-		Tasks: map[string]*Task{},
+		Type:    GroupTypeUndefined,
+		Hosts:   map[string]*Host{},
+		Tasks:   map[string]*Task{},
 		Drivers: map[string]*Driver{},
-		LValues:   map[string]lua.LValue{},
+		LValues: map[string]lua.LValue{},
 	}
 }
 
