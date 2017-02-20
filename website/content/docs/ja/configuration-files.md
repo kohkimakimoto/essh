@@ -71,17 +71,14 @@ web01.tags = {
 
 ## 評価の順序
 
-Esshはいくつかの異なる場所から設定ファイルを読み込みます。必須である設定ファイルはありません。Esshはこれらが存在する場合のみロードします。設定は次の順序で適用されます。
+Esshはいくつかの異なる場所から設定ファイルを読み込みます。設定は次の順序で適用されます。
 
-1. `~/.essh/config.lua`
-1. カレントディレクトリの`esshconfig.lua`
-1. カレントディレクトリの`esshconfig_override.lua`
-1. `~/.essh/config_override.lua`
+1. カレントディレクトリに`esshconfig.lua`が存在する場合、これを読み込みます。
+1. カレントディレクトリに`esshconfig.lua`が存在しない場合、`〜/.essh/config.lua`を読み込みます。
+1. カレントディレクトリの`esshconfig_override.lua`を読み込みます。
+1. `~/.essh/config_override.lua`を読み込みます。
 
-`--config`コマンドラインオプションまたは`ESSH_CONFIG`環境変数を使用した場合、Esshはユーザごとの設定ファイル(`~/.essh/config.lua`と`~/.essh/config_override.lua`)を無視します。このケースでは設定は次の順序で適用されます。
-
-1. コマンドラインオプションの`--config`または環境変数`ESSH_CONFIG`で指定したファイル
-1. コマンドラインオプションの`--config`または環境変数`ESSH_CONFIG`で指定したファイル名の最後に`_override`をつけたファイル。例)`--config=myconfig.lua`なら`myconfig_override.lua`
+`--config`コマンドラインオプションや`ESSH_CONFIG`環境変数を使うと、現在のディレクトリにある読み込みファイルを変更することができます。
 
 ## Lua
 

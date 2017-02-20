@@ -430,6 +430,11 @@ func Run(osArgs []string) (exitStatus int) {
 			WorkingDirConfigFile = filepath.Join(wd, configVar)
 			WorkingDataDir = filepath.Join(filepath.Dir(WorkingDirConfigFile), ".essh")
 		}
+
+		if _, err := os.Stat(WorkingDirConfigFile); err != nil {
+			printError(err)
+			return ExitErr
+		}
 	}
 
 	workingDirConfigFileBasename := filepath.Base(WorkingDirConfigFile)
@@ -530,19 +535,45 @@ func Run(osArgs []string) (exitStatus int) {
 	lessh.RawSetString("ssh_config", lua.LString(temporarySSHConfigFile))
 
 	// user context
-	CurrentRegistry = NewRegistry(UserDataDir, RegistryTypeGlobal)
-	GlobalRegistry = CurrentRegistry
+	GlobalRegistry = NewRegistry(UserDataDir, RegistryTypeGlobal)
+	LocalRegistry = NewRegistry(WorkingDataDir, RegistryTypeLocal)
 
+	CurrentRegistry = GlobalRegistry
 	if err := CurrentRegistry.MkDirs(); err != nil {
 		printError(err)
 		return ExitErr
 	}
 
-	if configVar == "" {
-		// If a configuration file is given on the command line option,
-		// the per-user configuration file will be ignored.
+	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
+		// has working directroy config file
 
-		// load per-user (global) config
+		// change context to working dir context
+		CurrentRegistry = LocalRegistry
+
+		// load working directory config
+		if _, err := os.Stat(WorkingDirConfigFile); err == nil {
+			if debugFlag {
+				fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirConfigFile)
+			}
+
+			if err := CurrentRegistry.MkDirs(); err != nil {
+				printError(err)
+				return ExitErr
+			}
+
+			if err := L.DoFile(WorkingDirConfigFile); err != nil {
+				printError(err)
+				return ExitErr
+			}
+
+			if debugFlag {
+				fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirConfigFile)
+			}
+		}
+	} else {
+		// does not have working directory config file
+
+		// load per-user configuration file.
 		if _, err := os.Stat(UserConfigFile); err == nil {
 			if debugFlag {
 				fmt.Printf("[essh debug] loading config file: %s\n", UserConfigFile)
@@ -564,32 +595,10 @@ func Run(osArgs []string) (exitStatus int) {
 		}
 	}
 
-	// load current dir config
 	// change context to working dir context
-	CurrentRegistry = NewRegistry(WorkingDataDir, RegistryTypeLocal)
-	LocalRegistry = CurrentRegistry
+	CurrentRegistry = LocalRegistry
 
-	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
-		if debugFlag {
-			fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirConfigFile)
-		}
-
-		if err := CurrentRegistry.MkDirs(); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
-		if err := L.DoFile(WorkingDirConfigFile); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
-		if debugFlag {
-			fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirConfigFile)
-		}
-	}
-
-	// load override config
+	// load working directory override config
 	if _, err := os.Stat(WorkingDirOverrideConfigFile); err == nil {
 		if debugFlag {
 			fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirOverrideConfigFile)
@@ -605,27 +614,27 @@ func Run(osArgs []string) (exitStatus int) {
 		}
 	}
 
-	if configVar == "" {
-		CurrentRegistry = GlobalRegistry
-		// load override global config
-		if _, err := os.Stat(UserOverrideConfigFile); err == nil {
-			if debugFlag {
-				fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
-			}
+	// change context to global
+	CurrentRegistry = GlobalRegistry
 
-			if err := CurrentRegistry.MkDirs(); err != nil {
-				printError(err)
-				return ExitErr
-			}
+	// load override global config
+	if _, err := os.Stat(UserOverrideConfigFile); err == nil {
+		if debugFlag {
+			fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
+		}
 
-			if err := L.DoFile(UserOverrideConfigFile); err != nil {
-				printError(err)
-				return ExitErr
-			}
+		if err := CurrentRegistry.MkDirs(); err != nil {
+			printError(err)
+			return ExitErr
+		}
 
-			if debugFlag {
-				fmt.Printf("[essh debug] loaded config file: %s\n", UserOverrideConfigFile)
-			}
+		if err := L.DoFile(UserOverrideConfigFile); err != nil {
+			printError(err)
+			return ExitErr
+		}
+
+		if debugFlag {
+			fmt.Printf("[essh debug] loaded config file: %s\n", UserOverrideConfigFile)
 		}
 	}
 
