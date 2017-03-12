@@ -16,6 +16,6 @@ before_install:
 
 script:
   # check build a binary
-  - make dist
+  - make dev
   # run tests
   - make testv
