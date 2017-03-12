@@ -53,7 +53,7 @@ var (
 	withGlobalFlag   bool
 	cleanAllFlag     bool
 	cleanModulesFlag bool
-	cleanTmpFlag     bool
+	cleanCacheFlag bool
 
 	zshCompletionModeFlag       bool
 	zshCompletionFlag           bool
@@ -110,7 +110,7 @@ func initResources() {
 	withGlobalFlag = false
 	cleanAllFlag = false
 	cleanModulesFlag = false
-	cleanTmpFlag = false
+	cleanCacheFlag = false
 	zshCompletionModeFlag = false
 	zshCompletionFlag = false
 	zshCompletionHostsFlag = false
@@ -251,8 +251,8 @@ func Run(osArgs []string) (exitStatus int) {
 			updateFlag = true
 		} else if arg == "--clean-modules" {
 			cleanModulesFlag = true
-		} else if arg == "--clean-tmp" {
-			cleanTmpFlag = true
+		} else if arg == "--clean-cache" {
+			cleanCacheFlag = true
 		} else if arg == "--clean-all" {
 			cleanAllFlag = true
 		} else if arg == "--with-global" {
@@ -449,7 +449,7 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
-	if cleanAllFlag || cleanModulesFlag || cleanTmpFlag {
+	if cleanAllFlag || cleanModulesFlag || cleanCacheFlag {
 		err := removeRegistryData()
 		if err != nil {
 			printError(err)
@@ -1674,10 +1674,10 @@ func removeRegistryData() error {
 			}
 		}
 
-		if cleanTmpFlag || cleanAllFlag {
-			if _, err := os.Stat(c.TmpDir()); err == nil {
-				fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.TmpDir()))
-				err = os.RemoveAll(c.TmpDir())
+		if cleanCacheFlag || cleanAllFlag {
+			if _, err := os.Stat(c.CacheDir()); err == nil {
+				fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.CacheDir()))
+				err = os.RemoveAll(c.CacheDir())
 				if err != nil {
 					return err
 				}
@@ -1696,10 +1696,10 @@ func removeRegistryData() error {
 		}
 	}
 
-	if cleanTmpFlag || cleanAllFlag {
-		if _, err := os.Stat(c.TmpDir()); err == nil {
-			fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.TmpDir()))
-			err = os.RemoveAll(c.TmpDir())
+	if cleanCacheFlag || cleanAllFlag {
+		if _, err := os.Stat(c.CacheDir()); err == nil {
+			fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.CacheDir()))
+			err = os.RemoveAll(c.CacheDir())
 			if err != nil {
 				return err
 			}
@@ -1758,9 +1758,9 @@ Options:
   (Manage Modules)
   --update                      Update modules.
   --clean-modules               Clean downloaded modules.
-  --clean-tmp                   Clean temporary data.
+  --clean-cache                   Clean temporary data.
   --clean-all                   Clean all data.
-  --with-global                 (Using with --update, --clean-modules, --clean-tmp or --clean-all option) Update or clean modules in the local and global both registry.
+  --with-global                 (Using with --update, --clean-modules, --clean-cache or --clean-all option) Update or clean modules in the local and global both registry.
 
   (Execute Commands)
   --exec                        Execute commands with the hosts.
@@ -1886,7 +1886,7 @@ _essh_options() {
         '--gen:Only generate ssh config.'
         '--update:Update modules.'
         '--clean-modules:Clean downloaded modules.'
-        '--clean-tmp:Clean temporary data.'
+        '--clean-cache:Clean temporary data.'
         '--clean-all:Clean all data.'
         '--working-dir:Change working directory.'
         '--config:Load per-project configuration from the file.'
@@ -2042,7 +2042,7 @@ _essh () {
                 --backend)
                     _essh_backends
                     ;;
-                --clean-modules|--clean-tmp|--clean-all|--update)
+                --clean-modules|--clean-cache|--clean-all|--update)
                     _essh_registry_options
                     ;;
                 *)
@@ -2170,7 +2170,7 @@ _essh_options() {
         --gen
         --update
         --clean-modules
-        --clean-tmp
+        --clean-cache
         --clean-all
         --working-dir
         --config
@@ -2241,7 +2241,7 @@ _essh() {
                 --backend)
                     _essh_backends
                     ;;
-                --clean-modules|--clean-tmp|--clean-all|--update)
+                --clean-modules|--clean-cache|--clean-all|--update)
                     _essh_registry_options
                     ;;
                 *)

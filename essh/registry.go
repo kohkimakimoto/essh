@@ -38,8 +38,8 @@ func (reg *Registry) ModulesDir() string {
 	return filepath.Join(reg.DataDir, "modules")
 }
 
-func (ctx *Registry) TmpDir() string {
-	return filepath.Join(ctx.DataDir, "tmp")
+func (ctx *Registry) CacheDir() string {
+	return filepath.Join(ctx.DataDir, "cache")
 }
 
 func (reg *Registry) MkDirs() error {
@@ -50,8 +50,8 @@ func (reg *Registry) MkDirs() error {
 		}
 	}
 
-	if _, err := os.Stat(reg.TmpDir()); os.IsNotExist(err) {
-		err = os.MkdirAll(reg.TmpDir(), os.FileMode(0755))
+	if _, err := os.Stat(reg.CacheDir()); os.IsNotExist(err) {
+		err = os.MkdirAll(reg.CacheDir(), os.FileMode(0755))
 		if err != nil {
 			return err
 		}
