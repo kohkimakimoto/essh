@@ -11,7 +11,7 @@ local sshrc = function(override_config)
     end
 
     return function()
-        -- check existing xxd command.
+        -- check existing openssl command.
         if not sh.sh("-c", "command -v openssl >/dev/null 2>&1"):success() then
             error("sshrc requires openssl to be installed locally, but it's not. Aborting.")
         end
