@@ -1712,26 +1712,25 @@ func removeRegistryData() error {
 func printUsage() {
 	fmt.Print(`Usage: essh [<options>] [<ssh options and args...>]
 
-  Essh is an extended ssh command.
-  version ` + Version + ` (` + CommitHash + `)
+Essh is an extended ssh command.
+version ` + Version + ` (` + CommitHash + `)
 
-  Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
-  The MIT License (MIT)
+Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+The MIT License (MIT)
 
-  See more detail, use '--help'.
+See more detail, use '--help'.
 
 `)
 }
 
 func printHelp() {
-	fmt.Print(`
-Usage: essh [<options>] [<ssh options and args...>]
+	fmt.Print(`Usage: essh [<options>] [<ssh options and args...>]
 
-  Essh is an extended ssh command.
-  version ` + Version + ` (` + CommitHash + `)
+Essh is an extended ssh command.
+version ` + Version + ` (` + CommitHash + `)
 
-  Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
-  The MIT License (MIT)
+Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+The MIT License (MIT)
 
 Options:
   (General Options)
