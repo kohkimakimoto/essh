@@ -18,13 +18,13 @@ Esshをインストールしたら、ターミナルで`essh`を何もオプシ�
 $ essh
 Usage: essh [<options>] [<ssh options and args...>]
 
-  Essh is an extended ssh command.
-  version 0.61.0 (5478ab70355f2133ad2a38b3207be9fb4beed76f)
+Essh is an extended ssh command.
+version 0.87.0 (611624e6cb12e8add4494fd05e106bcdc701f9c3)
 
-  Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
-  The MIT License (MIT)
+Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+The MIT License (MIT)
 
-  See more detail, use '--help'.
+See more detail, use '--help'.
 
 ~~~
 
