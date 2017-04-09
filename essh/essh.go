@@ -1757,9 +1757,10 @@ Options:
   (Manage Modules)
   --update                      Update modules.
   --clean-modules               Clean downloaded modules.
-  --clean-cache                   Clean temporary data.
+  --clean-cache                 Clean temporary data.
   --clean-all                   Clean all data.
-  --with-global                 (Using with --update, --clean-modules, --clean-cache or --clean-all option) Update or clean modules in the local and global both registry.
+  --with-global                 (Using with --update, --clean-modules, --clean-cache or --clean-all option)
+                                Update or clean modules in the local and global both registry.
 
   (Execute Commands)
   --exec                        Execute commands with the hosts.
