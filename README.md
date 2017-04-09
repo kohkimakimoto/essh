@@ -6,13 +6,11 @@ Extended ssh command.
 * [Documentation](https://essh.sitespread.net/docs/en/index.html)
 * [Gettting Started](https://essh.sitespread.net/intro/en/index.html)
 
-> **Now Essh is on unstable stage. API and code may be broken in future. And document lacks. sorry!**
-
 ## Overview
 
 Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation becomes more efficient and convenient. Essh is a single binary CLI tool and simply wraps ssh command. You can use it in the same way as ssh. And it has useful features over ssh.
 
-Features:
+## Features
 
 * **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in [Lua](https://www.lua.org/) code. So your ssh_config can become more dynamic.
 
@@ -43,7 +41,7 @@ $ make deps
 Building dev binary.
 
 ```
-$ make
+$ make dev
 ```
 
 Building distributed binaries.
