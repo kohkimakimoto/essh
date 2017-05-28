@@ -6,11 +6,9 @@ Thumbs.db
 /vendor
 .vagrant
 /_work
-/_build/dev/*
-/_build/dist/*
+build/outputs/*
 Vagrantfile
 .vscode/
-
 .essh
 esshconfig.lua
 esshconfig_override.lua
