@@ -10,6 +10,21 @@ Extended ssh command.
 
 Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation becomes more efficient and convenient. Essh is a single binary CLI tool and simply wraps ssh command. You can use it in the same way as ssh. And it has useful features over ssh.
 
+## Installation
+
+Essh is provided as a single binary. You can download it and drop it in your $PATH.
+After installing Essh, run the `essh` without any options in your terminal to check working.
+
+### Homebrew
+
+```
+$ brew install kohkimakimoto/essh/essh
+```
+
+### Download the binary from releases page
+
+[Download latest version](https://github.com/kohkimakimoto/essh/releases/latest)
+
 ## Features
 
 * **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in [Lua](https://www.lua.org/) code. So your ssh_config can become more dynamic.
