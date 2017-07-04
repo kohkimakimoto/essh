@@ -10,6 +10,8 @@ Extended ssh command.
 
 Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Your SSH operation becomes more efficient and convenient. Essh is a single binary CLI tool and simply wraps ssh command. You can use it in the same way as ssh. And it has useful features over ssh.
 
+![example01.gif](https://raw.githubusercontent.com/kohkimakimoto/essh/master/example01.gif)
+
 ## Features
 
 * **Configuration As Code**: You can write SSH client configuration (aka:`~/.ssh/config`) in [Lua](https://www.lua.org/) code. So your ssh_config can become more dynamic.
