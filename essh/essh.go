@@ -53,7 +53,7 @@ var (
 	withGlobalFlag   bool
 	cleanAllFlag     bool
 	cleanModulesFlag bool
-	cleanCacheFlag bool
+	cleanCacheFlag   bool
 
 	zshCompletionModeFlag       bool
 	zshCompletionFlag           bool

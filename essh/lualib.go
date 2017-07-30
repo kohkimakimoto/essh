@@ -1345,7 +1345,7 @@ func registerRegistryClass(L *lua.LState) {
 	mt := L.NewTypeMetatable(LRegistryClass)
 	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
 		"data_dir":    registryDataDir,
-		"cache_dir":     registryCacheDir,
+		"cache_dir":   registryCacheDir,
 		"modules_dir": registryModulesDir,
 		"type":        registryType,
 	}))
@@ -1983,7 +1983,6 @@ func moduleNewindex(L *lua.LState) int {
 
 	return 0
 }
-
 
 func setupModule(L *lua.LState, h *Module, config *lua.LTable) {
 	config.ForEach(func(k, v lua.LValue) {

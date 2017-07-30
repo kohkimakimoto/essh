@@ -10,17 +10,15 @@ type Module struct {
 	//   github.com/aaa/bbb
 	//   git::github.com/aaa/bbb.git
 	Name string
-	// Config
-	Config lua.LValue
 	// LValues
-	LValues              map[string]lua.LValue
+	LValues map[string]lua.LValue
 }
 
 var RootModules []*Module = []*Module{}
 
 func NewModule(name string) *Module {
 	return &Module{
-		Name: name,
+		Name:    name,
+		LValues: map[string]lua.LValue{},
 	}
 }
-
