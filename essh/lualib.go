@@ -35,9 +35,7 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("namespace", L.NewFunction(esshNamespace))
 	L.SetGlobal("group", L.NewFunction(esshGroup))
 	L.SetGlobal("import", L.NewFunction(esshImport))
-
-	// temporary code for BC
-	L.SetGlobal("job", L.NewFunction(esshNamespace))
+	L.SetGlobal("module", L.NewFunction(esshModule))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -72,10 +70,6 @@ func InitLuaState(L *lua.LState) {
 		"namespaces":       esshNamespaces,
 		"get_namespace":    esshGetNamespace,
 		"current_registry": esshCurrentRegistry,
-
-		// temporary code for BC
-		"jobs":    esshNamespaces,
-		"get_job": esshGetNamespace,
 	})
 }
 
@@ -289,6 +283,11 @@ func esshImport(L *lua.LState) int {
 
 	L.Push(module.Value)
 	return 1
+}
+
+func esshModule(L *lua.LState) int {
+
+	return 0
 }
 
 func esshSelectHosts(L *lua.LState) int {
