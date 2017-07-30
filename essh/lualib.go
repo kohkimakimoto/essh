@@ -235,53 +235,53 @@ func esshImport(L *lua.LState) int {
 	if !ok {
 		L.RaiseError("'essh' global variable is broken")
 	}
-	mod := lessh.RawGetString("module")
+	mod := lessh.RawGetString("package")
 	if mod != lua.LNil {
-		L.RaiseError("'essh.module' is existed. does not support nested module importing.")
+		L.RaiseError("'essh.pkg' is existed. does not support nested pkg importing.")
 	}
 
-	module := CurrentRegistry.LoadedModules[name]
-	if module == nil {
-		module = NewModule(name)
+	pkg := CurrentRegistry.LoadedPackages[name]
+	if pkg == nil {
+		pkg = NewPackage(name)
 
 		update := updateFlag
 		if CurrentRegistry.Type == RegistryTypeGlobal && !withGlobalFlag {
 			update = false
 		}
 
-		err := module.Load(update)
+		err := pkg.Load(update)
 		if err != nil {
 			L.RaiseError("%v", err)
 		}
 
-		indexFile := module.IndexFile()
+		indexFile := pkg.IndexFile()
 		if _, err := os.Stat(indexFile); err != nil {
-			L.RaiseError("invalid module: %v", err)
+			L.RaiseError("invalid pkg: %v", err)
 		}
 
-		// init module variable
+		// init pkg variable
 		modulevar := L.NewTable()
 		modulevar.RawSetString("path", lua.LString(filepath.Dir(indexFile)))
 		modulevar.RawSetString("import_path", lua.LString(name))
-		lessh.RawSetString("module", modulevar)
+		lessh.RawSetString("package", modulevar)
 
 		if err := L.DoFile(indexFile); err != nil {
 			panic(err)
 		}
-		// remove module variable
-		lessh.RawSetString("module", lua.LNil)
+		// remove pkg variable
+		lessh.RawSetString("package", lua.LNil)
 
-		// get a module return value
+		// get a pkg return value
 		ret := L.Get(-1)
-		module.Value = ret
+		pkg.Value = ret
 
-		// register loaded module.
-		CurrentRegistry.LoadedModules[name] = module
+		// register loaded pkg.
+		CurrentRegistry.LoadedPackages[name] = pkg
 
 		return 1
 	}
 
-	L.Push(module.Value)
+	L.Push(pkg.Value)
 	return 1
 }
 
@@ -1316,7 +1316,7 @@ func registryCacheDir(L *lua.LState) int {
 
 func registryModulesDir(L *lua.LState) int {
 	reg := checkRegistry(L)
-	L.Push(lua.LString(reg.ModulesDir()))
+	L.Push(lua.LString(reg.PackagesDir()))
 	return 1
 }
 

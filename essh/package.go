@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-type Module struct {
+type Package struct {
 	// Name is url that is used as go-getter src.
 	// examples:
 	//   github.com/aaa/bbb
@@ -21,13 +21,13 @@ type Module struct {
 	Value lua.LValue
 }
 
-func NewModule(name string) *Module {
-	return &Module{
+func NewPackage(name string) *Package {
+	return &Package{
 		Name: name,
 	}
 }
 
-func (m *Module) Load(update bool) error {
+func (m *Package) Load(update bool) error {
 	// If you usually use git with essh, you can set variable "GIT_SSH=essh".
 	// But this setting cause a error in a module loading.
 	// When we load a module, essh can git protocol, but essh hasn't generated ssh_config used by git command.
@@ -86,14 +86,14 @@ func (m *Module) Load(update bool) error {
 	return nil
 }
 
-func (m *Module) IndexFile() string {
+func (m *Package) IndexFile() string {
 	return path.Join(m.Dir(), "index.lua")
 }
 
-func (m *Module) Dir() string {
-	return path.Join(CurrentRegistry.ModulesDir(), m.Key())
+func (m *Package) Dir() string {
+	return path.Join(CurrentRegistry.PackagesDir(), m.Key())
 }
 
-func (m *Module) Key() string {
+func (m *Package) Key() string {
 	return strings.Replace(strings.Replace(m.Name, "/", "-", -1), ":", "-", -1)
 }

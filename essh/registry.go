@@ -8,10 +8,10 @@ import (
 )
 
 type Registry struct {
-	Key           string
-	DataDir       string
-	LoadedModules map[string]*Module
-	Type          int
+	Key            string
+	DataDir        string
+	LoadedPackages map[string]*Package
+	Type           int
 }
 
 const (
@@ -25,17 +25,17 @@ var LocalRegistry *Registry
 
 func NewRegistry(dataDir string, registryType int) *Registry {
 	reg := &Registry{
-		Key:           fmt.Sprintf("%x", sha256.Sum256([]byte(dataDir))),
-		DataDir:       dataDir,
-		LoadedModules: map[string]*Module{},
-		Type:          registryType,
+		Key:            fmt.Sprintf("%x", sha256.Sum256([]byte(dataDir))),
+		DataDir:        dataDir,
+		LoadedPackages: map[string]*Package{},
+		Type:           registryType,
 	}
 
 	return reg
 }
 
-func (reg *Registry) ModulesDir() string {
-	return filepath.Join(reg.DataDir, "modules")
+func (reg *Registry) PackagesDir() string {
+	return filepath.Join(reg.DataDir, "packages")
 }
 
 func (ctx *Registry) CacheDir() string {
@@ -43,8 +43,8 @@ func (ctx *Registry) CacheDir() string {
 }
 
 func (reg *Registry) MkDirs() error {
-	if _, err := os.Stat(reg.ModulesDir()); os.IsNotExist(err) {
-		err = os.MkdirAll(reg.ModulesDir(), os.FileMode(0755))
+	if _, err := os.Stat(reg.PackagesDir()); os.IsNotExist(err) {
+		err = os.MkdirAll(reg.PackagesDir(), os.FileMode(0755))
 		if err != nil {
 			return err
 		}

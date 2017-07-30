@@ -1665,9 +1665,9 @@ func removeRegistryData() error {
 	if withGlobalFlag {
 		c := NewRegistry(UserDataDir, RegistryTypeGlobal)
 		if cleanModulesFlag || cleanAllFlag {
-			if _, err := os.Stat(c.ModulesDir()); err == nil {
-				fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.ModulesDir()))
-				err = os.RemoveAll(c.ModulesDir())
+			if _, err := os.Stat(c.PackagesDir()); err == nil {
+				fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.PackagesDir()))
+				err = os.RemoveAll(c.PackagesDir())
 				if err != nil {
 					return err
 				}
@@ -1687,9 +1687,9 @@ func removeRegistryData() error {
 
 	c := NewRegistry(WorkingDataDir, RegistryTypeLocal)
 	if cleanModulesFlag || cleanAllFlag {
-		if _, err := os.Stat(c.ModulesDir()); err == nil {
-			fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.ModulesDir()))
-			err = os.RemoveAll(c.ModulesDir())
+		if _, err := os.Stat(c.PackagesDir()); err == nil {
+			fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.PackagesDir()))
+			err = os.RemoveAll(c.PackagesDir())
 			if err != nil {
 				return err
 			}
