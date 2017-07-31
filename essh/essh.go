@@ -566,6 +566,11 @@ func Run(osArgs []string) (exitStatus int) {
 				return ExitErr
 			}
 
+			if err := evaluateModules(); err != nil {
+				printError(err)
+				return ExitErr
+			}
+
 			if debugFlag {
 				fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirConfigFile)
 			}
@@ -585,6 +590,11 @@ func Run(osArgs []string) (exitStatus int) {
 			}
 
 			if err := L.DoFile(UserConfigFile); err != nil {
+				printError(err)
+				return ExitErr
+			}
+
+			if err := evaluateModules(); err != nil {
 				printError(err)
 				return ExitErr
 			}
@@ -609,6 +619,11 @@ func Run(osArgs []string) (exitStatus int) {
 			return ExitErr
 		}
 
+		if err := evaluateModules(); err != nil {
+			printError(err)
+			return ExitErr
+		}
+
 		if debugFlag {
 			fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirOverrideConfigFile)
 		}
@@ -629,6 +644,11 @@ func Run(osArgs []string) (exitStatus int) {
 		}
 
 		if err := L.DoFile(UserOverrideConfigFile); err != nil {
+			printError(err)
+			return ExitErr
+		}
+
+		if err := evaluateModules(); err != nil {
 			printError(err)
 			return ExitErr
 		}
@@ -1703,6 +1723,16 @@ func removeRegistryData() error {
 			if err != nil {
 				return err
 			}
+		}
+	}
+
+	return nil
+}
+
+func evaluateModules() error {
+	for _, m := range Modules {
+		if err := m.Evaluate(); err != nil {
+			return err
 		}
 	}
 

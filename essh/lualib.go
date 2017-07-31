@@ -433,6 +433,10 @@ func registerHost(L *lua.LState, name string) *Host {
 		host.Parent = h
 	}
 
+	if EvaluatingModule != nil {
+		EvaluatingModule.Hosts = append(EvaluatingModule.Hosts, h)
+	}
+
 	Hosts[h.Name] = h
 
 	return h
@@ -451,6 +455,10 @@ func registerTask(L *lua.LState, name string) *Task {
 		// detect same name task
 		t.Child = task
 		task.Parent = t
+	}
+
+	if EvaluatingModule != nil {
+		EvaluatingModule.Tasks = append(EvaluatingModule.Tasks, t)
 	}
 
 	Tasks[t.Name] = t
@@ -473,6 +481,10 @@ func registerDriver(L *lua.LState, name string) *Driver {
 		driver.Parent = d
 	}
 
+	if EvaluatingModule != nil {
+		EvaluatingModule.Drivers = append(EvaluatingModule.Drivers, d)
+	}
+
 	Drivers[d.Name] = d
 
 	return d
@@ -486,6 +498,10 @@ func registerNamespace(L *lua.LState, name string) *Namespace {
 	j := NewNamespace()
 	j.Name = name
 
+	if EvaluatingModule != nil {
+		EvaluatingModule.Namespaces = append(EvaluatingModule.Namespaces, j)
+	}
+
 	Namespaces[j.Name] = j
 
 	return j
@@ -497,9 +513,9 @@ func registerGroup(L *lua.LState) *Group {
 }
 
 func registerModule(L *lua.LState, name string) *Module {
-	m := NewModule(name)
+	m := NewModule(L, name)
 
-	RootModules = append(RootModules, m)
+	Modules = append(Modules, m)
 
 	return m
 }
@@ -1437,7 +1453,7 @@ func namespaceNewindex(L *lua.LState) int {
 	index := L.CheckString(2)
 	value := L.CheckAny(3)
 
-	updateNamespace(L, namespace, index, value)
+	updateNamespaceWithKeyString(L, namespace, index, value)
 
 	return 0
 }
@@ -1446,7 +1462,7 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 	// guarantee evaluating a key/value dictionary at first.
 	config.ForEach(func(k, v lua.LValue) {
 		if kstr, ok := toString(k); ok {
-			updateNamespace(L, namespace, kstr, v)
+			updateNamespaceWithKeyString(L, namespace, kstr, v)
 		}
 	})
 
@@ -1455,13 +1471,69 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 			return
 		} else if _, ok := toFloat64(k); ok {
 			// set a host, task or driver
-			lv, ok := v.(*lua.LUserData)
-			if !ok {
-				panic(fmt.Sprintf("expected userdata (host, task or driver) but got '%v'\n", v))
-			}
+			updateNamespace(L, namespace, v)
+		} else {
+			panic("invalid operation\n")
+		}
+	})
+}
 
-			switch resource := lv.Value.(type) {
-			case *Host:
+func updateNamespace(L *lua.LState, namespace *Namespace, v lua.LValue) {
+	lv, ok := v.(*lua.LUserData)
+	if !ok {
+		panic(fmt.Sprintf("expected host, task, driver, group or module but got '%v'\n", v))
+	}
+
+	switch resource := lv.Value.(type) {
+	case *Host:
+		// set host table data
+		if namespace.LValues["hosts"] == nil {
+			namespace.LValues["hosts"] = L.NewTable()
+		}
+		hosts, ok := toLTable(namespace.LValues["hosts"])
+		if !ok {
+			panic("broken 'hosts' table")
+		}
+		host := L.NewTable()
+		resource.MapLValuesToLTable(host)
+		hosts.RawSetString(resource.Name, host)
+
+		// register host object
+		namespace.RegisterHost(resource)
+	case *Task:
+		// set task table data
+		if namespace.LValues["tasks"] == nil {
+			namespace.LValues["tasks"] = L.NewTable()
+		}
+		tasks, ok := toLTable(namespace.LValues["tasks"])
+		if !ok {
+			panic("broken 'tasks' table")
+		}
+		task := L.NewTable()
+		resource.MapLValuesToLTable(task)
+		tasks.RawSetString(resource.Name, task)
+
+		// register task object
+		namespace.RegisterTask(resource)
+	case *Driver:
+		// set task table data
+		if namespace.LValues["drivers"] == nil {
+			namespace.LValues["drivers"] = L.NewTable()
+		}
+		drivers, ok := toLTable(namespace.LValues["drivers"])
+		if !ok {
+			panic("broken 'drivers' table")
+		}
+		driver := L.NewTable()
+		resource.MapLValuesToLTable(driver)
+		drivers.RawSetString(resource.Name, driver)
+
+		// register task object
+		namespace.RegisterDriver(resource)
+	case *Group:
+		switch resource.Type {
+		case GroupTypeHosts:
+			for _, obj := range resource.Hosts {
 				// set host table data
 				if namespace.LValues["hosts"] == nil {
 					namespace.LValues["hosts"] = L.NewTable()
@@ -1471,12 +1543,14 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 					panic("broken 'hosts' table")
 				}
 				host := L.NewTable()
-				resource.MapLValuesToLTable(host)
-				hosts.RawSetString(resource.Name, host)
+				obj.MapLValuesToLTable(host)
+				hosts.RawSetString(obj.Name, host)
 
 				// register host object
-				namespace.RegisterHost(resource)
-			case *Task:
+				namespace.RegisterHost(obj)
+			}
+		case GroupTypeTasks:
+			for _, obj := range resource.Tasks {
 				// set task table data
 				if namespace.LValues["tasks"] == nil {
 					namespace.LValues["tasks"] = L.NewTable()
@@ -1486,12 +1560,14 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 					panic("broken 'tasks' table")
 				}
 				task := L.NewTable()
-				resource.MapLValuesToLTable(task)
-				tasks.RawSetString(resource.Name, task)
+				obj.MapLValuesToLTable(task)
+				tasks.RawSetString(obj.Name, task)
 
 				// register task object
-				namespace.RegisterTask(resource)
-			case *Driver:
+				namespace.RegisterTask(obj)
+			}
+		case GroupTypeDrivers:
+			for _, obj := range resource.Drivers {
 				// set task table data
 				if namespace.LValues["drivers"] == nil {
 					namespace.LValues["drivers"] = L.NewTable()
@@ -1501,75 +1577,43 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 					panic("broken 'drivers' table")
 				}
 				driver := L.NewTable()
-				resource.MapLValuesToLTable(driver)
-				drivers.RawSetString(resource.Name, driver)
+				obj.MapLValuesToLTable(driver)
+				drivers.RawSetString(obj.Name, driver)
 
 				// register task object
-				namespace.RegisterDriver(resource)
-			case *Group:
-				switch resource.Type {
-				case GroupTypeHosts:
-					for _, obj := range resource.Hosts {
-						// set host table data
-						if namespace.LValues["hosts"] == nil {
-							namespace.LValues["hosts"] = L.NewTable()
-						}
-						hosts, ok := toLTable(namespace.LValues["hosts"])
-						if !ok {
-							panic("broken 'hosts' table")
-						}
-						host := L.NewTable()
-						obj.MapLValuesToLTable(host)
-						hosts.RawSetString(obj.Name, host)
-
-						// register host object
-						namespace.RegisterHost(obj)
-					}
-				case GroupTypeTasks:
-					for _, obj := range resource.Tasks {
-						// set task table data
-						if namespace.LValues["tasks"] == nil {
-							namespace.LValues["tasks"] = L.NewTable()
-						}
-						tasks, ok := toLTable(namespace.LValues["tasks"])
-						if !ok {
-							panic("broken 'tasks' table")
-						}
-						task := L.NewTable()
-						obj.MapLValuesToLTable(task)
-						tasks.RawSetString(obj.Name, task)
-
-						// register task object
-						namespace.RegisterTask(obj)
-					}
-				case GroupTypeDrivers:
-					for _, obj := range resource.Drivers {
-						// set task table data
-						if namespace.LValues["drivers"] == nil {
-							namespace.LValues["drivers"] = L.NewTable()
-						}
-						drivers, ok := toLTable(namespace.LValues["drivers"])
-						if !ok {
-							panic("broken 'drivers' table")
-						}
-						driver := L.NewTable()
-						obj.MapLValuesToLTable(driver)
-						drivers.RawSetString(obj.Name, driver)
-
-						// register task object
-						namespace.RegisterDriver(obj)
-					}
-				}
-			default:
-				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", resource))
+				namespace.RegisterDriver(obj)
 			}
-		} else {
-			panic("invalid operation\n")
 		}
-	})
+	case *Module:
+		// register task object
+		module := resource
+		module.Namespace = namespace
+
+		if err := module.Evaluate(); err != nil {
+			panic(err)
+		}
+
+		if len(module.Namespaces) > 0 {
+			panic(fmt.Sprintf("module %s defines namespace but nested namespace is not supported", module.Name))
+		}
+
+		for _, o := range module.Hosts {
+			updateNamespace(L, namespace, newLHost(L, o))
+		}
+
+		for _, o := range module.Tasks {
+			updateNamespace(L, namespace, newLTask(L, o))
+		}
+
+		for _, o := range module.Drivers {
+			updateNamespace(L, namespace, newLDriver(L, o))
+		}
+	default:
+		panic(fmt.Sprintf("expected host, task, driver, group or module but got '%v'\n", resource))
+	}
 }
 
-func updateNamespace(L *lua.LState, namespace *Namespace, key string, value lua.LValue) {
+func updateNamespaceWithKeyString(L *lua.LState, namespace *Namespace, key string, value lua.LValue) {
 	namespace.LValues[key] = value
 
 	switch key {

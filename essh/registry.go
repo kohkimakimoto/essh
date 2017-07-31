@@ -38,6 +38,10 @@ func (reg *Registry) PackagesDir() string {
 	return filepath.Join(reg.DataDir, "packages")
 }
 
+func (reg *Registry) ModulesDir() string {
+	return filepath.Join(reg.DataDir, "modules")
+}
+
 func (ctx *Registry) CacheDir() string {
 	return filepath.Join(ctx.DataDir, "cache")
 }
