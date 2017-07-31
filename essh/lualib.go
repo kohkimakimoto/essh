@@ -501,7 +501,7 @@ func registerNamespace(L *lua.LState, name string) *Namespace {
 	j.Name = name
 
 	if EvaluatingModule != nil {
-		EvaluatingModule.Namespaces = append(EvaluatingModule.Namespaces, j)
+		panic(fmt.Sprintf("module %s defines namespace but does not support namespace in a module", EvaluatingModule.Name))
 	}
 
 	Namespaces[j.Name] = j
@@ -518,6 +518,11 @@ func registerModule(L *lua.LState, name string) *Module {
 	m := NewModule(L, name)
 
 	Modules = append(Modules, m)
+
+	if EvaluatingModule != nil {
+		m.Parant = EvaluatingModule
+		EvaluatingModule.Modules = append(EvaluatingModule.Modules, m)
+	}
 
 	return m
 }
@@ -1595,19 +1600,15 @@ func updateNamespace(L *lua.LState, namespace *Namespace, v lua.LValue) {
 			panic(err)
 		}
 
-		if len(module.Namespaces) > 0 {
-			panic(fmt.Sprintf("module %s defines namespace but nested namespace is not supported", module.Name))
-		}
-
-		for _, o := range module.Hosts {
+		for _, o := range module.AllHosts() {
 			updateNamespace(L, namespace, newLHost(L, o))
 		}
 
-		for _, o := range module.Tasks {
+		for _, o := range module.AllTasks() {
 			updateNamespace(L, namespace, newLTask(L, o))
 		}
 
-		for _, o := range module.Drivers {
+		for _, o := range module.AllDrivers() {
 			updateNamespace(L, namespace, newLDriver(L, o))
 		}
 	default:

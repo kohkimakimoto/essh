@@ -8,3 +8,4 @@ task "open-essh-repository" {
     script = "open https://github.com/kohkimakimoto/essh",
     description = description,
 }
+

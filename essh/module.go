@@ -26,10 +26,11 @@ type Module struct {
 	// Evaluated
 	Evaluated bool
 
-	Hosts      []*Host
-	Tasks      []*Task
-	Drivers    []*Driver
-	Namespaces []*Namespace
+	Hosts   []*Host
+	Tasks   []*Task
+	Drivers []*Driver
+	Modules []*Module
+	Parant  *Module
 }
 
 var Modules []*Module = []*Module{}
@@ -40,15 +41,45 @@ var UpdatedModules map[string]*Module = map[string]*Module{}
 
 func NewModule(L *lua.LState, name string) *Module {
 	return &Module{
-		Name:       name,
-		LValues:    map[string]lua.LValue{},
-		L:          L,
-		Evaluated:  false,
-		Hosts:      []*Host{},
-		Tasks:      []*Task{},
-		Drivers:    []*Driver{},
-		Namespaces: []*Namespace{},
+		Name:      name,
+		LValues:   map[string]lua.LValue{},
+		L:         L,
+		Evaluated: false,
+		Hosts:     []*Host{},
+		Tasks:     []*Task{},
+		Drivers:   []*Driver{},
+		Modules:   []*Module{},
 	}
+}
+
+func (m *Module) AllHosts() []*Host {
+	all := m.Hosts
+
+	for _, nm := range m.Modules {
+		all = append(all, nm.AllHosts()...)
+	}
+
+	return all
+}
+
+func (m *Module) AllTasks() []*Task {
+	all := m.Tasks
+
+	for _, nm := range m.Modules {
+		all = append(all, nm.AllTasks()...)
+	}
+
+	return all
+}
+
+func (m *Module) AllDrivers() []*Driver {
+	all := m.Drivers
+
+	for _, nm := range m.Modules {
+		all = append(all, nm.AllDrivers()...)
+	}
+
+	return all
 }
 
 func (m *Module) MapLValuesToLTable(tb *lua.LTable) {
@@ -69,7 +100,7 @@ func (m *Module) Load(update bool) error {
 		}()
 	}
 
-	src := m.Name
+	src := m.Src()
 	dst := m.Dir()
 
 	if UpdatedModules[m.Name] != nil {
@@ -121,6 +152,12 @@ func (m *Module) Load(update bool) error {
 	}
 
 	return nil
+}
+
+func (m *Module) Src() string {
+	src := m.Name
+
+	return src
 }
 
 func (m *Module) IndexFile() string {
@@ -175,9 +212,17 @@ func (m *Module) Evaluate() error {
 
 	// remove pkg variable
 	lessh.RawSetString("module", lua.LNil)
-
 	m.Evaluated = true
 	EvaluatingModule = nil
+
+	if len(m.Modules) > 0 {
+		// has nested modules
+		for _, nm := range m.Modules {
+			if err := nm.Evaluate(); err != nil {
+				return err
+			}
+		}
+	}
 
 	return nil
 }
