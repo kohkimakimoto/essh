@@ -35,8 +35,10 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 	L.SetGlobal("namespace", L.NewFunction(esshNamespace))
 	L.SetGlobal("group", L.NewFunction(esshGroup))
-	L.SetGlobal("import", L.NewFunction(esshImport))
 	L.SetGlobal("module", L.NewFunction(esshModule))
+
+	// deprecated. for BC
+	L.SetGlobal("import", L.NewFunction(esshImport))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -63,7 +65,7 @@ func InitLuaState(L *lua.LState) {
 		"driver":    esshDriver,
 		"namespace": esshNamespace,
 		"group":     esshGroup,
-		"import":    esshImport,
+		"module":    esshModule,
 
 		// utility functions
 		"debug":            esshDebug,
