@@ -42,6 +42,10 @@ func (reg *Registry) ModulesDir() string {
 	return filepath.Join(reg.DataDir, "modules")
 }
 
+func (reg *Registry) LibDir() string {
+	return filepath.Join(reg.DataDir, "lib")
+}
+
 func (ctx *Registry) CacheDir() string {
 	return filepath.Join(ctx.DataDir, "cache")
 }
@@ -49,6 +53,20 @@ func (ctx *Registry) CacheDir() string {
 func (reg *Registry) MkDirs() error {
 	if _, err := os.Stat(reg.PackagesDir()); os.IsNotExist(err) {
 		err = os.MkdirAll(reg.PackagesDir(), os.FileMode(0755))
+		if err != nil {
+			return err
+		}
+	}
+
+	if _, err := os.Stat(reg.ModulesDir()); os.IsNotExist(err) {
+		err = os.MkdirAll(reg.ModulesDir(), os.FileMode(0755))
+		if err != nil {
+			return err
+		}
+	}
+
+	if _, err := os.Stat(reg.LibDir()); os.IsNotExist(err) {
+		err = os.MkdirAll(reg.LibDir(), os.FileMode(0755))
 		if err != nil {
 			return err
 		}
