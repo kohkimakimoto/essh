@@ -22,8 +22,6 @@ EsshはLuaで書かれた設定ファイルを読み込むために[GopherLua](h
 
 * `namespace`: ネームスペースを定義します。[ネームスペース](/docs/ja/namespaces.html)を参照してください。
 
-* `import`: モジュールをインポートします。[モジュール](/docs/ja/modules.html)を参照してください。
-
 ## ビルトインライブラリ
 
 Esshには、設定ファイルで使用できるビルトインLuaライブラリが用意されています。
@@ -123,12 +121,6 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
     end
     ~~~
 
-* `module` (table): インポートされたモジュール内にのみで有効なテーブルです。モジュールスコープの変数として使用できます。いくつか定義済みの値を持ちます。
-
-    * `path` (string): モジュールのパス
-    
-    * `import_path` (string): import関数の引数に使用されたパス
-
 * `host` (function): `host` 関数のエイリアス。
 
 * `task` (function): `task` 関数のエイリアス。
@@ -136,8 +128,6 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
 * `driver` (function): `driver` 関数のエイリアス。
 
 * `namespace` (function): `namespace` 関数のエイリアス。
-
-* `import` (function): `import` 関数のエイリアス。
 
 * `debug` (function): デバッグメッセージを出力します。デバッグメッセージは`--debug`オプションつきでEsshを実行したときに出力されます。
 
