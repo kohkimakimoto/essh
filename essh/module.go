@@ -17,13 +17,74 @@ type Module struct {
 	//   github.com/aaa/bbb
 	//   git::github.com/aaa/bbb.git
 	Name string
-	// Value is a lua value that is returned when a module's 'index.lua' file is evaluated.
-	Value lua.LValue
+	// LValues
+	LValues map[string]lua.LValue
+	// Namespace
+	Namespace *Namespace
+	// L
+	L *lua.LState
+	// Evaluated
+	Evaluated bool
+
+	Hosts   []*Host
+	Tasks   []*Task
+	Drivers []*Driver
+	Modules []*Module
+	Parant  *Module
 }
 
-func NewModule(name string) *Module {
+var Modules []*Module = []*Module{}
+
+var EvaluatingModule *Module
+
+var UpdatedModules map[string]*Module = map[string]*Module{}
+
+func NewModule(L *lua.LState, name string) *Module {
 	return &Module{
-		Name: name,
+		Name:      name,
+		LValues:   map[string]lua.LValue{},
+		L:         L,
+		Evaluated: false,
+		Hosts:     []*Host{},
+		Tasks:     []*Task{},
+		Drivers:   []*Driver{},
+		Modules:   []*Module{},
+	}
+}
+
+func (m *Module) AllHosts() []*Host {
+	all := m.Hosts
+
+	for _, nm := range m.Modules {
+		all = append(all, nm.AllHosts()...)
+	}
+
+	return all
+}
+
+func (m *Module) AllTasks() []*Task {
+	all := m.Tasks
+
+	for _, nm := range m.Modules {
+		all = append(all, nm.AllTasks()...)
+	}
+
+	return all
+}
+
+func (m *Module) AllDrivers() []*Driver {
+	all := m.Drivers
+
+	for _, nm := range m.Modules {
+		all = append(all, nm.AllDrivers()...)
+	}
+
+	return all
+}
+
+func (m *Module) MapLValuesToLTable(tb *lua.LTable) {
+	for key, value := range m.LValues {
+		tb.RawSetString(key, value)
 	}
 }
 
@@ -39,8 +100,13 @@ func (m *Module) Load(update bool) error {
 		}()
 	}
 
-	src := m.Name
+	src := m.Src()
 	dst := m.Dir()
+
+	if UpdatedModules[m.Name] != nil {
+		// already updated
+		update = false
+	}
 
 	if !update {
 		if _, err := os.Stat(dst); err == nil {
@@ -64,6 +130,8 @@ func (m *Module) Load(update bool) error {
 		} else {
 			fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 		}
+
+		UpdatedModules[m.Name] = m
 	} else {
 		fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 	}
@@ -86,6 +154,12 @@ func (m *Module) Load(update bool) error {
 	return nil
 }
 
+func (m *Module) Src() string {
+	src := m.Name
+
+	return src
+}
+
 func (m *Module) IndexFile() string {
 	return path.Join(m.Dir(), "index.lua")
 }
@@ -96,4 +170,59 @@ func (m *Module) Dir() string {
 
 func (m *Module) Key() string {
 	return strings.Replace(strings.Replace(m.Name, "/", "-", -1), ":", "-", -1)
+}
+
+func (m *Module) Evaluate() error {
+	if m.Evaluated {
+		return nil
+	}
+
+	if debugFlag {
+		fmt.Printf("[essh debug] module evaluating '%s'\n", m.Name)
+	}
+
+	EvaluatingModule = m
+
+	err := m.Load(updateFlag)
+	if err != nil {
+		return err
+	}
+
+	L := m.L
+	indexFile := m.IndexFile()
+	lessh, ok := toLTable(L.GetGlobal("essh"))
+	if !ok {
+		return fmt.Errorf("'essh' global variable is broken")
+	}
+
+	// configure module variable
+	modulevar := L.NewTable()
+	modulevar.RawSetString("path", lua.LString(filepath.Dir(indexFile)))
+	variable := L.NewTable()
+	for kstr, v := range m.LValues {
+		variable.RawSetString(kstr, v)
+	}
+	modulevar.RawSetString("var", variable)
+
+	lessh.RawSetString("module", modulevar)
+
+	if err := L.DoFile(indexFile); err != nil {
+		return err
+	}
+
+	// remove pkg variable
+	lessh.RawSetString("module", lua.LNil)
+	m.Evaluated = true
+	EvaluatingModule = nil
+
+	if len(m.Modules) > 0 {
+		// has nested modules
+		for _, nm := range m.Modules {
+			if err := nm.Evaluate(); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

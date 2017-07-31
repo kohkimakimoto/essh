@@ -22,8 +22,6 @@ As you already seen `host` and `task` functions, Essh core features consist of b
 
 * `namespace`: Defines a namespace. See [Namespaces](/docs/en/namespaces.html).
 
-* `import`: Imports a module. See [Modules](/docs/en/modules.html).
-
 ## Built-in Libraries
 
 Essh provides built-in Lua libraries that you can use in your configuration files.
@@ -122,12 +120,6 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
     end
     ~~~
 
-* `module` (table): A table only lives in the imported module. You can use it as a module scope variable in a module. It has some predefined values.
-
-    * `path` (string): A path to the module.
-    
-    * `import_path` (string): A path that was used by import function's argument.
-
 * `host` (function): An alias of `host` function.
 
 * `task` (function): An alias of `task` function.
@@ -135,8 +127,6 @@ Essh provides predefined variables. In the recent version of Essh, there is one 
 * `driver` (function): An alias of `driver` function.
 
 * `namespace` (function): An alias of `namespace` function.
-
-* `import` (function): An alias of `import` function.
 
 * `debug` (function): Output a debug message. The debug message is outputed when you run Essh with `--debug` option.
 

@@ -27,6 +27,7 @@ func InitLuaState(L *lua.LState) {
 	registerRegistryClass(L)
 	registerNamespaceClass(L)
 	registerGroupClass(L)
+	registerModuleClass(L)
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
@@ -34,10 +35,10 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 	L.SetGlobal("namespace", L.NewFunction(esshNamespace))
 	L.SetGlobal("group", L.NewFunction(esshGroup))
-	L.SetGlobal("import", L.NewFunction(esshImport))
+	L.SetGlobal("module", L.NewFunction(esshModule))
 
-	// temporary code for BC
-	L.SetGlobal("job", L.NewFunction(esshNamespace))
+	// deprecated. for BC
+	L.SetGlobal("import", L.NewFunction(esshImport))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -64,7 +65,7 @@ func InitLuaState(L *lua.LState) {
 		"driver":    esshDriver,
 		"namespace": esshNamespace,
 		"group":     esshGroup,
-		"import":    esshImport,
+		"module":    esshModule,
 
 		// utility functions
 		"debug":            esshDebug,
@@ -72,10 +73,6 @@ func InitLuaState(L *lua.LState) {
 		"namespaces":       esshNamespaces,
 		"get_namespace":    esshGetNamespace,
 		"current_registry": esshCurrentRegistry,
-
-		// temporary code for BC
-		"jobs":    esshNamespaces,
-		"get_job": esshGetNamespace,
 	})
 }
 
@@ -241,54 +238,100 @@ func esshImport(L *lua.LState) int {
 	if !ok {
 		L.RaiseError("'essh' global variable is broken")
 	}
-	mod := lessh.RawGetString("module")
+	mod := lessh.RawGetString("package")
 	if mod != lua.LNil {
-		L.RaiseError("'essh.module' is existed. does not support nested module importing.")
+		L.RaiseError("'essh.pkg' is existed. does not support nested pkg importing.")
 	}
 
-	module := CurrentRegistry.LoadedModules[name]
-	if module == nil {
-		module = NewModule(name)
+	pkg := CurrentRegistry.LoadedPackages[name]
+	if pkg == nil {
+		pkg = NewPackage(name)
 
 		update := updateFlag
 		if CurrentRegistry.Type == RegistryTypeGlobal && !withGlobalFlag {
 			update = false
 		}
 
-		err := module.Load(update)
+		err := pkg.Load(update)
 		if err != nil {
 			L.RaiseError("%v", err)
 		}
 
-		indexFile := module.IndexFile()
+		indexFile := pkg.IndexFile()
 		if _, err := os.Stat(indexFile); err != nil {
-			L.RaiseError("invalid module: %v", err)
+			L.RaiseError("invalid pkg: %v", err)
 		}
 
-		// init module variable
+		// init pkg variable
 		modulevar := L.NewTable()
 		modulevar.RawSetString("path", lua.LString(filepath.Dir(indexFile)))
 		modulevar.RawSetString("import_path", lua.LString(name))
-		lessh.RawSetString("module", modulevar)
+		lessh.RawSetString("package", modulevar)
 
 		if err := L.DoFile(indexFile); err != nil {
 			panic(err)
 		}
-		// remove module variable
-		lessh.RawSetString("module", lua.LNil)
+		// remove pkg variable
+		lessh.RawSetString("package", lua.LNil)
 
-		// get a module return value
+		// get a pkg return value
 		ret := L.Get(-1)
-		module.Value = ret
+		pkg.Value = ret
 
-		// register loaded module.
-		CurrentRegistry.LoadedModules[name] = module
+		// register loaded pkg.
+		CurrentRegistry.LoadedPackages[name] = pkg
 
 		return 1
 	}
 
-	L.Push(module.Value)
+	L.Push(pkg.Value)
 	return 1
+}
+
+func esshModule(L *lua.LState) int {
+	value := L.CheckAny(1)
+	if tb, ok := toLTable(value); ok {
+		modulesTb := L.NewTable()
+		tb.ForEach(func(k, v lua.LValue) {
+			name, ok := toString(k)
+			if !ok {
+				panic(fmt.Sprintf("expected string of module's name but got '%v'\n", k))
+			}
+
+			config, ok := toLTable(v)
+			if !ok {
+				panic(fmt.Sprintf("expected table of module's config but got '%v'\n", v))
+			}
+
+			m := registerModule(L, name)
+			setupModule(L, m, config)
+			modulesTb.RawSetString(name, newLModule(L, m))
+		})
+
+		L.Push(modulesTb)
+		return 1
+	} else if name, ok := toString(value); ok {
+		if L.GetTop() == 1 {
+			// object or DSL style
+			m := registerModule(L, name)
+			L.Push(newLModule(L, m))
+
+			return 1
+		} else if L.GetTop() == 2 {
+			// function style
+			tb := L.CheckTable(2)
+			m := registerModule(L, name)
+			setupModule(L, m, tb)
+			L.Push(newLModule(L, m))
+
+			return 1
+		} else {
+			panic("module requires 1 or 2 arguments")
+		}
+	} else {
+		panic(fmt.Sprintf("expected table or string but got '%v'\n", value))
+	}
+	return 0
 }
 
 func esshSelectHosts(L *lua.LState) int {
@@ -392,6 +435,10 @@ func registerHost(L *lua.LState, name string) *Host {
 		host.Parent = h
 	}
 
+	if EvaluatingModule != nil {
+		EvaluatingModule.Hosts = append(EvaluatingModule.Hosts, h)
+	}
+
 	Hosts[h.Name] = h
 
 	return h
@@ -410,6 +457,10 @@ func registerTask(L *lua.LState, name string) *Task {
 		// detect same name task
 		t.Child = task
 		task.Parent = t
+	}
+
+	if EvaluatingModule != nil {
+		EvaluatingModule.Tasks = append(EvaluatingModule.Tasks, t)
 	}
 
 	Tasks[t.Name] = t
@@ -432,6 +483,10 @@ func registerDriver(L *lua.LState, name string) *Driver {
 		driver.Parent = d
 	}
 
+	if EvaluatingModule != nil {
+		EvaluatingModule.Drivers = append(EvaluatingModule.Drivers, d)
+	}
+
 	Drivers[d.Name] = d
 
 	return d
@@ -445,6 +500,10 @@ func registerNamespace(L *lua.LState, name string) *Namespace {
 	j := NewNamespace()
 	j.Name = name
 
+	if EvaluatingModule != nil {
+		panic(fmt.Sprintf("module %s defines namespace but does not support namespace in a module", EvaluatingModule.Name))
+	}
+
 	Namespaces[j.Name] = j
 
 	return j
@@ -455,6 +514,18 @@ func registerGroup(L *lua.LState) *Group {
 	return j
 }
 
+func registerModule(L *lua.LState, name string) *Module {
+	m := NewModule(L, name)
+
+	Modules = append(Modules, m)
+
+	if EvaluatingModule != nil {
+		m.Parant = EvaluatingModule
+		EvaluatingModule.Modules = append(EvaluatingModule.Modules, m)
+	}
+
+	return m
+}
 func setupHost(L *lua.LState, h *Host, config *lua.LTable) {
 	config.ForEach(func(k, v lua.LValue) {
 		if kstr, ok := toString(k); ok {
@@ -1297,7 +1368,7 @@ func registerRegistryClass(L *lua.LState) {
 	mt := L.NewTypeMetatable(LRegistryClass)
 	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
 		"data_dir":    registryDataDir,
-		"cache_dir":     registryCacheDir,
+		"cache_dir":   registryCacheDir,
 		"modules_dir": registryModulesDir,
 		"type":        registryType,
 	}))
@@ -1317,7 +1388,7 @@ func registryCacheDir(L *lua.LState) int {
 
 func registryModulesDir(L *lua.LState) int {
 	reg := checkRegistry(L)
-	L.Push(lua.LString(reg.ModulesDir()))
+	L.Push(lua.LString(reg.PackagesDir()))
 	return 1
 }
 
@@ -1389,7 +1460,7 @@ func namespaceNewindex(L *lua.LState) int {
 	index := L.CheckString(2)
 	value := L.CheckAny(3)
 
-	updateNamespace(L, namespace, index, value)
+	updateNamespaceWithKeyString(L, namespace, index, value)
 
 	return 0
 }
@@ -1398,7 +1469,7 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 	// guarantee evaluating a key/value dictionary at first.
 	config.ForEach(func(k, v lua.LValue) {
 		if kstr, ok := toString(k); ok {
-			updateNamespace(L, namespace, kstr, v)
+			updateNamespaceWithKeyString(L, namespace, kstr, v)
 		}
 	})
 
@@ -1407,13 +1478,69 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 			return
 		} else if _, ok := toFloat64(k); ok {
 			// set a host, task or driver
-			lv, ok := v.(*lua.LUserData)
-			if !ok {
-				panic(fmt.Sprintf("expected userdata (host, task or driver) but got '%v'\n", v))
-			}
+			updateNamespace(L, namespace, v)
+		} else {
+			panic("invalid operation\n")
+		}
+	})
+}
 
-			switch resource := lv.Value.(type) {
-			case *Host:
+func updateNamespace(L *lua.LState, namespace *Namespace, v lua.LValue) {
+	lv, ok := v.(*lua.LUserData)
+	if !ok {
+		panic(fmt.Sprintf("expected host, task, driver, group or module but got '%v'\n", v))
+	}
+
+	switch resource := lv.Value.(type) {
+	case *Host:
+		// set host table data
+		if namespace.LValues["hosts"] == nil {
+			namespace.LValues["hosts"] = L.NewTable()
+		}
+		hosts, ok := toLTable(namespace.LValues["hosts"])
+		if !ok {
+			panic("broken 'hosts' table")
+		}
+		host := L.NewTable()
+		resource.MapLValuesToLTable(host)
+		hosts.RawSetString(resource.Name, host)
+
+		// register host object
+		namespace.RegisterHost(resource)
+	case *Task:
+		// set task table data
+		if namespace.LValues["tasks"] == nil {
+			namespace.LValues["tasks"] = L.NewTable()
+		}
+		tasks, ok := toLTable(namespace.LValues["tasks"])
+		if !ok {
+			panic("broken 'tasks' table")
+		}
+		task := L.NewTable()
+		resource.MapLValuesToLTable(task)
+		tasks.RawSetString(resource.Name, task)
+
+		// register task object
+		namespace.RegisterTask(resource)
+	case *Driver:
+		// set task table data
+		if namespace.LValues["drivers"] == nil {
+			namespace.LValues["drivers"] = L.NewTable()
+		}
+		drivers, ok := toLTable(namespace.LValues["drivers"])
+		if !ok {
+			panic("broken 'drivers' table")
+		}
+		driver := L.NewTable()
+		resource.MapLValuesToLTable(driver)
+		drivers.RawSetString(resource.Name, driver)
+
+		// register task object
+		namespace.RegisterDriver(resource)
+	case *Group:
+		switch resource.Type {
+		case GroupTypeHosts:
+			for _, obj := range resource.Hosts {
 				// set host table data
 				if namespace.LValues["hosts"] == nil {
 					namespace.LValues["hosts"] = L.NewTable()
@@ -1423,12 +1550,14 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 					panic("broken 'hosts' table")
 				}
 				host := L.NewTable()
-				resource.MapLValuesToLTable(host)
-				hosts.RawSetString(resource.Name, host)
+				obj.MapLValuesToLTable(host)
+				hosts.RawSetString(obj.Name, host)
 
 				// register host object
-				namespace.RegisterHost(resource)
-			case *Task:
+				namespace.RegisterHost(obj)
+			}
+		case GroupTypeTasks:
+			for _, obj := range resource.Tasks {
 				// set task table data
 				if namespace.LValues["tasks"] == nil {
 					namespace.LValues["tasks"] = L.NewTable()
@@ -1438,12 +1567,14 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 					panic("broken 'tasks' table")
 				}
 				task := L.NewTable()
-				resource.MapLValuesToLTable(task)
-				tasks.RawSetString(resource.Name, task)
+				obj.MapLValuesToLTable(task)
+				tasks.RawSetString(obj.Name, task)
 
 				// register task object
-				namespace.RegisterTask(resource)
-			case *Driver:
+				namespace.RegisterTask(obj)
+			}
+		case GroupTypeDrivers:
+			for _, obj := range resource.Drivers {
 				// set task table data
 				if namespace.LValues["drivers"] == nil {
 					namespace.LValues["drivers"] = L.NewTable()
@@ -1453,75 +1584,39 @@ func setupNamespace(L *lua.LState, namespace *Namespace, config *lua.LTable) {
 					panic("broken 'drivers' table")
 				}
 				driver := L.NewTable()
-				resource.MapLValuesToLTable(driver)
-				drivers.RawSetString(resource.Name, driver)
+				obj.MapLValuesToLTable(driver)
+				drivers.RawSetString(obj.Name, driver)
 
 				// register task object
-				namespace.RegisterDriver(resource)
-			case *Group:
-				switch resource.Type {
-				case GroupTypeHosts:
-					for _, obj := range resource.Hosts {
-						// set host table data
-						if namespace.LValues["hosts"] == nil {
-							namespace.LValues["hosts"] = L.NewTable()
-						}
-						hosts, ok := toLTable(namespace.LValues["hosts"])
-						if !ok {
-							panic("broken 'hosts' table")
-						}
-						host := L.NewTable()
-						obj.MapLValuesToLTable(host)
-						hosts.RawSetString(obj.Name, host)
-
-						// register host object
-						namespace.RegisterHost(obj)
-					}
-				case GroupTypeTasks:
-					for _, obj := range resource.Tasks {
-						// set task table data
-						if namespace.LValues["tasks"] == nil {
-							namespace.LValues["tasks"] = L.NewTable()
-						}
-						tasks, ok := toLTable(namespace.LValues["tasks"])
-						if !ok {
-							panic("broken 'tasks' table")
-						}
-						task := L.NewTable()
-						obj.MapLValuesToLTable(task)
-						tasks.RawSetString(obj.Name, task)
-
-						// register task object
-						namespace.RegisterTask(obj)
-					}
-				case GroupTypeDrivers:
-					for _, obj := range resource.Drivers {
-						// set task table data
-						if namespace.LValues["drivers"] == nil {
-							namespace.LValues["drivers"] = L.NewTable()
-						}
-						drivers, ok := toLTable(namespace.LValues["drivers"])
-						if !ok {
-							panic("broken 'drivers' table")
-						}
-						driver := L.NewTable()
-						obj.MapLValuesToLTable(driver)
-						drivers.RawSetString(obj.Name, driver)
-
-						// register task object
-						namespace.RegisterDriver(obj)
-					}
-				}
-			default:
-				panic(fmt.Sprintf("expected host, task or driver but got '%v'\n", resource))
+				namespace.RegisterDriver(obj)
 			}
-		} else {
-			panic("invalid operation\n")
 		}
-	})
+	case *Module:
+		// register task object
+		module := resource
+		module.Namespace = namespace
+
+		if err := module.Evaluate(); err != nil {
+			panic(err)
+		}
+
+		for _, o := range module.AllHosts() {
+			updateNamespace(L, namespace, newLHost(L, o))
+		}
+
+		for _, o := range module.AllTasks() {
+			updateNamespace(L, namespace, newLTask(L, o))
+		}
+
+		for _, o := range module.AllDrivers() {
+			updateNamespace(L, namespace, newLDriver(L, o))
+		}
+	default:
+		panic(fmt.Sprintf("expected host, task, driver, group or module but got '%v'\n", resource))
+	}
 }
 
-func updateNamespace(L *lua.LState, namespace *Namespace, key string, value lua.LValue) {
+func updateNamespaceWithKeyString(L *lua.LState, namespace *Namespace, key string, value lua.LValue) {
 	namespace.LValues[key] = value
 
 	switch key {
@@ -1876,4 +1971,74 @@ func applyGroupDefaultValues(L *lua.LState, group *Group) {
 			}
 		}
 	}
+}
+
+const LModuleClass = "Module*"
+
+func registerModuleClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LModuleClass)
+	mt.RawSetString("__call", L.NewFunction(moduleCall))
+	mt.RawSetString("__index", L.NewFunction(moduleIndex))
+	mt.RawSetString("__newindex", L.NewFunction(moduleNewindex))
+}
+
+func newLModule(L *lua.LState, module *Module) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = module
+	L.SetMetatable(ud, L.GetTypeMetatable(LModuleClass))
+	return ud
+}
+
+func checkModule(L *lua.LState) *Module {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Module); ok {
+		return v
+	}
+	L.ArgError(1, "Module object expected")
+	return nil
+}
+
+func moduleCall(L *lua.LState) int {
+	module := checkModule(L)
+	tb := L.CheckTable(2)
+
+	setupModule(L, module, tb)
+
+	L.Push(L.CheckUserData(1))
+	return 1
+}
+
+func moduleIndex(L *lua.LState) int {
+	module := checkModule(L)
+	index := L.CheckString(2)
+
+	v, ok := module.LValues[index]
+	if v == nil || !ok {
+		v = lua.LNil
+	}
+
+	L.Push(v)
+	return 1
+}
+
+func moduleNewindex(L *lua.LState) int {
+	module := checkModule(L)
+	index := L.CheckString(2)
+	value := L.CheckAny(3)
+
+	updateModule(L, module, index, value)
+
+	return 0
+}
+
+func setupModule(L *lua.LState, h *Module, config *lua.LTable) {
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateModule(L, h, kstr, v)
+		}
+	})
+}
+
+func updateModule(L *lua.LState, h *Module, key string, value lua.LValue) {
+	h.LValues[key] = value
 }

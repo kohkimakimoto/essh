@@ -1,11 +1,15 @@
 # Essh sshrc Module
 
-This module provides `hooks_after_connect` hook for using [sshrc](https://github.com/Russell91/sshrc) in Essh.
+This library provides `hooks_after_connect` hook for using [sshrc](https://github.com/Russell91/sshrc) in Essh.
+
+## Installation
+
+Put `sshrc.lua` in your `~/.essh/lib`.
 
 ## Usage
 
 ```lua
-local sshrc = import "github.com/kohkimakimoto/essh/modules/sshrc"
+local sshrc = require "sshrc"
 
 host "your-server" {
     HostName = "192.168.56.12",

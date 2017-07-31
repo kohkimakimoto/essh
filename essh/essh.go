@@ -53,7 +53,7 @@ var (
 	withGlobalFlag   bool
 	cleanAllFlag     bool
 	cleanModulesFlag bool
-	cleanCacheFlag bool
+	cleanCacheFlag   bool
 
 	zshCompletionModeFlag       bool
 	zshCompletionFlag           bool
@@ -496,6 +496,15 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
+	// extend lua package path.
+	libdir := filepath.Join(UserDataDir, "lib")
+	libdir2 := filepath.Join(WorkingDataDir, "lib")
+	if os.PathSeparator == '/' { // unix-like
+		lua.LuaPathDefault = libdir2 + "/?.lua;" + libdir + "/?.lua;" + "/usr/local/share/essh/lib/?.lua;" + lua.LuaPathDefault
+	} else {
+		lua.LuaPathDefault = libdir2 + "\\?.lua;" + libdir + "\\?.lua;" + lua.LuaPathDefault
+	}
+
 	// set up the lua state.
 	L := lua.NewState()
 	defer L.Close()
@@ -566,6 +575,11 @@ func Run(osArgs []string) (exitStatus int) {
 				return ExitErr
 			}
 
+			if err := evaluateModules(); err != nil {
+				printError(err)
+				return ExitErr
+			}
+
 			if debugFlag {
 				fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirConfigFile)
 			}
@@ -585,6 +599,11 @@ func Run(osArgs []string) (exitStatus int) {
 			}
 
 			if err := L.DoFile(UserConfigFile); err != nil {
+				printError(err)
+				return ExitErr
+			}
+
+			if err := evaluateModules(); err != nil {
 				printError(err)
 				return ExitErr
 			}
@@ -609,6 +628,11 @@ func Run(osArgs []string) (exitStatus int) {
 			return ExitErr
 		}
 
+		if err := evaluateModules(); err != nil {
+			printError(err)
+			return ExitErr
+		}
+
 		if debugFlag {
 			fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirOverrideConfigFile)
 		}
@@ -629,6 +653,11 @@ func Run(osArgs []string) (exitStatus int) {
 		}
 
 		if err := L.DoFile(UserOverrideConfigFile); err != nil {
+			printError(err)
+			return ExitErr
+		}
+
+		if err := evaluateModules(); err != nil {
 			printError(err)
 			return ExitErr
 		}
@@ -1672,6 +1701,13 @@ func removeRegistryData() error {
 					return err
 				}
 			}
+			// For BC
+			if _, err := os.Stat(c.PackagesDir()); err == nil {
+				err = os.RemoveAll(c.PackagesDir())
+				if err != nil {
+					return err
+				}
+			}
 		}
 
 		if cleanCacheFlag || cleanAllFlag {
@@ -1694,6 +1730,14 @@ func removeRegistryData() error {
 				return err
 			}
 		}
+
+		// For BC
+		if _, err := os.Stat(c.PackagesDir()); err == nil {
+			err = os.RemoveAll(c.PackagesDir())
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if cleanCacheFlag || cleanAllFlag {
@@ -1703,6 +1747,16 @@ func removeRegistryData() error {
 			if err != nil {
 				return err
 			}
+		}
+	}
+
+	return nil
+}
+
+func evaluateModules() error {
+	for _, m := range Modules {
+		if err := m.Evaluate(); err != nil {
+			return err
 		}
 	}
 
