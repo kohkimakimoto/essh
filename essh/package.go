@@ -60,12 +60,12 @@ func (m *Package) Load(update bool) error {
 
 	if update {
 		if _, err := os.Stat(dst); err == nil {
-			fmt.Fprintf(os.Stdout, "Updating module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
+			fmt.Fprintf(os.Stdout, "This functionality deprecated! Updating package: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 		} else {
-			fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
+			fmt.Fprintf(os.Stdout, "This functionality deprecated! Installing package: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 		}
 	} else {
-		fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
+		fmt.Fprintf(os.Stdout, "This functionality deprecated! Installing package: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 	}
 
 	pwd, err := os.Getwd()

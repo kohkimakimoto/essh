@@ -36,6 +36,8 @@ var Modules []*Module = []*Module{}
 
 var EvaluatingModule *Module
 
+var UpdatedModules map[string]*Module = map[string]*Module{}
+
 func NewModule(L *lua.LState, name string) *Module {
 	return &Module{
 		Name:       name,
@@ -70,6 +72,11 @@ func (m *Module) Load(update bool) error {
 	src := m.Name
 	dst := m.Dir()
 
+	if UpdatedModules[m.Name] != nil {
+		// already updated
+		update = false
+	}
+
 	if !update {
 		if _, err := os.Stat(dst); err == nil {
 			// If the directory already exists, then we're done since
@@ -92,6 +99,8 @@ func (m *Module) Load(update bool) error {
 		} else {
 			fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 		}
+
+		UpdatedModules[m.Name] = m
 	} else {
 		fmt.Fprintf(os.Stdout, "Installing module: '%s' (into %s)\n", color.FgYB(m.Name), color.FgBold(CurrentRegistry.DataDir))
 	}
