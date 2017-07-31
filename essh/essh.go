@@ -500,9 +500,9 @@ func Run(osArgs []string) (exitStatus int) {
 	libdir := filepath.Join(UserDataDir, "lib")
 	libdir2 := filepath.Join(WorkingDataDir, "lib")
 	if os.PathSeparator == '/' { // unix-like
-		lua.LuaPathDefault = libdir2 +  "/?.lua;" + libdir +  "/?.lua;" + "/usr/local/share/essh/lib/?.lua;" + lua.LuaPathDefault
+		lua.LuaPathDefault = libdir2 + "/?.lua;" + libdir + "/?.lua;" + "/usr/local/share/essh/lib/?.lua;" + lua.LuaPathDefault
 	} else {
-		lua.LuaPathDefault = libdir2 +  "\\?.lua;" + libdir +  "\\?.lua;" + lua.LuaPathDefault
+		lua.LuaPathDefault = libdir2 + "\\?.lua;" + libdir + "\\?.lua;" + lua.LuaPathDefault
 	}
 
 	// set up the lua state.
