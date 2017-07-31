@@ -496,6 +496,14 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
+	// extend lua package path.
+	libdir := filepath.Join(UserDataDir, "lib")
+	if os.PathSeparator == '/' { // unix-like
+		lua.LuaPathDefault = libdir +  "/?.lua;" + "/usr/local/share/essh/lib/?.lua;" + lua.LuaPathDefault
+	} else {
+		lua.LuaPathDefault = libdir +  "\\?.lua;" + lua.LuaPathDefault
+	}
+
 	// set up the lua state.
 	L := lua.NewState()
 	defer L.Close()
