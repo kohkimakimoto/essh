@@ -3,11 +3,11 @@
 ## Usage
 
 ```lua
-module "./modules/example"
+module "github.com/kohkimakimoto/essh/modules/example"
 
 -- or 
 
-module "./modules/example" {
+module "github.com/kohkimakimoto/essh/modules/example" {
     description = "This is the task in the module"
 }
 ```
