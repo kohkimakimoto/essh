@@ -75,6 +75,7 @@ var (
 	prefixFlag      bool
 	parallelFlag    bool
 	privilegedFlag  bool
+	userVar         string
 	ptyFlag         bool
 	SSHConfigFlag   bool
 	workindDirVar   string
@@ -129,6 +130,7 @@ func initResources() {
 	prefixFlag = false
 	parallelFlag = false
 	privilegedFlag = false
+	userVar  = ""
 	ptyFlag = false
 	SSHConfigFlag = false
 	workindDirVar = ""
@@ -311,6 +313,15 @@ func Run(osArgs []string) (exitStatus int) {
 			execFlag = true
 		} else if arg == "--privileged" {
 			privilegedFlag = true
+		} else if arg == "--user" {
+			if len(osArgs) < 2 {
+				printError("--user reguires an argument.")
+				return ExitErr
+			}
+			userVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--user=") {
+			userVar = strings.Split(arg, "=")[1]
 		} else if arg == "--parallel" {
 			parallelFlag = true
 		} else if arg == "--prefix" {
@@ -876,6 +887,7 @@ func Run(osArgs []string) (exitStatus int) {
 		task.Pty = ptyFlag
 		task.Parallel = parallelFlag
 		task.Privileged = privilegedFlag
+		task.User = userVar
 		task.Driver = driverVar
 		if fileFlag {
 			task.File = command
