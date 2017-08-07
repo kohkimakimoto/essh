@@ -130,7 +130,7 @@ func initResources() {
 	prefixFlag = false
 	parallelFlag = false
 	privilegedFlag = false
-	userVar  = ""
+	userVar = ""
 	ptyFlag = false
 	SSHConfigFlag = false
 	workindDirVar = ""
