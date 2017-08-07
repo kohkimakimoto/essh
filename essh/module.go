@@ -198,11 +198,14 @@ func (m *Module) Evaluate() error {
 	// configure module variable
 	modulevar := L.NewTable()
 	modulevar.RawSetString("path", lua.LString(filepath.Dir(indexFile)))
-	variable := L.NewTable()
+	params := L.NewTable()
 	for kstr, v := range m.LValues {
-		variable.RawSetString(kstr, v)
+		params.RawSetString(kstr, v)
 	}
-	modulevar.RawSetString("var", variable)
+	modulevar.RawSetString("params", params)
+
+	// deprecated. for BC
+	modulevar.RawSetString("var", params)
 
 	lessh.RawSetString("module", modulevar)
 

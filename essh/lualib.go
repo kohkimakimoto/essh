@@ -960,6 +960,12 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 		} else {
 			panic("invalid value of a task's field '" + key + "'.")
 		}
+	case "user":
+		if userStr, ok := toString(value); ok {
+			task.User = userStr
+		} else {
+			panic("invalid value of a task's field '" + key + "'.")
+		}
 	case "privileged":
 		if privilegedBool, ok := toBool(value); ok {
 			task.Privileged = privilegedBool

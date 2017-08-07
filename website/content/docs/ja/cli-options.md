@@ -79,6 +79,8 @@ basename = "cli-options.html"
 
 * `--privileged`: (Using with `--exec` option) Run by the privileged user.
 
+* `--user`: (Using with `--exec` option) Run by the specific user.
+
 * `--parallel`: (Using with `--exec` option) Run in parallel.
 
 * `--pty`: (Using with `--exec` option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)

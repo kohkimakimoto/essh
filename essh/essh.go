@@ -75,6 +75,7 @@ var (
 	prefixFlag      bool
 	parallelFlag    bool
 	privilegedFlag  bool
+	userVar         string
 	ptyFlag         bool
 	SSHConfigFlag   bool
 	workindDirVar   string
@@ -129,6 +130,7 @@ func initResources() {
 	prefixFlag = false
 	parallelFlag = false
 	privilegedFlag = false
+	userVar = ""
 	ptyFlag = false
 	SSHConfigFlag = false
 	workindDirVar = ""
@@ -311,6 +313,15 @@ func Run(osArgs []string) (exitStatus int) {
 			execFlag = true
 		} else if arg == "--privileged" {
 			privilegedFlag = true
+		} else if arg == "--user" {
+			if len(osArgs) < 2 {
+				printError("--user reguires an argument.")
+				return ExitErr
+			}
+			userVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--user=") {
+			userVar = strings.Split(arg, "=")[1]
 		} else if arg == "--parallel" {
 			parallelFlag = true
 		} else if arg == "--prefix" {
@@ -876,6 +887,7 @@ func Run(osArgs []string) (exitStatus int) {
 		task.Pty = ptyFlag
 		task.Parallel = parallelFlag
 		task.Privileged = privilegedFlag
+		task.User = userVar
 		task.Driver = driverVar
 		if fileFlag {
 			task.File = command
@@ -1186,7 +1198,9 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 	}
 	script += content
 
-	if task.Privileged {
+	if task.User != "" {
+		script = "sudo -u " + ShellEscape(task.User) + " bash -l -c " + ShellEscape(script)
+	} else if task.Privileged {
 		script = "sudo bash -l -c " + ShellEscape(script)
 	}
 
@@ -1323,7 +1337,10 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 	}
 	script += content
 
-	if task.Privileged {
+	if task.User != "" {
+		script = "cd " + WorkingDir + "\n" + script
+		script = "sudo -u " + ShellEscape(task.User) + " bash -l -c " + ShellEscape(script)
+	} else if task.Privileged {
 		script = "cd " + WorkingDir + "\n" + script
 		script = "sudo bash -l -c " + ShellEscape(script)
 	}
@@ -1824,6 +1841,7 @@ Options:
   --prefix                      (Using with --exec option) Enable outputing prefix.
   --prefix-string <prefix>      (Using with --exec option) Custom string of the prefix.
   --privileged                  (Using with --exec option) Run by the privileged user.
+  --user <user>                 (Using with --exec option) Run by the specific user.
   --parallel                    (Using with --exec option) Run in parallel.
   --pty                         (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
   --script-file                 (Using with --exec option) Load commands from a file.
@@ -2007,6 +2025,7 @@ _essh_exec_options() {
         '--prefix:Disable outputing prefix.'
         '--prefix-string:Custom string of the prefix.'
         '--privileged:Run by the privileged user.'
+        '--user:Run by the specific user.'
         '--parallel:Run in parallel.'
         '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
         '--script-file:Load commands from a file.'
@@ -2206,6 +2225,7 @@ _essh_exec_options() {
         '--prefix:Disable outputing prefix.'
         '--prefix-string:Custom string of the prefix.'
         '--privileged:Run by the privileged user.'
+        '--user:Run by the specific user.'
         '--parallel:Run in parallel.'
         '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
         '--script-file:Load commands from a file.'
