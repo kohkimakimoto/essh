@@ -166,4 +166,8 @@ This code outputs the result like the following.
 
 For more information on drivers, see the [Drivers](/docs/en/drivers.html) section.
 
-Let's read next section: [Defining Namespaces](defining-namespaces.html).
+## Next Steps
+
+In the [Introduction](/intro/en/index.html) guide, I have explained the basic features of Essh. If you want to get in-depth information about Essh, read the [documentation](/docs/en/index.html).
+
+Enjoy!
