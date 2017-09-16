@@ -19,7 +19,6 @@ type Host struct {
 	Tags                 []string
 	SSHConfig            map[string]string
 	Registry             *Registry
-	Namespace            *Namespace
 	Group                *Group
 	LValues              map[string]lua.LValue
 	// If you define same name hosts in multi time, stores it in layered structure that uses Parent and Child.

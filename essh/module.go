@@ -19,8 +19,6 @@ type Module struct {
 	Name string
 	// LValues
 	LValues map[string]lua.LValue
-	// Namespace
-	Namespace *Namespace
 	// L
 	L *lua.LState
 	// Evaluated

@@ -25,7 +25,6 @@ type Task struct {
 	Prefix    string
 	UsePrefix bool
 	Registry  *Registry
-	Namespace *Namespace
 	Group     *Group
 	Args      []string
 	LValues   map[string]lua.LValue
@@ -65,14 +64,6 @@ func (t *Task) MapLValuesToLTable(tb *lua.LTable) {
 }
 
 func (t *Task) PublicName() string {
-	if t.Namespace != nil && t.Namespace.Name != DefaultNamespaceName {
-		if t.Name == DefaultTaskName {
-			return t.Namespace.Name
-		}
-
-		return t.Namespace.Name + ":" + t.Name
-	}
-
 	return t.Name
 }
 
