@@ -405,8 +405,8 @@ func Run(osArgs []string) (exitStatus int) {
 	WorkingDataDir = filepath.Join(wd, ".essh")
 	WorkingDirConfigFile = filepath.Join(wd, ".esshconfig.lua")
 
-	if _, err := os.Stat(WorkingDirConfigFile); os.IsNotExist(err) {
-		// This is for Backward Compatibility
+	// This is for Backward Compatibility
+	if _, err := os.Stat(filepath.Join(wd, "esshconfig.lua")); err == nil {
 		WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
 	}
 
