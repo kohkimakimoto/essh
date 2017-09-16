@@ -425,7 +425,12 @@ func Run(osArgs []string) (exitStatus int) {
 
 	WorkingDir = wd
 	WorkingDataDir = filepath.Join(wd, ".essh")
-	WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
+	WorkingDirConfigFile = filepath.Join(wd, ".esshconfig.lua")
+
+	if _, err := os.Stat(WorkingDirConfigFile); os.IsNotExist(err) {
+		// This is for Backward Compatibility
+		WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
+	}
 
 	// use config file path from environment variable if it set.
 	if configVar == "" && os.Getenv("ESSH_CONFIG") != "" {
