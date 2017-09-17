@@ -227,3 +227,132 @@ func (m *Module) Evaluate() error {
 
 	return nil
 }
+
+func esshModule(L *lua.LState) int {
+	value := L.CheckAny(1)
+	if tb, ok := toLTable(value); ok {
+		modulesTb := L.NewTable()
+		tb.ForEach(func(k, v lua.LValue) {
+			name, ok := toString(k)
+			if !ok {
+				panic(fmt.Sprintf("expected string of module's name but got '%v'\n", k))
+			}
+
+			config, ok := toLTable(v)
+			if !ok {
+				panic(fmt.Sprintf("expected table of module's config but got '%v'\n", v))
+			}
+
+			m := registerModule(L, name)
+			setupModule(L, m, config)
+			modulesTb.RawSetString(name, newLModule(L, m))
+		})
+
+		L.Push(modulesTb)
+		return 1
+	} else if name, ok := toString(value); ok {
+		if L.GetTop() == 1 {
+			// object or DSL style
+			m := registerModule(L, name)
+			L.Push(newLModule(L, m))
+
+			return 1
+		} else if L.GetTop() == 2 {
+			// function style
+			tb := L.CheckTable(2)
+			m := registerModule(L, name)
+			setupModule(L, m, tb)
+			L.Push(newLModule(L, m))
+
+			return 1
+		} else {
+			panic("module requires 1 or 2 arguments")
+		}
+	} else {
+		panic(fmt.Sprintf("expected table or string but got '%v'\n", value))
+	}
+	return 0
+}
+
+func registerModule(L *lua.LState, name string) *Module {
+	m := NewModule(L, name)
+
+	Modules = append(Modules, m)
+
+	if EvaluatingModule != nil {
+		m.Parant = EvaluatingModule
+		EvaluatingModule.Modules = append(EvaluatingModule.Modules, m)
+	}
+
+	return m
+}
+
+func setupModule(L *lua.LState, h *Module, config *lua.LTable) {
+	config.ForEach(func(k, v lua.LValue) {
+		if kstr, ok := toString(k); ok {
+			updateModule(L, h, kstr, v)
+		}
+	})
+}
+
+func updateModule(L *lua.LState, h *Module, key string, value lua.LValue) {
+	h.LValues[key] = value
+}
+
+const LModuleClass = "Module*"
+
+func registerModuleClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LModuleClass)
+	mt.RawSetString("__call", L.NewFunction(moduleCall))
+	mt.RawSetString("__index", L.NewFunction(moduleIndex))
+	mt.RawSetString("__newindex", L.NewFunction(moduleNewindex))
+}
+
+func newLModule(L *lua.LState, module *Module) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = module
+	L.SetMetatable(ud, L.GetTypeMetatable(LModuleClass))
+	return ud
+}
+
+func checkModule(L *lua.LState) *Module {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Module); ok {
+		return v
+	}
+	L.ArgError(1, "Module object expected")
+	return nil
+}
+
+func moduleCall(L *lua.LState) int {
+	module := checkModule(L)
+	tb := L.CheckTable(2)
+
+	setupModule(L, module, tb)
+
+	L.Push(L.CheckUserData(1))
+	return 1
+}
+
+func moduleIndex(L *lua.LState) int {
+	module := checkModule(L)
+	index := L.CheckString(2)
+
+	v, ok := module.LValues[index]
+	if v == nil || !ok {
+		v = lua.LNil
+	}
+
+	L.Push(v)
+	return 1
+}
+
+func moduleNewindex(L *lua.LState) int {
+	module := checkModule(L)
+	index := L.CheckString(2)
+	value := L.CheckAny(3)
+
+	updateModule(L, module, index, value)
+
+	return 0
+}

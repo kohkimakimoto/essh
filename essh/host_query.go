@@ -1,6 +1,7 @@
 package essh
 
 import (
+	"github.com/yuin/gopher-lua"
 	"sort"
 )
 
@@ -144,4 +145,130 @@ func (hostQuery *HostQuery) getHostsList() []*Host {
 		hostsSlice = append(hostsSlice, host)
 	}
 	return hostsSlice
+}
+
+func esshSelectHosts(L *lua.LState) int {
+	hostQuery := NewHostQuery()
+
+	if L.GetTop() > 1 {
+		panic("select_hosts can receive max 1 argument.")
+	}
+
+	if L.GetTop() == 1 {
+		value := L.CheckAny(1)
+		selections := []string{}
+
+		if selectionsStr, ok := toString(value); ok {
+			selections = []string{selectionsStr}
+		} else if selectionsSlice, ok := toSlice(value); ok {
+			for _, selection := range selectionsSlice {
+				if selectionStr, ok := selection.(string); ok {
+					selections = append(selections, selectionStr)
+				}
+			}
+		} else {
+			panic("select_hosts can receive string or array table of strings.")
+		}
+		hostQuery.AppendSelections(selections)
+	}
+
+	L.Push(newLHostQuery(L, hostQuery))
+	return 1
+}
+
+const LHostQueryClass = "HostQuery*"
+
+func registerHostQueryClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LHostQueryClass)
+	mt.RawSetString("__index", L.NewFunction(hostQueryIndex))
+}
+
+func newLHostQuery(L *lua.LState, hostQuery *HostQuery) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = hostQuery
+	L.SetMetatable(ud, L.GetTypeMetatable(LHostQueryClass))
+	return ud
+}
+
+func checkHostQuery(L *lua.LState) *HostQuery {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*HostQuery); ok {
+		return v
+	}
+	L.ArgError(1, "HostQuery object expected")
+	return nil
+}
+
+func hostQueryIndex(L *lua.LState) int {
+	//_ := checkHostQuery(L)
+	//_ := L.CheckUserData(1)
+	index := L.CheckString(2)
+
+	switch index {
+	case "filter":
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			hostQuery := checkHostQuery(L)
+			ud := L.CheckUserData(1)
+			if L.GetTop() != 2 {
+				panic("filter must receive max 2 argument.")
+			} else {
+				filters := []string{}
+				value := L.CheckAny(2)
+				if filtersStr, ok := toString(value); ok {
+					filters = []string{filtersStr}
+				} else if filtersSlice, ok := toSlice(value); ok {
+					for _, filter := range filtersSlice {
+						if filterStr, ok := filter.(string); ok {
+							filters = append(filters, filterStr)
+						}
+					}
+				} else {
+					panic("filter can receive string or array table of strings.")
+				}
+
+				hostQuery.AppendFilters(filters)
+			}
+
+			ud.Value = hostQuery
+			L.Push(ud)
+			return 1
+		}))
+
+		return 1
+	case "get":
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			hostQuery := checkHostQuery(L)
+
+			lhosts := L.NewTable()
+			for _, host := range hostQuery.GetHosts() {
+				lhost := newLHost(L, host)
+				lhosts.Append(lhost)
+			}
+
+			L.Push(lhosts)
+			return 1
+		}))
+
+		return 1
+	case "first":
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			L.Push(L.NewFunction(func(L *lua.LState) int {
+				hostQuery := checkHostQuery(L)
+
+				hosts := hostQuery.GetHosts()
+				if len(hosts) > 0 {
+					L.Push(newLHost(L, hosts[0]))
+					return 1
+				}
+				L.Push(lua.LNil)
+				return 1
+			}))
+			return 1
+		}))
+		L.Push(lua.LNil)
+		return 1
+	default:
+		L.Push(lua.LNil)
+		return 1
+	}
 }
