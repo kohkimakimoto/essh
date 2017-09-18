@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Lua VM | Documentation | Essh - Extended ssh command</title>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+
+  <link rel="shortcut icon" href="/essh/images/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/agate.min.css">
+<link rel="stylesheet" href="/essh/asciinema/asciinema-player.css">
+<link rel="stylesheet" href="/essh/css/style.css">
+
+</head>
+
+<body class="layout-docs-single">
+  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+              </button>
+      <a class="navbar-brand" href="/essh/">Essh</a>
+    </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a class="" href="/essh/intro/en/index.html">Intro</a>
+        </li>
+        <li>
+          <a class="" href="/essh/docs/en/index.html">Docs</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh">Github</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh/releases/latest">Download</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <section class="single content-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9 col-sm-push-3">
+          <div class="pull-right lang-list change-lang">
+            <span>Change Language:</span>
+            <ul>
+              <li><a href="/essh/docs/en/lua-vm.html" class="disabled">en</a></li>
+              <li><a href="/essh/docs/ja/lua-vm.html" class="">ja</a></li>
+            </ul>
+            </div>
+          <section class="main-content">
+            
+
+<h1 id="lua-vm">Lua VM</h1>
+
+<p>Essh uses <a href="https://github.com/yuin/gopher-lua">GopherLua</a> as a Lua VM to load configuration files written in Lua.</p>
+
+<h2 id="built-in-functions">Built-in Functions</h2>
+
+<p>As you already seen <code>host</code> and <code>task</code> functions, Essh core features consist of built-in functions. All the functions that Essh provides are listed below.</p>
+
+<ul>
+<li><p><code>host</code>: Defines a host. See <a href="/essh/docs/en/hosts.html">Hosts</a>.</p></li>
+
+<li><p><code>task</code>: Defines a task. See <a href="/essh/docs/en/tasks.html">Tasks</a>.</p></li>
+
+<li><p><code>driver</code>: Defines a driver. See <a href="/essh/docs/en/drivers.html">Drivers</a>.</p></li>
+</ul>
+
+<h2 id="built-in-libraries">Built-in Libraries</h2>
+
+<p>Essh provides built-in Lua libraries that you can use in your configuration files.
+For instance, if you want to use <code>json</code> library, you should use Lua&rsquo;s <code>require</code> function like below.</p>
+
+<pre><code class="language-lua">local json = require(&quot;json&quot;)
+
+local jsontext = json.encode({aaa = &quot;bbb&quot;, ccc = &quot;ddd&quot;})
+print(jsontext)
+</code></pre>
+
+<p>The following are the built-in libraries that are included in Essh.</p>
+
+<ul>
+<li><code>json</code>: <a href="https://github.com/layeh/gopher-json">layeh/gopher-json</a>.</li>
+<li><code>fs</code>: <a href="https://github.com/kohkimakimoto/gluafs">kohkimakimoto/gluafs</a>.</li>
+<li><code>yaml</code>: <a href="https://github.com/kohkimakimoto/gluayaml">kohkimakimoto/gluayaml</a>.</li>
+<li><code>question</code>: <a href="https://github.com/kohkimakimoto/gluaquestion">kohkimakimoto/gluaquestion</a>.</li>
+<li><code>template</code>: <a href="https://github.com/kohkimakimoto/gluatemplate">kohkimakimoto/gluatemplate</a>.</li>
+<li><code>env</code>: <a href="https://github.com/kohkimakimoto/gluaenv">kohkimakimoto/gluaenv</a>.</li>
+<li><code>http</code>: <a href="https://github.com/cjoudrey/gluahttp">cjoudrey/gluahttp</a>.</li>
+<li><code>re</code>: <a href="https://github.com/yuin/gluare">yuin/gluare</a></li>
+<li><code>sh</code>: <a href="https://github.com/otm/gluash">otm/gluash</a></li>
+</ul>
+
+<h2 id="predefined-variables">Predefined Variables</h2>
+
+<p>Essh provides predefined variables. In the recent version of Essh, there is one predefined variable: <code>essh</code>.</p>
+
+<p><code>essh</code> is a table that has some functions and variables. see below</p>
+
+<ul>
+<li><p><code>ssh_config</code> (string): ssh_config is ssh_config file path. At default, it is a temporary file that is generated automatically when you run Essh. You can overwrite this value for generating ssh_config to a static destination. If you use a gateway host that is a server between your client computer and a target server, you may use this variable to specify <code>ProxyCommand</code>. See below example:</p>
+
+<pre><code class="language-lua">--
+-- network environment.
+-- [your-computer] -- [getway-server1] -- [web-server]
+--
+
+host &quot;web-server&quot; {
+    HostName = &quot;192.168.0.1&quot;,
+    ProxyCommand = &quot;ssh -q -F &quot; .. essh.ssh_config .. &quot; -W %h:%p getway-server1&quot;,
+}
+</code></pre></li>
+
+<li><p><code>select_hosts</code> (function): Gets defined hosts. It is useful for overriding host config or setting default values. For example, if you want to set a default ssh_config: <code>ForwardAgent = yes</code>, you can achieve it the below code:</p>
+
+<pre><code class="language-lua">-- ~/.essh/config_override.lua
+for _, h in pairs(essh.select_hosts():get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &quot;yes&quot;
+    end
+end
+</code></pre>
+
+<p>Above example sets the default value to the all hosts. If you want to set the value to some hosts you selected, You can also use the below code:</p>
+
+<pre><code class="language-lua">-- ~/.essh/config_override.lua
+-- Getting only the hosts that has `web` tag or name of the hosts is `web`.
+for _, h in pairs(essh.select_hosts(&quot;web&quot;):get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &quot;yes&quot;
+    end
+end
+
+-- Using a table, Getting the hosts both `web` or `db`
+for _, h in pairs(essh.select_hosts({&quot;web&quot;, &quot;db&quot;}):get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &quot;yes&quot;
+    end
+end
+
+-- You can set a filter.
+-- Getting only the `web` hosts filtered by `production`.
+for _, h in pairs(essh.select_hosts(&quot;web&quot;):filter(&quot;production&quot;):get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &quot;yes&quot;
+    end
+end
+
+-- Getting only the first one host using `first` method.
+local h = essh.select_hosts(&quot;web&quot;):first()
+if h.ForwardAgent == nil then
+    h.ForwardAgent = &quot;yes&quot;
+end
+</code></pre></li>
+
+<li><p><code>host</code> (function): An alias of <code>host</code> function.</p></li>
+
+<li><p><code>task</code> (function): An alias of <code>task</code> function.</p></li>
+
+<li><p><code>driver</code> (function): An alias of <code>driver</code> function.</p></li>
+
+<li><p><code>debug</code> (function): Output a debug message. The debug message is outputed when you run Essh with <code>--debug</code> option.</p>
+
+<pre><code class="language-lua">essh.debug(&quot;foo&quot;)
+</code></pre></li>
+</ul>
+
+          </section>
+        </div>
+        <div class="col-sm-3 col-sm-pull-9">
+          <section class="side-menu">
+<ul>
+<li><a href="index.html">Documentation</a></li>
+<li><a href="configuration-files.html">Configuration Files</a></li>
+<li><a href="hosts.html">Hosts</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="lua-vm.html">Lua VM</a></li>
+<li><a href="cli-options.html">CLI Options</a></li>
+<li><a href="modules.html">Modules</a></li>
+<li><a href="drivers.html">Drivers</a></li>
+<li><a href="groups.html">Groups</a></li>
+<li><a href="integrating-other-tools.html">Integrating Other Tools</a></li>
+</ul>
+</section>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <footer>
+  <div class="container">
+    <p>Copyright (c) 2016 Kohki Makimoto</p>
+    <ul class="list-inline">
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh">Github</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/issues">Issues</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/releases">Releases</a>
+      </li>
+    </ul>
+    <p>HTML template is <a href="https://github.com/BlackrockDigital/startbootstrap-new-age">startbootstrap-new-age</a> - Copyright 2013-2016 Blackrock Digital LLC.</p>
+    <p>I use “Google Analytics” to collect information about use of this site.</p>
+  </div>
+</footer>
+
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/languages/lua.min.js"></script>
+<script type="text/javascript" src="/essh/asciinema/asciinema-player.js"></script>
+<script type="text/javascript" src="/essh/js/bundle.js"></script>
+
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+
+</html>

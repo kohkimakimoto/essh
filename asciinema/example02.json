@@ -1,0 +1,442 @@
+{
+  "env": {
+    "SHELL": "/bin/zsh",
+    "TERM": "xterm-256color"
+  },
+  "width": 130,
+  "stdout": [
+    [
+      0.103345,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto\u0007"
+    ],
+    [
+      2.096275,
+      "\u001b[1m\u001b[7m%\u001b[27m\u001b[1m\u001b[0m                                                                                                                                 \r \r"
+    ],
+    [
+      0.09999,
+      "\u001b]2;kohkimakimoto@hakoniwa-macbookpro\u0007\u001b]1;~\u0007"
+    ],
+    [
+      0.002121,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto\u0007"
+    ],
+    [
+      0.037559,
+      "\r\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32m~ \u001b[01;36m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      3.4e-05,
+      "\u001b[?1h\u001b=\u001b[?2004h"
+    ],
+    [
+      0.870967,
+      "e"
+    ],
+    [
+      0.327176,
+      "\bes"
+    ],
+    [
+      0.232668,
+      "s"
+    ],
+    [
+      0.207264,
+      "h"
+    ],
+    [
+      0.376512,
+      " "
+    ],
+    [
+      0.525478,
+      "\u0007\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m"
+    ],
+    [
+      2.3e-05,
+      "\u001b[34m\u001b[39m\u001b[34m\u001b[39m\r\r\n"
+    ],
+    [
+      0.000142,
+      "\u001b[1m\u001b[34mtask\u001b[39m\u001b[0m\r\n\u001b[0mhello                -- say hello\r\nhello-after-confirm  -- say hello after you entering 'y'\r\n\u001b[1m\u001b[34mhost\u001b[39m\u001b[0m\r\n\u001b[0mdbserver-01   -- db server-01\r\nwebserver-01  -- web server-01\r\n\u001b[Jwebserver-02  -- web server-02\u001b[J\u001b[7A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh\u001b[K\u001b[1C"
+    ],
+    [
+      0.453048,
+      "\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39mhello\u001b[34m\u001b[39m\u001b[34m\u001b[39m\r\r\n"
+    ],
+    [
+      3.8e-05,
+      "\u001b[1m\u001b[34mtask\u001b[39m\u001b[0m\u001b[K\u001b[K\r\n\u001b[7mhello                -- say hello\u001b[K\u001b[0m\u001b[K\r\nhello-after-confirm  -- say hello after you entering 'y'\u001b[K\u001b[K\r\n\u001b[1m\u001b[34mhost\u001b[39m\u001b[0m\u001b[K\u001b[K\r\n\u001b[0mdbserver-01   -- db server-01\u001b[K\u001b[K\r\nwebserver-01  -- web server-01\u001b[K\u001b[K\r\n\u001b[Jwebserver-02  -- web server-02\u001b[K\u001b[J\u001b[7A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello\u001b[K"
+    ],
+    [
+      0.979092,
+      "\r\r\n"
+    ],
+    [
+      3.1e-05,
+      "\u001b[1B\u001b[7mhello                -- say hello\u001b[K\u001b[0m\r\u001b[7mhello                -- say hello\u001b[K\u001b[0m\r\u001b[A\u001b[A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello\u001b[K"
+    ],
+    [
+      1.7e-05,
+      "-after-confirm\r\r\n"
+    ],
+    [
+      4.2e-05,
+      "\u001b[1B\u001b[0mhello                -- say hello\u001b[K\r\u001b[1B\u001b[7mhello-after-confirm  -- say hello after you entering 'y'\u001b[K\u001b[0m\r\u001b[3A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello-after-confirm\u001b[K"
+    ],
+    [
+      0.416773,
+      "\u001b[14D              \u001b[14D\r\r\n"
+    ],
+    [
+      3.1e-05,
+      "\u001b[1B\u001b[7mhello                -- say hello\u001b[K\u001b[0m\r\u001b[1Bhello-after-confirm  -- say hello after you entering 'y'\u001b[K\r\u001b[3A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello\u001b[K"
+    ],
+    [
+      1.583149,
+      "\r\r\n\u001b[J\u001b[A\u001b[16C\u001b[1m \u001b[0m"
+    ],
+    [
+      1.296133,
+      "\b\u001b[0m \b"
+    ],
+    [
+      4.7e-05,
+      "\u001b[?1l\u001b>"
+    ],
+    [
+      5.9e-05,
+      "\u001b[?2004l\r\r\n\u001b[J"
+    ],
+    [
+      0.001534,
+      "\u001b]2;essh hello\u0007\u001b]1;essh\u0007"
+    ],
+    [
+      0.206737,
+      "\u001b[36;1m[remote:webserver-01] \u001b[0mhello on webserver-01\r\n"
+    ],
+    [
+      0.190363,
+      "\u001b[36;1m[remote:webserver-02] \u001b[0mhello on webserver-02\r\n"
+    ],
+    [
+      0.002231,
+      "\u001b[1m\u001b[7m%\u001b[27m\u001b[1m\u001b[0m                                                                                                                                 \r \r"
+    ],
+    [
+      0.091972,
+      "\u001b]2;kohkimakimoto@hakoniwa-macbookpro\u0007\u001b]1;~\u0007"
+    ],
+    [
+      0.002215,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto\u0007"
+    ],
+    [
+      0.022361,
+      "\r\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32m~ \u001b[01;36m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      2e-05,
+      "\u001b[?1h\u001b="
+    ],
+    [
+      2.6e-05,
+      "\u001b[?2004h"
+    ],
+    [
+      2.30651,
+      "\u001b[H\u001b[2J\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32m~ \u001b[01;36m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      0.561032,
+      "e"
+    ],
+    [
+      0.224713,
+      "\bes"
+    ],
+    [
+      0.135355,
+      "s"
+    ],
+    [
+      0.088785,
+      "h"
+    ],
+    [
+      0.143129,
+      " "
+    ],
+    [
+      0.65622,
+      "h"
+    ],
+    [
+      0.183658,
+      "e"
+    ],
+    [
+      0.330848,
+      "\u0007\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39mllo"
+    ],
+    [
+      0.497992,
+      "\u0007\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\r\r\n"
+    ],
+    [
+      2.8e-05,
+      "\u001b[1m\u001b[34mtask\u001b[39m\u001b[0m\r\n\u001b[0mhello                -- say hello\r\n\u001b[Jhello-after-confirm  -- say hello after you entering 'y'\u001b[J\u001b[3A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello\u001b[K"
+    ],
+    [
+      0.41569,
+      "\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\r\r\n"
+    ],
+    [
+      2.7e-05,
+      "\u001b[1m\u001b[34mtask\u001b[39m\u001b[0m\u001b[K\u001b[K\r\n\u001b[7mhello                -- say hello\u001b[K\u001b[0m\u001b[K\r\n\u001b[Jhello-after-confirm  -- say hello after you entering 'y'\u001b[K\u001b[J\u001b[3A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello\u001b[K"
+    ],
+    [
+      0.418566,
+      "\r\r\n"
+    ],
+    [
+      3e-05,
+      "\u001b[1B\u001b[7mhello                -- say hello\u001b[K\u001b[0m\r\u001b[7mhello                -- say hello\u001b[K\u001b[0m\r\u001b[A\u001b[A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello\u001b[K-after-confirm\r\r\n"
+    ],
+    [
+      1.4e-05,
+      "\u001b[1B\u001b[0mhello                -- say hello\u001b[K\r\u001b[1B\u001b[7mhello-after-confirm  -- say hello after you entering 'y'\u001b[K\u001b[0m\r\u001b[3A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello-after-confirm\u001b[K"
+    ],
+    [
+      1.191806,
+      "\r\r\n\u001b[J\u001b[A\u001b[30C\u001b[1m \u001b[0m\u0007"
+    ],
+    [
+      0.79243,
+      "\b\u001b[0m \b"
+    ],
+    [
+      3.6e-05,
+      "\u001b[?1l\u001b>"
+    ],
+    [
+      9.8e-05,
+      "\u001b[?2004l\r\r\n\u001b[J"
+    ],
+    [
+      0.001009,
+      "\u001b]2;essh hello-after-confirm\u0007\u001b]1;essh\u0007"
+    ],
+    [
+      0.012775,
+      "Are you OK? [y/N]: "
+    ],
+    [
+      2.523644,
+      "N"
+    ],
+    [
+      1.381505,
+      "\r\n"
+    ],
+    [
+      5.4e-05,
+      "\u001b[31;1messh error: returned false from the prepare function.\r\n\u001b[0m"
+    ],
+    [
+      0.002357,
+      "\u001b[1m\u001b[7m%\u001b[27m\u001b[1m\u001b[0m                                                                                                                                 \r \r"
+    ],
+    [
+      0.093484,
+      "\u001b]2;kohkimakimoto@hakoniwa-macbookpro\u0007\u001b]1;~\u0007"
+    ],
+    [
+      0.002019,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto\u0007"
+    ],
+    [
+      0.022685,
+      "\r\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32m~ \u001b[01;36m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      2.1e-05,
+      "\u001b[?1h\u001b="
+    ],
+    [
+      2.4e-05,
+      "\u001b[?2004h"
+    ],
+    [
+      2.912689,
+      "e"
+    ],
+    [
+      0.19287,
+      "\bes"
+    ],
+    [
+      0.119108,
+      "s"
+    ],
+    [
+      0.112146,
+      "h"
+    ],
+    [
+      0.103856,
+      " "
+    ],
+    [
+      0.864226,
+      "h"
+    ],
+    [
+      0.111602,
+      "e"
+    ],
+    [
+      0.233118,
+      "l"
+    ],
+    [
+      0.168232,
+      "l"
+    ],
+    [
+      0.167096,
+      "o"
+    ],
+    [
+      0.201469,
+      "\u0007\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\r\r\n"
+    ],
+    [
+      3.2e-05,
+      "\u001b[1m\u001b[34mtask\u001b[39m\u001b[0m\r\n\u001b[0mhello                -- say hello\r\n\u001b[Jhello-after-confirm  -- say hello after you entering 'y'\u001b[J\u001b[3A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello\u001b[K"
+    ],
+    [
+      0.846046,
+      "\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\u001b[34m\u001b[39m\r\r\n"
+    ],
+    [
+      2.2e-05,
+      "\u001b[1m\u001b[34mtask\u001b[39m\u001b[0m\u001b[K\u001b[K\r\n\u001b[7mhello                -- say hello\u001b[K\u001b[0m\u001b[K\r\n\u001b[Jhello-after-confirm  -- say hello after you entering 'y'\u001b[K\u001b[J\u001b[3A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello\u001b[K"
+    ],
+    [
+      0.08668,
+      "\r\r\n"
+    ],
+    [
+      3e-05,
+      "\u001b[1B\u001b[7mhello                -- say hello\u001b[K\u001b[0m\r\u001b[7mhello                -- say hello\u001b[K\u001b[0m\r\u001b[A\u001b[A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello\u001b[K-after-confirm\r\r\n"
+    ],
+    [
+      1.7e-05,
+      "\u001b[1B\u001b[0mhello                -- say hello\u001b[K\r\u001b[1B\u001b[7mhello-after-confirm  -- say hello after you entering 'y'\u001b[K\u001b[0m\r\u001b[3A\u001b[0m\u001b[27m\u001b[24m\r\u001b[6Cessh hello-after-confirm\u001b[K"
+    ],
+    [
+      0.304345,
+      "\r\r\n\u001b[J\u001b[A\u001b[30C\u001b[1m \u001b[0m\u0007"
+    ],
+    [
+      1.527731,
+      "\b\u001b[0m \b"
+    ],
+    [
+      3.4e-05,
+      "\u001b[?1l\u001b>"
+    ],
+    [
+      1.4e-05,
+      "\u001b[?2004l\r\r\n\u001b[J"
+    ],
+    [
+      0.000736,
+      "\u001b]2;essh hello-after-confirm\u0007\u001b]1;essh\u0007"
+    ],
+    [
+      0.012408,
+      "Are you OK? [y/N]: "
+    ],
+    [
+      1.620289,
+      "y"
+    ],
+    [
+      1.638573,
+      "\r\n"
+    ],
+    [
+      0.197865,
+      "\u001b[36;1m[remote:webserver-01] \u001b[0mhello on webserver-01\r\n"
+    ],
+    [
+      0.186731,
+      "\u001b[36;1m[remote:webserver-02] \u001b[0mhello on webserver-02\r\n"
+    ],
+    [
+      0.00282,
+      "\u001b[1m\u001b[7m%\u001b[27m\u001b[1m\u001b[0m                                                                                                                                 \r \r"
+    ],
+    [
+      0.092223,
+      "\u001b]2;kohkimakimoto@hakoniwa-macbookpro\u0007\u001b]1;~\u0007"
+    ],
+    [
+      0.001972,
+      "\u001b]7;file://hakoniwa-macbookpro.local/Users/kohkimakimoto\u0007"
+    ],
+    [
+      0.021669,
+      "\r\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32m~ \u001b[01;36m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      2.2e-05,
+      "\u001b[?1h\u001b="
+    ],
+    [
+      5.2e-05,
+      "\u001b[?2004h"
+    ],
+    [
+      1.952768,
+      "\u001b[H\u001b[2J\u001b[0m\u001b[27m\u001b[24m\u001b[J\u001b[01;36m☁ \u001b[01;32m \u001b[32m~ \u001b[01;36m\u001b[01;34m \u001b[00m\u001b[K"
+    ],
+    [
+      0.617375,
+      "e"
+    ],
+    [
+      0.152422,
+      "\bex"
+    ],
+    [
+      0.127904,
+      "i"
+    ],
+    [
+      0.159483,
+      "t"
+    ],
+    [
+      0.366658,
+      "\u001b[?1l\u001b>"
+    ],
+    [
+      2.5e-05,
+      "\u001b[?2004l\r\r\n"
+    ],
+    [
+      0.000959,
+      "\u001b]2;exit\u0007\u001b]1;exit\u0007"
+    ]
+  ],
+  "version": 1,
+  "title": null,
+  "height": 22,
+  "command": null,
+  "duration": 37.25391
+}

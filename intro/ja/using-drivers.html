@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <title>ドライバを使う | イントロダクション | Essh - Extended ssh command</title>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+
+  <link rel="shortcut icon" href="/essh/images/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/agate.min.css">
+<link rel="stylesheet" href="/essh/asciinema/asciinema-player.css">
+<link rel="stylesheet" href="/essh/css/style.css">
+
+</head>
+
+<body class="layout-docs-single">
+  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+              </button>
+      <a class="navbar-brand" href="/essh/">Essh</a>
+    </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a class="" href="/essh/intro/en/index.html">Intro</a>
+        </li>
+        <li>
+          <a class="" href="/essh/docs/en/index.html">Docs</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh">Github</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh/releases/latest">Download</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <section class="single content-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9 col-sm-push-3">
+          <div class="pull-right lang-list change-lang">
+            <span>言語の選択:</span>
+            <ul>
+              <li><a href="/essh/intro/en/using-drivers.html" class="">英語</a></li>
+              <li><a href="/essh/intro/ja/using-drivers.html" class="disabled">日本語</a></li>
+            </ul>
+            </div>
+          <section class="main-content">
+            
+
+<h1 id="ドライバを使う">ドライバを使う</h1>
+
+<p>Esshのドライバとは、タスク実行時にシェルスクリプトを構築するためのテンプレートシステムです。
+このチュートリアルで、あなたはすでにEsshバイナリに含まれているデフォルトの組み込みドライバを使用しています。カスタムドライバを使用してタスクの動作を変更することができます。</p>
+
+<p>ドライバが何をするのかを理解するために、次の短い例を参照してください</p>
+
+<pre><code class="language-lua">task &quot;example&quot; {
+    script = {
+        &quot;echo aaa&quot;,
+        &quot;echo bbb&quot;,
+    }
+}
+</code></pre>
+
+<p><code>--debug</code>オプションをつけてこのタスクを実行して、実際のスクリプトを表示してみてください。</p>
+
+<pre><code>$ essh example --debug
+...
+[essh debug] run task: example
+[essh debug] driver: default 
+[essh debug] real local command: [bash -c 
+export ESSH_TASK_NAME='example'
+export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh_config.767200705
+export ESSH_DEBUG=&quot;1&quot;
+
+echo aaa
+echo bbb
+]
+</code></pre>
+
+<p>デバッグメッセージによると、タスクは以下のbashスクリプトを実行しました：</p>
+
+<pre><code>export ESSH_TASK_NAME='example'
+export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh_config.767200705
+export ESSH_DEBUG=&quot;1&quot;
+
+echo aaa
+echo bbb
+</code></pre>
+
+<p>この内容は<strong>組み込みドライバ</strong>によって生成されたものです。組み込みドライバは、Esshバイナリに含まれている次のテキストテンプレートです。</p>
+
+<pre><code>{{template &quot;environment&quot; .}}
+{{range $i, $script := .Scripts}}{{$script.code}}
+{{end}}
+</code></pre>
+
+<p><code>{{template &quot;environment&quot; .}}</code> は環境変数を生成します。上の例でこの部分は以下のコードになります。</p>
+
+<pre><code>export ESSH_TASK_NAME='example'
+export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh_config.767200705
+export ESSH_DEBUG=&quot;1&quot;
+</code></pre>
+
+<p>その後、Esshはスクリプトテキストを改行コードで連結します。</p>
+
+<pre><code>{{range $i, $script := .Scripts}}{{$script.code}}
+{{end}}
+</code></pre>
+
+<p>上記のコードは次のようになります:</p>
+
+<pre><code>echo aaa
+echo bbb
+</code></pre>
+
+<p>それでは <code>driver</code> 関数を使って最初のカスタムドライバを定義してみましょう。</p>
+
+<pre><code class="language-lua">driver &quot;my_driver&quot; {
+    engine = [=[
+        {{template &quot;environment&quot; .}}
+        
+        set -e
+        indent() {
+            local n=&quot;${1:-4}&quot;
+            local p=&quot;&quot;
+            for i in `seq 1 $n`; do
+                p=&quot;$p &quot;
+            done;
+
+            local c=&quot;s/^/$p/&quot;
+            case $(uname) in
+              Darwin) sed -l &quot;$c&quot;;;
+              *)      sed -u &quot;$c&quot;;;
+            esac
+        }
+        
+        {{range $i, $script := .Scripts -}}
+        echo '==&gt; step {{$i}}:{{if $script.description}} {{$script.description}}{{end}}'
+        { 
+            {{$script.code}} 
+        } | indent; __essh_exit_status=${PIPESTATUS[0]}
+        if [ $__essh_exit_status -ne 0 ]; then
+            exit $__essh_exit_status
+        fi
+        {{end}}
+    ]=],
+}
+
+task &quot;example&quot; {
+    driver = &quot;my_driver&quot;,
+    script = {
+        &quot;echo aaa&quot;,
+        &quot;echo bbb&quot;,
+    }
+}
+</code></pre>
+
+<p><code>driver</code> 関数には、必須パラメータ <code>engine</code> が必要です。これがテンプレートテキストです。 カスタムドライバを使用するには、タスクの<code>driver</code>プロパティを設定する必要があります。</p>
+
+<p>この例のドライバはステップ番号と説明、インデントされたスクリプトの標準出力を表示します。上記のタスクを実行すると、次の出力が得られます。</p>
+
+<pre><code>==&gt; step 0:
+    aaa
+==&gt; step 1:
+    bbb
+</code></pre>
+
+<p>説明はまだ表示されていません。各スクリプトのコードに<code>description</code>プロパティを設定してください。</p>
+
+<pre><code>task &quot;example&quot; {
+    driver = &quot;my_driver&quot;,
+    script = {
+        {
+            description = &quot;output aaa&quot;,
+            code = &quot;echo aaa&quot;,
+        },
+        {
+            description = &quot;output bbb&quot;,
+            code = &quot;echo bbb&quot;,
+        },
+    }
+}
+</code></pre>
+
+<p>以下のような出力なります。</p>
+
+<pre><code>==&gt; step 0: output aaa
+    aaa
+==&gt; step 1: output bbb
+    bbb
+</code></pre>
+
+<p>ドライバの詳細については、<a href="/essh/docs/ja/drivers.html">ドライバ</a>のセクションを参照してください。</p>
+
+<h2 id="次のステップ">次のステップ</h2>
+
+<p>この<a href="/essh/intro/ja/index.html">イントロダクション</a>ガイドでは、Esshの基本的な機能について説明しました。 Esshに関する詳細な情報を知りたい場合は、<a href="/essh/docs/ja/index.html">ドキュメント</a>を参照してください。</p>
+
+<p>それでは。</p>
+
+          </section>
+        </div>
+        <div class="col-sm-3 col-sm-pull-9">
+          <section class="side-menu">
+<ul>
+<li><a href="index.html">イントロダクション</a></li>
+<li><a href="installation.html">インストール</a></li>
+<li><a href="using-as-a-ssh-client.html">SSHクライアントとして使う</a></li>
+<li><a href="zsh-completion.html">Zsh補完</a></li>
+<li><a href="using-hooks.html">フックを使う</a></li>
+<li><a href="managing-hosts.html">ホストの管理</a></li>
+<li><a href="running-commands.html">コマンドを実行する</a></li>
+<li><a href="running-tasks.html">タスクを実行する</a></li>
+<li><a href="using-lua-libraries.html">Luaライブラリを使う</a></li>
+<li><a href="using-modules.html">モジュールを使う</a></li>
+<li><a href="using-drivers.html">ドライバを使う</a></li>
+</ul>
+</section>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <footer>
+  <div class="container">
+    <p>Copyright (c) 2016 Kohki Makimoto</p>
+    <ul class="list-inline">
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh">Github</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/issues">Issues</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/releases">Releases</a>
+      </li>
+    </ul>
+    <p>HTML template is <a href="https://github.com/BlackrockDigital/startbootstrap-new-age">startbootstrap-new-age</a> - Copyright 2013-2016 Blackrock Digital LLC.</p>
+    <p>I use “Google Analytics” to collect information about use of this site.</p>
+  </div>
+</footer>
+
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/languages/lua.min.js"></script>
+<script type="text/javascript" src="/essh/asciinema/asciinema-player.js"></script>
+<script type="text/javascript" src="/essh/js/bundle.js"></script>
+
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+
+</html>

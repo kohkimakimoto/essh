@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Tasks | Documentation | Essh - Extended ssh command</title>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+
+  <link rel="shortcut icon" href="/essh/images/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/agate.min.css">
+<link rel="stylesheet" href="/essh/asciinema/asciinema-player.css">
+<link rel="stylesheet" href="/essh/css/style.css">
+
+</head>
+
+<body class="layout-docs-single">
+  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+              </button>
+      <a class="navbar-brand" href="/essh/">Essh</a>
+    </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a class="" href="/essh/intro/en/index.html">Intro</a>
+        </li>
+        <li>
+          <a class="" href="/essh/docs/en/index.html">Docs</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh">Github</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh/releases/latest">Download</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <section class="single content-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9 col-sm-push-3">
+          <div class="pull-right lang-list change-lang">
+            <span>Change Language:</span>
+            <ul>
+              <li><a href="/essh/docs/en/tasks.html" class="disabled">en</a></li>
+              <li><a href="/essh/docs/ja/tasks.html" class="">ja</a></li>
+            </ul>
+            </div>
+          <section class="main-content">
+            
+
+<h1 id="tasks">Tasks</h1>
+
+<p>Task is a script that runs on remote or local servers. You can use it to automate your system administration tasks.</p>
+
+<h2 id="example">Example</h2>
+
+<pre><code class="language-lua">task &quot;example&quot; {
+    description = &quot;example task&quot;,
+    
+    targets = {
+        &quot;web&quot;,
+    },
+    
+    filters = {
+        &quot;production&quot;,
+    },
+    
+    backend = &quot;local&quot;,
+    
+    parallel = true,
+    
+    prefix = true,
+    
+    script = {
+        &quot;echo foo&quot;,
+        &quot;echo bar&quot;
+    },
+}
+</code></pre>
+
+<p>Notice: Task name mustn&rsquo;t be duplicated with any host names.</p>
+
+<p>You can run a task below command.</p>
+
+<pre><code>$ essh example
+</code></pre>
+
+<p>You can pass arguments to a task.</p>
+
+<pre><code>$ essh example foo bar
+</code></pre>
+
+<h2 id="properties">Properties</h2>
+
+<ul>
+<li><p><code>description</code> (string): Description of the task.</p></li>
+
+<li><p><code>pty</code> (boolean): If it is true, SSH connection allocates pseudo-terminal by running ssh command with multiple -t options like <code>ssh -t -t</code>.</p></li>
+
+<li><p><code>driver</code> (string): driver name is used in the task. see <a href="drivers.html">Drivers</a>.</p></li>
+
+<li><p><code>parallel</code> (boolean): If it is true, runs task&rsquo;s script in parallel.</p></li>
+
+<li><p><code>privileged</code> (boolean): If it is true, runs task&rsquo;s script by privileged user. If you use it, you have to configure your machine to be able to be used <code>sudo</code> without password.</p></li>
+
+<li><p><code>user</code> (string): Runs task&rsquo;s script by specific user. If you use it, you have to configure your machine to be able to be used <code>sudo</code> without password.</p></li>
+
+<li><p><code>hidden</code> (boolean): If it is true, this task is not displayed in tasks list.</p></li>
+
+<li><p><code>targets</code> (string|table): Host names or tags that the task&rsquo;s scripts is executed for.</p></li>
+
+<li><p><code>filters</code> (string|table): Host names or tags to filter target hosts. This property must be used with <code>targets</code>.</p></li>
+
+<li><p><code>backend</code> (string): A place where the task&rsquo;s scripts will be executed on. You can set value only <code>remote</code> or <code>local</code>.</p></li>
+
+<li><p><code>prefix</code> (boolean|string): If it is true, Essh displays task&rsquo;s output with hostname prefix. If it is string, Essh displays task&rsquo;s output with custom prefix. This string can be used with text/template format like <code>{{.Host.Name}}</code>.</p></li>
+
+<li><p><code>prepare</code> (function): Prepare is a function to be executed when the task starts. See example:</p>
+
+<pre><code class="language-lua">prepare = function (t)
+    -- override task config
+    t.targets = &quot;web&quot;
+    -- get command line arguments
+    print(t.args[1])
+    -- cancel the task execution by returns false.
+    return false
+end,
+</code></pre>
+
+<p>By the prepare function returns false, you can cancel to execute the task&rsquo;s script.</p></li>
+
+<li><p><code>props</code> (table): Props sets environment variables <code>ESSH_TASK_PROPS_${KEY}=VALUE</code> when the task is executed. The table key is modified to upper cased.</p>
+
+<pre><code class="language-lua">props = {
+    foo = &quot;bar&quot;,
+}
+
+-- export ESSH_TASK_PROPS_FOO=&quot;bar&quot;
+</code></pre></li>
+
+<li><p><code>script</code> (string|table): Code that will be executed. Example:</p>
+
+<pre><code class="language-lua">script = [=[
+    echo aaa
+    echo bbb
+    echo ccc
+]=]
+</code></pre>
+
+<p>or</p>
+
+<pre><code class="language-lua">script = {
+    &quot;echo aaa&quot;,
+    &quot;echo bbb&quot;,
+    &quot;echo ccc&quot;,
+}
+</code></pre>
+
+<p>If you set it as a table, Essh concatenates strings in the table with newline code. And Essh runs the script as a bash script. But this is just default behavior. You can change it by <a href="drivers.html">Drivers</a>.</p>
+
+<p>You can use predefined environment variables in your script, See below:</p>
+
+<ul>
+<li><p><code>ESSH_TASK_NAME</code>: Task name.</p></li>
+
+<li><p><code>ESSH_SSH_CONFIG</code>: Generated ssh_config file path.</p></li>
+
+<li><p><code>ESSH_DEBUG</code>: If you set <code>--debug</code> option by CLI. this variable is set &ldquo;1&rdquo;.</p></li>
+
+<li><p><code>ESSH_TASK_PROPS_${KEY}</code>: The value that is set by task&rsquo;s <code>props</code>.</p></li>
+
+<li><p><code>ESSH_TASK_ARGS_${INDEX}</code>: The argument&rsquo;s value that is passed by a command line arguments. The index starts at &lsquo;1&rsquo;.</p></li>
+
+<li><p><code>ESSH_HOSTNAME</code>: Host name.</p></li>
+
+<li><p><code>ESSH_HOST_HOSTNAME</code>: Host name.</p></li>
+
+<li><p><code>ESSH_HOST_SSH_{SSH_CONFIG_KEY}</code>: ssh_config key/value pare.</p></li>
+
+<li><p><code>ESSH_HOST_TAGS_{TAG}</code>: Tag. If you set a tag, This variable has a value &ldquo;1&rdquo;.</p></li>
+
+<li><p><code>ESSH_HOST_PROPS_{KEY}</code>: The value that is set by host&rsquo;s <code>props</code>. See <a href="hosts.html">Hosts</a>.</p></li>
+
+<li><p><code>ESSH_NAMESPACE_NAME</code>: Namespace name. See <a href="namespaces.html">Namespaces</a>.</p></li>
+</ul></li>
+
+<li><p><code>script_file</code> (string): A file path or URL that can be accessed by http or https. The file&rsquo;s content will be executed. You can&rsquo;t use <code>script_file</code> and <code>script</code> at the same time.</p></li>
+</ul>
+
+          </section>
+        </div>
+        <div class="col-sm-3 col-sm-pull-9">
+          <section class="side-menu">
+<ul>
+<li><a href="index.html">Documentation</a></li>
+<li><a href="configuration-files.html">Configuration Files</a></li>
+<li><a href="hosts.html">Hosts</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="lua-vm.html">Lua VM</a></li>
+<li><a href="cli-options.html">CLI Options</a></li>
+<li><a href="modules.html">Modules</a></li>
+<li><a href="drivers.html">Drivers</a></li>
+<li><a href="groups.html">Groups</a></li>
+<li><a href="integrating-other-tools.html">Integrating Other Tools</a></li>
+</ul>
+</section>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <footer>
+  <div class="container">
+    <p>Copyright (c) 2016 Kohki Makimoto</p>
+    <ul class="list-inline">
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh">Github</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/issues">Issues</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/releases">Releases</a>
+      </li>
+    </ul>
+    <p>HTML template is <a href="https://github.com/BlackrockDigital/startbootstrap-new-age">startbootstrap-new-age</a> - Copyright 2013-2016 Blackrock Digital LLC.</p>
+    <p>I use “Google Analytics” to collect information about use of this site.</p>
+  </div>
+</footer>
+
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/languages/lua.min.js"></script>
+<script type="text/javascript" src="/essh/asciinema/asciinema-player.js"></script>
+<script type="text/javascript" src="/essh/js/bundle.js"></script>
+
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+
+</html>

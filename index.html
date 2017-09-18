@@ -1,1 +1,303 @@
-Essh
+<html lang="en">
+
+<head>
+  <title>Essh - Extended ssh command</title>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+
+  <link rel="shortcut icon" href="/essh/images/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/agate.min.css">
+<link rel="stylesheet" href="/essh/asciinema/asciinema-player.css">
+<link rel="stylesheet" href="/essh/css/style.css">
+
+</head>
+
+<body id="page-top" class="layout-index">
+  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+              </button>
+      <a class="navbar-brand" href="/essh/">Essh</a>
+    </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a class="" href="/essh/intro/en/index.html">Intro</a>
+        </li>
+        <li>
+          <a class="" href="/essh/docs/en/index.html">Docs</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh">Github</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh/releases/latest">Download</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <header>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="header-content">
+            <div class="header-content-inner text-center">
+              <h1>Your SSH operation becomes more efficient and convenient.</h1>
+              <a href="/essh/intro/en/index.html" class="btn btn-outline btn-xl page-scroll">Get Started</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="features content-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <div class="section-heading">
+            <h2>Features</h2>
+            <p class="text-muted">
+              Essh is a single binary CLI tool and simply wraps ssh command. <br />
+              You can use it in the same way as ssh. And it has useful features over ssh.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-settings text-primary"></i>
+                  <h3>Configuration As Code</h3>
+                  <p class="text-muted">You can write SSH client configuration (aka: <code>~/.ssh/config</code>) in Lua code. So your ssh_config can become more dynamic.</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-fire text-primary"></i>
+                  <h3>Hooks</h3>
+                  <p class="text-muted">Essh supports hooks that execute commands when it connects a remote server.</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-list text-primary"></i>
+                  <h3>Servers List Management</h3>
+                  <p class="text-muted">Essh provides utilities for managing hosts, that list and classify servers by using tags.</p>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-folder text-primary"></i>
+                  <h3>Per-Project Configuration</h3>
+                  <p class="text-muted">Essh supports per-project configuration. This allows you to change SSH hosts config by changing current working directory.</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-rocket text-primary"></i>
+                  <h3>Task Runner</h3>
+                  <p class="text-muted">Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="feature-item">
+                  <i class="icon-grid text-primary"></i>
+                  <h3>Modules</h3>
+                  <p class="text-muted">Essh provides modular system that allows you to use, create and share reusable Lua code easily.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="open-source">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <div class="section-heading">
+            <h2>Open Source</h2>
+            <p class="text-muted">
+              Essh is an open source software that is licensed the MIT License.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 text-center">
+            <a href="https://github.com/kohkimakimoto/essh" class="btn btn-outline btn-xl">View Github Repo</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="example">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <div class="section-heading">
+            <h2>Examples</h2>
+            <p class="text-muted">
+              Essh configuration is written in <a href="https://www.lua.org/">Lua</a>. <br />
+              You can also use DSL syntax that is more human-readable. See below examples:
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 col-lg-10 col-lg-offset-1">
+          <div class="example-item">
+            <h3>Managing Hosts, Running Commands, Hooks, etc...</h3>
+            <p>Configuration:</p>
+<pre><code class="language-lua">host "webserver-01" {
+    HostName = "192.168.56.32",
+    Port = "22",
+    User = "kohkimakimoto",
+    description = "web server-01",
+    hooks_after_connect = {
+        "echo -------------------------------------------------",
+        "echo I am in $(pwd)",
+        "cat /etc/redhat-release",
+        "echo ",
+        "echo This message was displayed by hook functionality.",
+        "echo -------------------------------------------------",
+    },
+    tags = {
+        "web",
+    },
+}
+
+host "webserver-02" {
+    HostName = "192.168.56.33",
+    Port = "22",
+    User = "kohkimakimoto",
+    description = "web server-02",
+    tags = {
+        "web",
+    },
+}
+
+host "dbserver-01" {
+    HostName = "192.168.56.34",
+    Port = "22",
+    User = "kohkimakimoto",
+    description = "db server-01",
+    tags = {
+        "db",
+    },
+}
+</code></pre>
+            <p>Demo:</p>
+            <asciinema-player src="/essh/asciinema/example01.json" preload="true"></asciinema-player>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 col-lg-10 col-lg-offset-1">
+          <div class="example-item">
+            <h3>Tasks</h3>
+            <p>Configuration:</p>
+<pre><code class="language-lua">task "hello" {
+    description = "say hello",
+    prefix = true,
+    backend = "remote",
+    targets = "web",
+    script = [=[
+        echo "hello on $(hostname)"
+    ]=],
+}
+
+task "hello-after-confirm" {
+    description = "say hello after you entering 'y'",
+    prepare = function()
+        local question = require "question"
+        local r = question.ask("Are you OK? [y/N]: ")
+        if r ~= "y" then
+            -- return false, the task does not run.
+            return false
+        end
+    end,
+    prefix = true,
+    backend = "remote",
+    targets = "web",
+    script = [=[
+        echo "hello on $(hostname)"
+    ]=],
+}
+</code></pre>
+            <p>Demo:</p>
+            <asciinema-player src="/essh/asciinema/example02.json" preload="true"></asciinema-player>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="download">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <div class="section-heading">
+            <h2>Download</h2>
+            <p class="text-muted">
+              Essh is provided as a single binary. You can download it and drop it in your $PATH.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 text-center">
+            <a href="https://github.com/kohkimakimoto/essh/releases/latest" class="btn btn-outline btn-green btn-xl">Download</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer>
+  <div class="container">
+    <p>Copyright (c) 2016 Kohki Makimoto</p>
+    <ul class="list-inline">
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh">Github</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/issues">Issues</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/releases">Releases</a>
+      </li>
+    </ul>
+    <p>HTML template is <a href="https://github.com/BlackrockDigital/startbootstrap-new-age">startbootstrap-new-age</a> - Copyright 2013-2016 Blackrock Digital LLC.</p>
+    <p>I use “Google Analytics” to collect information about use of this site.</p>
+  </div>
+</footer>
+
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/languages/lua.min.js"></script>
+<script type="text/javascript" src="/essh/asciinema/asciinema-player.js"></script>
+<script type="text/javascript" src="/essh/js/bundle.js"></script>
+
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+
+</html>

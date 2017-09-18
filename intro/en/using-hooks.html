@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Using Hooks | Introduction | Essh - Extended ssh command</title>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+
+  <link rel="shortcut icon" href="/essh/images/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/agate.min.css">
+<link rel="stylesheet" href="/essh/asciinema/asciinema-player.css">
+<link rel="stylesheet" href="/essh/css/style.css">
+
+</head>
+
+<body class="layout-docs-single">
+  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+              </button>
+      <a class="navbar-brand" href="/essh/">Essh</a>
+    </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a class="" href="/essh/intro/en/index.html">Intro</a>
+        </li>
+        <li>
+          <a class="" href="/essh/docs/en/index.html">Docs</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh">Github</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh/releases/latest">Download</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <section class="single content-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9 col-sm-push-3">
+          <div class="pull-right lang-list change-lang">
+            <span>Change Language:</span>
+            <ul>
+              <li><a href="/essh/intro/en/using-hooks.html" class="disabled">en</a></li>
+              <li><a href="/essh/intro/ja/using-hooks.html" class="">ja</a></li>
+            </ul>
+            </div>
+          <section class="main-content">
+            
+
+<h1 id="using-hooks">Using Hooks</h1>
+
+<p>Hooks in Essh are scripts executed before and after connecting remote servers.</p>
+
+<p>Write the following code in your <code>esshconfig.lua</code>.</p>
+
+<pre><code class="language-lua">host &quot;web01.localhost&quot; {
+    HostName = &quot;192.168.0.11&quot;,
+    Port = &quot;22&quot;,
+    User = &quot;kohkimakimoto&quot;,
+
+    hooks_before_connect = {
+        &quot;echo before_connect: $HOSTNAME&quot;,
+    },
+    hooks_after_connect = {
+        &quot;echo after_connect: $HOSTNAME&quot;,
+    },
+    hooks_after_disconnect = {
+        &quot;echo after_disconnect: $HOSTNAME&quot;,
+    },
+}
+</code></pre>
+
+<p>Connect with the server.</p>
+
+<pre><code>$ essh web01.localhost 
+before_connect: your-local-machine
+after_connect: web01.localhost
+[kohkimakimoto@web01.localhost ~]$ 
+</code></pre>
+
+<p>The <code>hooks_before_connect</code> and <code>hooks_after_connect</code> were executed. Disconnect with the server.</p>
+
+<pre><code>[kohkimakimoto@web01.localhost ~]$ exit
+exit
+Connection to 192.168.0.11 closed.
+after_disconnect: your-local-machine
+</code></pre>
+
+<p>The <code>hooks_after_disconnect</code> was executed.</p>
+
+<p>Essh supports below type of hooks:</p>
+
+<ul>
+<li><code>hooks_before_connect</code></li>
+<li><code>hooks_after_connect</code></li>
+<li><code>hooks_after_disconnect</code></li>
+</ul>
+
+<p>Let&rsquo;s read next section: <a href="managing-hosts.html">Managing Hosts</a>.</p>
+
+          </section>
+        </div>
+        <div class="col-sm-3 col-sm-pull-9">
+          <section class="side-menu">
+<ul>
+<li><a href="index.html">Introduction</a></li>
+<li><a href="installation.html">Installation</a></li>
+<li><a href="using-as-a-ssh-client.html">Using As A SSH Client</a></li>
+<li><a href="zsh-completion.html">Zsh Completion</a></li>
+<li><a href="using-hooks.html">Using Hooks</a></li>
+<li><a href="managing-hosts.html">Managing Hosts</a></li>
+<li><a href="running-commands.html">Running Commands</a></li>
+<li><a href="running-tasks.html">Running Tasks</a></li>
+<li><a href="using-lua-libraries.html">Using Lua Libraries</a></li>
+<li><a href="using-modules.html">Using Modules</a></li>
+<li><a href="using-drivers.html">Using Drivers</a></li>
+</ul>
+</section>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <footer>
+  <div class="container">
+    <p>Copyright (c) 2016 Kohki Makimoto</p>
+    <ul class="list-inline">
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh">Github</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/issues">Issues</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/releases">Releases</a>
+      </li>
+    </ul>
+    <p>HTML template is <a href="https://github.com/BlackrockDigital/startbootstrap-new-age">startbootstrap-new-age</a> - Copyright 2013-2016 Blackrock Digital LLC.</p>
+    <p>I use “Google Analytics” to collect information about use of this site.</p>
+  </div>
+</footer>
+
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/languages/lua.min.js"></script>
+<script type="text/javascript" src="/essh/asciinema/asciinema-player.js"></script>
+<script type="text/javascript" src="/essh/js/bundle.js"></script>
+
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+
+</html>
