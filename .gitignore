@@ -12,5 +12,6 @@ Vagrantfile
 .essh
 .esshconfig.lua
 .esshconfig_override.lua
+node_modules/
 
 !.gitkeep
