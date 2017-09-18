@@ -2,9 +2,9 @@
 
 Extended ssh command. 
 
-* [Website](https://essh.sitespread.net/)
-* [Documentation](https://essh.sitespread.net/docs/en/index.html)
-* [Gettting Started](https://essh.sitespread.net/intro/en/index.html)
+* [Website](https://kohkimakimoto.github.io/essh/)
+* [Documentation](https://kohkimakimoto.github.io/essh/docs/en/index.html)
+* [Gettting Started](https://kohkimakimoto.github.io/essh/intro/en/index.html)
 
 ## Overview
 
