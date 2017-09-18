@@ -61,6 +61,6 @@ host "web01.localhost" {
 
 > zshではなくbashを使用している場合は、`eval "$(essh --bash-completion)"`を使用できます。 だたしbash補完は説明の表示はサポートしていません。
 
-ホストの詳細については、[ホスト](/docs/ja/hosts.html) セクションを参照してください。
+ホストの詳細については、[ホスト](/essh/docs/ja/hosts.html) セクションを参照してください。
 
 次のセクションに進みましょう: [フックを使う](using-hooks.html)

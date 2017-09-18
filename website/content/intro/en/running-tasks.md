@@ -49,6 +49,6 @@ $ essh hello
 [local] hello on your-hostname
 ~~~
 
-For more information on tasks, see the [Tasks](/docs/en/tasks.html) section.
+For more information on tasks, see the [Tasks](/essh/docs/en/tasks.html) section.
 
 Let's read next section: [Using Lua Libraries](using-lua-libraries.html)

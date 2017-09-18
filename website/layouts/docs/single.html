@@ -6,7 +6,7 @@
 <head>
   <title>{{ .Scratch.Get "title" }}</title>
   {{ partial "meta.html" . }}
-  <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
+  <link rel="shortcut icon" href="/essh/images/favicon.png" type="image/x-icon" />
   {{ partial "style.html" . }}
 </head>
 
@@ -20,14 +20,14 @@
             {{ if eq .Params.lang "ja" -}}
             <span>言語の選択:</span>
             <ul>
-              <li><a href="/{{ .Params.category }}/en/{{ .Params.basename }}" class="{{ if eq .Params.lang "en" }}disabled{{end}}">英語</a></li>
-              <li><a href="/{{ .Params.category }}/ja/{{ .Params.basename }}" class="{{ if eq .Params.lang "ja" }}disabled{{end}}">日本語</a></li>
+              <li><a href="/essh/{{ .Params.category }}/en/{{ .Params.basename }}" class="{{ if eq .Params.lang "en" }}disabled{{end}}">英語</a></li>
+              <li><a href="/essh/{{ .Params.category }}/ja/{{ .Params.basename }}" class="{{ if eq .Params.lang "ja" }}disabled{{end}}">日本語</a></li>
             </ul>
             {{ else -}}
             <span>Change Language:</span>
             <ul>
-              <li><a href="/{{ .Params.category }}/en/{{ .Params.basename }}" class="{{ if eq .Params.lang "en" }}disabled{{end}}">en</a></li>
-              <li><a href="/{{ .Params.category }}/ja/{{ .Params.basename }}" class="{{ if eq .Params.lang "ja" }}disabled{{end}}">ja</a></li>
+              <li><a href="/essh/{{ .Params.category }}/en/{{ .Params.basename }}" class="{{ if eq .Params.lang "en" }}disabled{{end}}">en</a></li>
+              <li><a href="/essh/{{ .Params.category }}/ja/{{ .Params.basename }}" class="{{ if eq .Params.lang "ja" }}disabled{{end}}">ja</a></li>
             </ul>
             {{ end -}}
           </div>

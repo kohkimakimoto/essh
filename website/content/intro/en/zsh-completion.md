@@ -61,6 +61,6 @@ You notice that the first characters of the `description` and `hidden` are lower
 
 > If you are using bash instead of zsh, you can use `eval "$(essh --bash-completion)"`. but the bash completion does not support to display description.
 
-For more information on hosts, see the [Hosts](/docs/en/hosts.html) section.
+For more information on hosts, see the [Hosts](/essh/docs/en/hosts.html) section.
 
 Let's read next section: [Using Hooks](using-hooks.html)

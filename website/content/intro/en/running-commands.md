@@ -59,7 +59,7 @@ $ essh --exec --backend=local --target=web --parallel --prefix 'echo $ESSH_HOSTN
 ~~~
 
 In the above example, I use `ESSH_HOSTNAME` environment variable.
-Essh runs commands by using a temporary [task](/docs/en/tasks.html) internally. So you can use some predefined variables that defined by a task in the commands. For detail, see [Tasks](/docs/en/tasks.html)
+Essh runs commands by using a temporary [task](/essh/docs/en/tasks.html) internally. So you can use some predefined variables that defined by a task in the commands. For detail, see [Tasks](/essh/docs/en/tasks.html)
 
 
 Let's read next section: [Running Tasks](running-tasks.html)

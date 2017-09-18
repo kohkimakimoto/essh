@@ -14,13 +14,11 @@ EsshはLuaで書かれた設定ファイルを読み込むために[GopherLua](h
 
 すでに`host`と`task`関数を見てきたように、Esshのコア機能はビルトイン関数で構成されています。Esshが提供しているすべての関数は以下の通りです。
 
-* `host`: ホストを定義します。[ホスト](/docs/ja/hosts.html)を参照してください。
+* `host`: ホストを定義します。[ホスト](/essh/docs/ja/hosts.html)を参照してください。
 
-* `task`: タスクを定義します。[タスク](/docs/ja/tasks.html)を参照してください。
+* `task`: タスクを定義します。[タスク](/essh/docs/ja/tasks.html)を参照してください。
 
-* `driver`: ドライバを定義します。[ドライバ](/docs/ja/drivers.html)を参照してください。
-
-* `namespace`: ネームスペースを定義します。[ネームスペース](/docs/ja/namespaces.html)を参照してください。
+* `driver`: ドライバを定義します。[ドライバ](/essh/docs/ja/drivers.html)を参照してください。
 
 ## ビルトインライブラリ
 
@@ -111,23 +109,11 @@ Esshは事前定義された変数を提供します。 最新のEsshのバー�
     end
     ~~~
 
-* `get_namespace` (function): ネームスペースを取得します。以下の例を参照してください。
-
-    ~~~lua
-    for _, h in pairs(essh.get_namespace("mynamespace"):select_hosts():get()) do
-        if h.ForwardAgent == nil then
-            h.ForwardAgent = "yes"
-        end
-    end
-    ~~~
-
 * `host` (function): `host` 関数のエイリアス。
 
 * `task` (function): `task` 関数のエイリアス。
 
 * `driver` (function): `driver` 関数のエイリアス。
-
-* `namespace` (function): `namespace` 関数のエイリアス。
 
 * `debug` (function): デバッグメッセージを出力します。デバッグメッセージは`--debug`オプションつきでEsshを実行したときに出力されます。
 

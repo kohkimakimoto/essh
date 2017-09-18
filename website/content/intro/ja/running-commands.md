@@ -58,6 +58,6 @@ $ essh --exec --backend=local --target=web --parallel --prefix 'echo $ESSH_HOSTN
 [local:web02.localhost] web02.localhost
 ~~~
 
-上記の例では`ESSH_HOSTNAME`環境変数を使用しています。Esshは内部的に一時的な[タスク](/docs/ja/tasks.html)を使用してコマンドを実行します。したがって、タスクが定義する変数を使用することができます。詳細は[タスク](/docs/en/tasks.html)を参照してください。
+上記の例では`ESSH_HOSTNAME`環境変数を使用しています。Esshは内部的に一時的な[タスク](/essh/docs/ja/tasks.html)を使用してコマンドを実行します。したがって、タスクが定義する変数を使用することができます。詳細は[タスク](/essh/docs/en/tasks.html)を参照してください。
 
 次のセクションに進みましょう: [タスクを実行する](running-tasks.html)

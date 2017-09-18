@@ -79,6 +79,6 @@ Host web02.localhost
 
 Esshの設定ファイルは `~/.essh/config.lua`に置くこともできます。これは `~/.ssh/config`のようなユーザごとの設定ファイルです。
 
-設定ファイルについての詳細は[設定ファイル](/docs/ja/configuration-files.html)セクションを参照してください。
+設定ファイルについての詳細は[設定ファイル](/essh/docs/ja/configuration-files.html)セクションを参照してください。
 
 次のセクションに進みましょう: [Zsh補完](zsh-completion.html)

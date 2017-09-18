@@ -1,6 +1,7 @@
-# http://gohugo.io/overview/configuration/
-baseurl =  "/"
+# see http://gohugo.io/overview/configuration/
+baseurl =  "https://kohkimakimoto.github.io/essh/"
+languageCode = "en-us"
 title = "Essh - Extended ssh command"
 uglyURLs = true
 disableHugoGeneratorInject = true
-disableRSS = true
+disableKinds = ["RSS"]

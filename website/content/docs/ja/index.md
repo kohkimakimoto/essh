@@ -10,4 +10,4 @@ basename = "index.html"
 
 Esshのドキュメントへようこそ。このドキュメントでは、Esshの設定の詳細について説明します。
 
-Esshを使い始めたばかりの方は、最初に[イントロダクション](/intro/ja/index.html)を読んでください。
+Esshを使い始めたばかりの方は、最初に[イントロダクション](/essh/intro/ja/index.html)を読んでください。

@@ -164,10 +164,10 @@ This code outputs the result like the following.
     bbb
 ~~~
 
-For more information on drivers, see the [Drivers](/docs/en/drivers.html) section.
+For more information on drivers, see the [Drivers](/essh/docs/en/drivers.html) section.
 
 ## Next Steps
 
-In the [Introduction](/intro/en/index.html) guide, I have explained the basic features of Essh. If you want to get in-depth information about Essh, read the [documentation](/docs/en/index.html).
+In the [Introduction](/essh/intro/en/index.html) guide, I have explained the basic features of Essh. If you want to get in-depth information about Essh, read the [documentation](/essh/docs/en/index.html).
 
 Enjoy!
