@@ -10,7 +10,7 @@ build/outputs/*
 Vagrantfile
 .vscode/
 .essh
-esshconfig.lua
-esshconfig_override.lua
+.esshconfig.lua
+.esshconfig_override.lua
 
 !.gitkeep

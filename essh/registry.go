@@ -3,6 +3,7 @@ package essh
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/yuin/gopher-lua"
 	"os"
 	"path/filepath"
 )
@@ -90,4 +91,56 @@ func (reg *Registry) TypeString() string {
 	}
 
 	panic("unknown context")
+}
+
+const LRegistryClass = "Registry*"
+
+func newLRegistry(L *lua.LState, ctx *Registry) *lua.LUserData {
+	ud := L.NewUserData()
+	ud.Value = ctx
+	L.SetMetatable(ud, L.GetTypeMetatable(LRegistryClass))
+	return ud
+}
+
+func checkRegistry(L *lua.LState) *Registry {
+	ud := L.CheckUserData(1)
+	if v, ok := ud.Value.(*Registry); ok {
+		return v
+	}
+	L.ArgError(1, "Registry object expected")
+	return nil
+}
+
+func registerRegistryClass(L *lua.LState) {
+	mt := L.NewTypeMetatable(LRegistryClass)
+	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
+		"data_dir":    registryDataDir,
+		"cache_dir":   registryCacheDir,
+		"modules_dir": registryModulesDir,
+		"type":        registryType,
+	}))
+}
+
+func registryDataDir(L *lua.LState) int {
+	reg := checkRegistry(L)
+	L.Push(lua.LString(reg.DataDir))
+	return 1
+}
+
+func registryCacheDir(L *lua.LState) int {
+	reg := checkRegistry(L)
+	L.Push(lua.LString(reg.CacheDir()))
+	return 1
+}
+
+func registryModulesDir(L *lua.LState) int {
+	reg := checkRegistry(L)
+	L.Push(lua.LString(reg.PackagesDir()))
+	return 1
+}
+
+func registryType(L *lua.LState) int {
+	reg := checkRegistry(L)
+	L.Push(lua.LString(reg.TypeString()))
+	return 1
 }

@@ -47,7 +47,6 @@ var (
 	allFlag          bool
 	tagsFlag         bool
 	tasksFlag        bool
-	namespacesFlag   bool
 	genFlag          bool
 	updateFlag       bool
 	withGlobalFlag   bool
@@ -81,7 +80,6 @@ var (
 	workindDirVar   string
 	configVar       string
 	selectVar       []string
-	namespaceVar    string
 	targetVar       []string
 	filterVar       []string
 	backendVar      string
@@ -105,7 +103,6 @@ func initResources() {
 	allFlag = false
 	tagsFlag = false
 	tasksFlag = false
-	namespacesFlag = false
 	genFlag = false
 	updateFlag = false
 	withGlobalFlag = false
@@ -136,7 +133,6 @@ func initResources() {
 	workindDirVar = ""
 	configVar = ""
 	selectVar = []string{}
-	namespaceVar = ""
 	targetVar = []string{}
 	filterVar = []string{}
 	backendVar = ""
@@ -152,7 +148,6 @@ func initResources() {
 	Hosts = map[string]*Host{}
 	Tasks = map[string]*Task{}
 	Drivers = map[string]*Driver{}
-	Namespaces = map[string]*Namespace{}
 
 	// set built-in drivers
 	driver := NewDriver()
@@ -234,8 +229,6 @@ func Run(osArgs []string) (exitStatus int) {
 			allFlag = true
 		} else if arg == "--tasks" {
 			tasksFlag = true
-		} else if arg == "--namespaces" {
-			namespacesFlag = true
 		} else if arg == "--select" {
 			if len(osArgs) < 2 {
 				printError("--select reguires an argument.")
@@ -271,9 +264,6 @@ func Run(osArgs []string) (exitStatus int) {
 		} else if arg == "--zsh-completion-tasks" {
 			zshCompletionTasksFlag = true
 			zshCompletionModeFlag = true
-		} else if arg == "--zsh-completion-namespaces" {
-			zshCompletionNamespacesFlag = true
-			zshCompletionModeFlag = true
 		} else if arg == "--bash-completion" {
 			bashCompletionFlag = true
 			bashCompletionModeFlag = true
@@ -285,9 +275,6 @@ func Run(osArgs []string) (exitStatus int) {
 			bashCompletionModeFlag = true
 		} else if arg == "--bash-completion-tasks" {
 			bashCompletionTasksFlag = true
-			bashCompletionModeFlag = true
-		} else if arg == "--bash-completion-namespaces" {
-			bashCompletionNamespacesFlag = true
 			bashCompletionModeFlag = true
 		} else if arg == "--aliases" {
 			aliasesFlag = true
@@ -344,15 +331,6 @@ func Run(osArgs []string) (exitStatus int) {
 			osArgs = osArgs[1:]
 		} else if strings.HasPrefix(arg, "--driver=") {
 			driverVar = strings.Split(arg, "=")[1]
-		} else if arg == "--namespace" {
-			if len(osArgs) < 2 {
-				printError("--namespace reguires an argument.")
-				return ExitErr
-			}
-			namespaceVar = osArgs[1]
-			osArgs = osArgs[1:]
-		} else if strings.HasPrefix(arg, "--namespace=") {
-			namespaceVar = strings.Split(arg, "=")[1]
 		} else if arg == "--target" {
 			if len(osArgs) < 2 {
 				printError("--target reguires an argument.")
@@ -425,7 +403,12 @@ func Run(osArgs []string) (exitStatus int) {
 
 	WorkingDir = wd
 	WorkingDataDir = filepath.Join(wd, ".essh")
-	WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
+	WorkingDirConfigFile = filepath.Join(wd, ".esshconfig.lua")
+
+	// This is for Backward Compatibility
+	if _, err := os.Stat(filepath.Join(wd, "esshconfig.lua")); err == nil {
+		WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
+	}
 
 	// use config file path from environment variable if it set.
 	if configVar == "" && os.Getenv("ESSH_CONFIG") != "" {
@@ -679,7 +662,7 @@ func Run(osArgs []string) (exitStatus int) {
 	}
 
 	// validate config
-	if err := validateResources(NewTaskQuery().Datasource, NewHostQuery().Datasource, nil); err != nil {
+	if err := validateResources(NewTaskQuery().Datasource, NewHostQuery().Datasource); err != nil {
 		printError(err)
 		return ExitErr
 	}
@@ -733,13 +716,6 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
-	if zshCompletionNamespacesFlag || bashCompletionNamespacesFlag {
-		for _, namespace := range SortedNamespaces() {
-			fmt.Printf("%s\n", ColonEscape(namespace.Name))
-		}
-		return
-	}
-
 	// only print hosts list
 	if hostsFlag {
 		if len(selectVar) == 0 && len(filterVar) > 0 {
@@ -747,18 +723,7 @@ func Run(osArgs []string) (exitStatus int) {
 			return ExitErr
 		}
 
-		var filteredHosts []*Host
-
-		if namespaceVar != "" {
-			namespace := Namespaces[namespaceVar]
-			if namespace == nil {
-				printError(fmt.Errorf("not found '%s' namespace.", namespaceVar))
-			}
-
-			filteredHosts = NewHostQuery().SetDatasource(namespace.Hosts).AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
-		} else {
-			filteredHosts = NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
-		}
+		filteredHosts := NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
 
 		if SSHConfigFlag {
 			outputConfig, ok := toString(lessh.RawGetString("ssh_config"))
@@ -829,19 +794,6 @@ func Run(osArgs []string) (exitStatus int) {
 					tb.Append([]string{t.PublicName(), t.Description, fmt.Sprintf("%v", t.Hidden)})
 				}
 			}
-		}
-		tb.Render()
-
-		return
-	}
-
-	if namespacesFlag {
-		tb := helper.NewPlainTable(os.Stdout)
-		if !quietFlag {
-			tb.SetHeader([]string{"NAME"})
-		}
-		for _, namespace := range SortedNamespaces() {
-			tb.Append([]string{namespace.Name})
 		}
 		tb.Render()
 
@@ -927,7 +879,7 @@ func Run(osArgs []string) (exitStatus int) {
 		// try to get a task.
 		if len(args) > 0 {
 			taskName := args[0]
-			task := GetEnabledTask(taskName, os.Getenv("ESSH_NAMESPACE_NAME"))
+			task := GetEnabledTask(taskName)
 			if task != nil {
 				var taskargs []string
 				if len(args) >= 2 {
@@ -995,19 +947,6 @@ func runTask(config string, task *Task, args []string, L *lua.LState) error {
 		fmt.Printf("[essh debug] task's args: %v\n", args)
 	}
 
-	if task.Namespace != nil {
-		// re generate ssh_config if it in a namespace
-		hosts := NewHostQuery().SetDatasource(task.Namespace.Hosts).GetHostsOrderByName()
-		_, err := UpdateSSHConfig(config, hosts)
-		if err != nil {
-			return err
-		}
-
-		if err := validateResources(task.Namespace.Tasks, task.Namespace.Hosts, task.Namespace); err != nil {
-			return err
-		}
-	}
-
 	if task.Registry != nil {
 		// change current registry
 		CurrentRegistry = task.Registry
@@ -1038,18 +977,10 @@ func runTask(config string, task *Task, args []string, L *lua.LState) error {
 		if len(task.TargetsSlice()) == 0 {
 			hosts = []*Host{}
 		} else {
-			if task.Namespace != nil {
-				hosts = NewHostQuery().
-					SetDatasource(task.Namespace.Hosts).
-					AppendSelections(task.TargetsSlice()).
-					AppendFilters(task.FiltersSlice()).
-					GetHostsOrderByName()
-			} else {
-				hosts = NewHostQuery().
-					AppendSelections(task.TargetsSlice()).
-					AppendFilters(task.FiltersSlice()).
-					GetHostsOrderByName()
-			}
+			hosts = NewHostQuery().
+				AppendSelections(task.TargetsSlice()).
+				AppendFilters(task.FiltersSlice()).
+				GetHostsOrderByName()
 		}
 
 		if len(hosts) == 0 {
@@ -1094,19 +1025,10 @@ func runTask(config string, task *Task, args []string, L *lua.LState) error {
 		if len(task.TargetsSlice()) == 0 {
 			hosts = []*Host{}
 		} else {
-			if task.Namespace != nil {
-				hosts = NewHostQuery().
-					SetDatasource(task.Namespace.Hosts).
-					AppendSelections(task.TargetsSlice()).
-					AppendFilters(task.FiltersSlice()).
-					GetHostsOrderByName()
-
-			} else {
-				hosts = NewHostQuery().
-					AppendSelections(task.TargetsSlice()).
-					AppendFilters(task.FiltersSlice()).
-					GetHostsOrderByName()
-			}
+			hosts = NewHostQuery().
+				AppendSelections(task.TargetsSlice()).
+				AppendFilters(task.FiltersSlice()).
+				GetHostsOrderByName()
 		}
 
 		if len(task.Targets) >= 1 && len(hosts) == 0 {
@@ -1175,14 +1097,7 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 		task.Driver = DefaultDriverName
 	}
 
-	var drivers map[string]*Driver
-	if task.Namespace != nil {
-		drivers = task.Namespace.Drivers
-	} else {
-		drivers = Drivers
-	}
-
-	driver := drivers[task.Driver]
+	driver := Drivers[task.Driver]
 	if driver == nil {
 		return fmt.Errorf("invalid driver name '%s'", task.Driver)
 	}
@@ -1314,14 +1229,7 @@ func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*H
 		task.Driver = DefaultDriverName
 	}
 
-	var drivers map[string]*Driver
-	if task.Namespace != nil {
-		drivers = task.Namespace.Drivers
-	} else {
-		drivers = Drivers
-	}
-
-	driver := drivers[task.Driver]
+	driver := Drivers[task.Driver]
 	if driver == nil {
 		return fmt.Errorf("invalid driver name '%s'", task.Driver)
 	}
@@ -1672,15 +1580,10 @@ func runCommand(command string) error {
 	return cmd.Run()
 }
 
-func validateResources(tasks map[string]*Task, hosts map[string]*Host, namespace *Namespace) error {
+func validateResources(tasks map[string]*Task, hosts map[string]*Host) error {
 	// check duplication of the host, task and tag names
 	for _, task := range tasks {
-		var taskName string
-		if namespace == nil {
-			taskName = task.PublicName()
-		} else {
-			taskName = task.Name
-		}
+		taskName := task.PublicName()
 		if _, ok := hosts[taskName]; ok {
 			return fmt.Errorf("Task '%s' is duplicated with hostname.", taskName)
 		}
@@ -1817,13 +1720,11 @@ Options:
   --hosts                       List hosts.
   --select <tag|host>           (Using with --hosts option) Get only the hosts filtered with tags or hosts.
   --filter <tag|host>           (Using with --hosts option) Filter selected hosts with tags or hosts.
-  --namespace <namespace>       (Using with --hosts option) Get hosts from specific namespace.
   --ssh-config                  (Using with --hosts option) Output selected hosts as ssh_config format.
   --tasks                       List tasks.
   --all                         (Using with --tasks option) Show all that include hidden objects.
   --tags                        List tags.
-  --quiet                       (Using with --hosts, --tasks, --tags or --namespaces option) Show only names.
-  --namespaces                  List namespaces.
+  --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
 
   (Manage Modules)
   --update                      Update modules.
@@ -1938,15 +1839,6 @@ _essh_tags() {
     _describe -t tag "tag" __essh_tags
 }
 
-_essh_namespaces() {
-    local -a __essh_namespaces
-    PRE_IFS=$IFS
-    IFS=$'\n'
-    __essh_namespaces=($({{.Executable}} --zsh-completion-namespaces))
-    IFS=$PRE_IFS
-    _describe -t tag "namespace" __essh_namespaces
-}
-
 _essh_options() {
     local -a __essh_options
     __essh_options=(
@@ -1965,7 +1857,6 @@ _essh_options() {
         '--hosts:List hosts.'
         '--tags:List tags.'
         '--tasks:List tasks.'
-        '--namespaces:List namespaces.'
         '--debug:Output debug log.'
         '--exec:Execute commands with the hosts.'
         '--zsh-completion:Output zsh completion code.'
@@ -1982,7 +1873,6 @@ _essh_hosts_options() {
         '--quiet:Show only names.'
         '--select:Get only the hosts filtered with tags or hosts.'
         '--filter:Filter selected hosts with tags or hosts.'
-        '--namespace:Get hosts from specific namespace.'
         '--ssh-config:Output selected hosts as ssh_config format.'
      )
     _describe -t option "option" __essh_options
@@ -1998,14 +1888,6 @@ _essh_tasks_options() {
     _describe -t option "option" __essh_options
 }
 
-_essh_namespaces_options() {
-    local -a __essh_options
-    __essh_options=(
-        '--debug:Output debug log.'
-        '--quiet:Show only names.'
-     )
-    _describe -t option "option" __essh_options
-}
 _essh_tags_options() {
     local -a __essh_options
     __essh_options=(
@@ -2053,7 +1935,7 @@ _essh_backends() {
 
 _essh () {
     local curcontext="$curcontext" state line
-    local last_arg arg execMode hostsMode tasksMode tagsMode namespacesMode
+    local last_arg arg execMode hostsMode tasksMode tagsMode
 
     typeset -A opt_args
 
@@ -2091,9 +1973,6 @@ _essh () {
                     --tags)
                         tagsMode="on"
                         ;;
-                    --namespaces)
-                        namespacesMode="on"
-                        ;;
                     *)
                         ;;
                 esac
@@ -2108,9 +1987,6 @@ _essh () {
                 --select|--target|--filter)
                     _essh_hosts
                     _essh_tags
-                    ;;
-                --namespace)
-                    _essh_namespaces
                     ;;
                 --backend)
                     _essh_backends
@@ -2127,8 +2003,6 @@ _essh () {
                         _essh_tasks_options
                     elif [ "$tagsMode" = "on" ]; then
                         _essh_tags_options
-                    elif [ "$namespacesMode" = "on" ]; then
-                        _essh_namespaces_options
                     else
                         _essh_options
                         _files
@@ -2165,10 +2039,6 @@ _essh_hosts_and_tags() {
     COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-hosts) $({{.Executable}} --bash-completion-tags)" -- $cur) )
 }
 
-_essh_namespaces() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-namespaces)" -- $cur) )
-}
-
 _essh_registry_options() {
     COMPREPLY=( $(compgen -W "
         --with-global
@@ -2188,7 +2058,6 @@ _essh_hosts_options() {
         --quiet
         --select
         --filter
-        --namespace
         --ssh-config
     " -- $cur) )
 }
@@ -2198,13 +2067,6 @@ _essh_tasks_options() {
         --debug
         --quiet
         --all
-    " -- $cur) )
-}
-
-_essh_namespaces_options() {
-    COMPREPLY=( $(compgen -W "
-        --debug
-        --quiet
     " -- $cur) )
 }
 
@@ -2251,7 +2113,6 @@ _essh_options() {
         --hosts
         --tags
         --tasks
-        --namespaces
         --debug
         --exec
         --zsh-completion
@@ -2263,7 +2124,7 @@ _essh_options() {
 _essh() {
     COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
 
-    local last_arg arg execMode hostsMode tasksMode tagsMode namespacesMode
+    local last_arg arg execMode hostsMode tasksMode tagsMode
 
     local cur=${COMP_WORDS[COMP_CWORD]}
     case "$COMP_CWORD" in
@@ -2293,9 +2154,6 @@ _essh() {
                     --tags)
                         tagsMode="on"
                         ;;
-                    --namespaces)
-                        namespacesMode="on"
-                        ;;
                     *)
                         ;;
                 esac
@@ -2308,9 +2166,6 @@ _essh() {
                     ;;
                 --select|--target|--filter)
                     _essh_hosts_and_tags
-                    ;;
-                --namespace)
-                    _essh_namespaces
                     ;;
                 --backend)
                     _essh_backends
@@ -2327,8 +2182,6 @@ _essh() {
                         _essh_tasks_options
                     elif [ "$tagsMode" = "on" ]; then
                         _essh_tags_options
-                    elif [ "$namespacesMode" = "on" ]; then
-                        _essh_namespaces_options
                     else
                         _essh_options
                     fi

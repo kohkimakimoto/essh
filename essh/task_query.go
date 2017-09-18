@@ -2,7 +2,6 @@ package essh
 
 import (
 	"sort"
-	"strings"
 )
 
 type TaskQuery struct {
@@ -12,15 +11,6 @@ type TaskQuery struct {
 func NewTaskQuery() *TaskQuery {
 	// merge tasks and namespace's tasks
 	datasource := Tasks
-
-	if len(Namespaces) > 0 {
-		for _, namespace := range Namespaces {
-
-			for _, task := range namespace.Tasks {
-				datasource[task.PublicName()] = task
-			}
-		}
-	}
 
 	return &TaskQuery{
 		Datasource: datasource,
@@ -68,11 +58,7 @@ func (taskQuery *TaskQuery) getTasksList() []*Task {
 	return tasksSlice
 }
 
-func GetEnabledTask(name string, namespaceName string) *Task {
-	if namespaceName != "" && !strings.Contains(name, ":") && namespaceName != DefaultNamespaceName {
-		name = namespaceName + ":" + name
-	}
-
+func GetEnabledTask(name string) *Task {
 	for _, t := range NewTaskQuery().GetTasksOrderByName() {
 		if t.PublicName() == name && !t.Disabled {
 			return t
