@@ -10,7 +10,7 @@ basename = "using-as-a-ssh-client.html"
 
 Essh is implemented as a wrapper of `ssh` command. That means you can use Essh in the same way as `ssh`. Try to connect a remote server by using Essh instead of `ssh` command.
 
-Create `esshconfig.lua` in your current directory. This is a default configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language. Now edit this file as the following.
+Create `.esshconfig.lua` in your current directory. This is a default configuration file for Essh. The configuration is written in [Lua](https://www.lua.org/) programming language. Now edit this file as the following.
 
 > Replace the `HostName`, `User` and some parameters for your environment.
 

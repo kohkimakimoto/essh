@@ -14,7 +14,7 @@ Essh supports zsh completion that lists SSH hosts. If you want to use it, add th
 eval "$(essh --zsh-completion)"
 ~~~
 
-And then, edit your `esshconfig.lua`. Try to add the `description` property as the following.
+And then, edit your `.esshconfig.lua`. Try to add the `description` property as the following.
 
 ~~~lua
 host "web01.localhost" {

@@ -10,7 +10,7 @@ basename = "managing-hosts.html"
 
 Hosts in Essh can have tags. The tags allow you to classify the hosts.
 
-For instance, edit `esshconfig.lua` to add some hosts and set tags.
+For instance, edit `.esshconfig.lua` to add some hosts and set tags.
 
 ~~~lua
 host "web01.localhost" {

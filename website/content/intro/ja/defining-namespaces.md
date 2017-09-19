@@ -10,7 +10,7 @@ basename = "defining-namespaces.html"
 
 Esshのネームスペースはタスク、ホスト、ドライバをカプセル化します。ネームスペースに定義されているホストとドライバは、同じネームスペース内のタスクでのみ使用できます。これはパブリックなホストがタスクのホストと競合するのを防止します。
 
-`esshconfig.lua`を編集してください。
+`.esshconfig.lua`を編集してください。
 
 ~~~lua
 namespace "mynamespace" {

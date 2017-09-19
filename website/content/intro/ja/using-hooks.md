@@ -10,7 +10,7 @@ basename = "using-hooks.html"
 
 Esshのフックは、リモートサーバーを接続する前後に実行されるスクリプトです。
 
-以下のコードを`esshconfig.lua`に書いてください。
+以下のコードを`.esshconfig.lua`に書いてください。
 
 ~~~lua
 host "web01.localhost" {

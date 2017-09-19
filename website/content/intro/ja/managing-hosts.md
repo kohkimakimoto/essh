@@ -10,7 +10,7 @@ basename = "managing-hosts.html"
 
 Esshのホストにはタグを付けることができます。タグを使用するとホストを分類できます。
 
-例として`esshconfig.lua`を編集していくつかのホストとタグを追加します
+例として`.esshconfig.lua`を編集していくつかのホストとタグを追加します
 
 ~~~lua
 host "web01.localhost" {

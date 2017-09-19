@@ -73,9 +73,9 @@ web01.tags = {
 
 Esshはいくつかの異なる場所から設定ファイルを読み込みます。設定は次の順序で適用されます。
 
-1. カレントディレクトリに`esshconfig.lua`が存在する場合、これを読み込みます。
-1. カレントディレクトリに`esshconfig.lua`が存在しない場合、`〜/.essh/config.lua`を読み込みます。
-1. カレントディレクトリの`esshconfig_override.lua`を読み込みます。
+1. カレントディレクトリに`.esshconfig.lua`が存在する場合、これを読み込みます。
+1. カレントディレクトリに`.esshconfig.lua`が存在しない場合、`〜/.essh/config.lua`を読み込みます。
+1. カレントディレクトリの`.esshconfig_override.lua`を読み込みます。
 1. `~/.essh/config_override.lua`を読み込みます。
 
 `--config`コマンドラインオプションや`ESSH_CONFIG`環境変数を使うと、現在のディレクトリにある読み込みファイルを変更することができます。

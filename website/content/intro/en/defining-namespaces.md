@@ -10,7 +10,7 @@ basename = "defining-namespaces.html"
 
 Namespaces in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a namespace can be used only by the tasks in the same namespace. It prevents to conflict public hosts with task's hosts.
 
-Edit your `esshconfig.lua`:
+Edit your `.esshconfig.lua`:
 
 ~~~lua
 namespace "mynamespace" {

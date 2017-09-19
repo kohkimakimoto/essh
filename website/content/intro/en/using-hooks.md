@@ -10,7 +10,7 @@ basename = "using-hooks.html"
 
 Hooks in Essh are scripts executed before and after connecting remote servers.
 
-Write the following code in your `esshconfig.lua`.
+Write the following code in your `.esshconfig.lua`.
 
 ~~~lua
 host "web01.localhost" {

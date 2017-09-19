@@ -9,7 +9,7 @@ basename = "running-tasks.html"
 # タスクを実行する
 
 タスクは、リモートサーバまたはローカルで実行されるスクリプトです。
-それでは例として、以下のように`esshconfig.lua`を編集してみましょう。
+それでは例として、以下のように`.esshconfig.lua`を編集してみましょう。
 
 ~~~lua
 task "hello" {

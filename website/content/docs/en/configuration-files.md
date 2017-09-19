@@ -73,9 +73,9 @@ web01.tags = {
 
 Essh loads configuration files from several different places. Configuration are applied in the following order:
 
-1. Loads `esshconfig.lua` that is in the current directory, if it exists.
-1. If `esshconfig.lua` in the current directory does not exist, Loads `~/.essh/config.lua`.
-1. Loads `esshconfig_override.lua` that is in the current directory.
+1. Loads `.esshconfig.lua` that is in the current directory, if it exists.
+1. If `.esshconfig.lua` in the current directory does not exist, Loads `~/.essh/config.lua`.
+1. Loads `.esshconfig_override.lua` that is in the current directory.
 1. Loads `~/.essh/config_override.lua`.
 
 If you use `--config` command line option or `ESSH_CONFIG` environment variable, You can change loading file that is in the current directory.
