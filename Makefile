@@ -28,6 +28,7 @@ testv: ## Run tests with verbose outputting.
 	@export GOTEST_FLAGS="-cover -timeout=360s -v" && bash -c $(CURDIR)/test/test.sh
 
 deps: ## Install dependences.
+	go get -u github.com/golang/dep/cmd/dep
 	go get -u github.com/mitchellh/gox
 	go get -u github.com/axw/gocov/gocov
 	go get -u gopkg.in/matm/v1/gocov-html
