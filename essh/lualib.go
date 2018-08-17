@@ -32,7 +32,7 @@ func InitLuaState(L *lua.LState) {
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 	L.SetGlobal("group", L.NewFunction(esshGroup))
-	L.SetGlobal("module", L.NewFunction(esshModule))
+	L.SetGlobal("load_module", L.NewFunction(esshModule))
 
 	// deprecated. for BC
 	L.SetGlobal("import", L.NewFunction(esshImport))
@@ -61,7 +61,7 @@ func InitLuaState(L *lua.LState) {
 		"task":   esshTask,
 		"driver": esshDriver,
 		"group":  esshGroup,
-		"module": esshModule,
+		"load_module": esshModule,
 
 		// utility functions
 		"debug":            esshDebug,

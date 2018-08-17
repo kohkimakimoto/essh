@@ -27,11 +27,17 @@ test: ## Run tests
 testv: ## Run tests with verbose outputting.
 	@export GOTEST_FLAGS="-cover -timeout=360s -v" && bash -c $(CURDIR)/test/test.sh
 
-deps: ## Install dependences by using glide
-	glide install
+deps: ## Install dependences.
+	go get -u github.com/mitchellh/gox
+	go get -u github.com/axw/gocov/gocov
+	go get -u gopkg.in/matm/v1/gocov-html
+	dep ensure
 
-deps_update:  ## Update dependences by using glide
-	glide up
+resetdeps: ## reset dependences.
+	rm -rf Gopkg.*
+	rm -rf vendor
+	dep init
+	dep ensure
 
 website: ## Build webside resources.
 	cd website && make deps && make

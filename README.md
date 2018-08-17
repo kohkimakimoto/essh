@@ -46,8 +46,6 @@ $ brew install kohkimakimoto/essh/essh
 Requirements
 
 * Go 1.7 or later (my development env)
-* [Glide](https://glide.sh/)
-* [gox](https://github.com/mitchellh/gox)
 
 Installing dependences
 

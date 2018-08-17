@@ -5,10 +5,12 @@ Thumbs.db
 *.iml
 /vendor
 .vagrant
+.vscode/
 /_work
+/tmp
 build/outputs/*
 Vagrantfile
-.vscode/
+.go-packages/
 .essh
 .esshconfig.lua
 .esshconfig_override.lua
