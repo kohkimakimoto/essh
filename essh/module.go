@@ -158,8 +158,16 @@ func (m *Module) Src() string {
 	return src
 }
 
-func (m *Module) IndexFile() string {
-	return path.Join(m.Dir(), "index.lua")
+func (m *Module) IndexFile() (string, error) {
+	idx := path.Join(m.Dir(), "esshmodule.lua")
+	if _, err := os.Stat(idx); os.IsNotExist(err) {
+		idx = path.Join(m.Dir(), "index.lua")
+		if _, err := os.Stat(idx); os.IsNotExist(err) {
+			return "", fmt.Errorf("not found esshmodule.lua or index.lua: %v", err)
+		}
+	}
+
+	return idx, nil
 }
 
 func (m *Module) Dir() string {
@@ -187,7 +195,11 @@ func (m *Module) Evaluate() error {
 	}
 
 	L := m.L
-	indexFile := m.IndexFile()
+	indexFile, err := m.IndexFile()
+	if err != nil {
+		return err
+	}
+
 	lessh, ok := toLTable(L.GetGlobal("essh"))
 	if !ok {
 		return fmt.Errorf("'essh' global variable is broken")
