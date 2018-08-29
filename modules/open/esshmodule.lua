@@ -9,4 +9,3 @@ task(name, {
     script = "open " .. url,
     description = description,
 })
-
