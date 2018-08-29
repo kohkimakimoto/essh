@@ -57,10 +57,10 @@ func InitLuaState(L *lua.LState) {
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
-		"host":   esshHost,
-		"task":   esshTask,
-		"driver": esshDriver,
-		"group":  esshGroup,
+		"host":        esshHost,
+		"task":        esshTask,
+		"driver":      esshDriver,
+		"group":       esshGroup,
 		"load_module": esshModule,
 
 		// utility functions

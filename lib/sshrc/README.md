@@ -1,4 +1,4 @@
-# Essh sshrc Module
+# Essh sshrc library
 
 This library provides `hooks_after_connect` hook for using [sshrc](https://github.com/Russell91/sshrc) in Essh.
 
