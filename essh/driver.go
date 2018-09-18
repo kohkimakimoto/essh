@@ -74,6 +74,7 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 	}
 
 	dict := map[string]interface{}{
+		"Executable": Executable,
 		"GOARCH":        runtime.GOARCH,
 		"GOOS":          runtime.GOOS,
 		"Debug":         debugFlag,
@@ -89,13 +90,18 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 		return "", err
 	}
 
-	tmpl, err := baseTempl.Parse(EnvironmentTemplate)
+	tmpl1, err := baseTempl.Parse(EnvironmentTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	tmpl2, err := tmpl1.Parse(FunctionsTemplate)
 	if err != nil {
 		return "", err
 	}
 
 	var b bytes.Buffer
-	err = tmpl.Execute(&b, dict)
+	err = tmpl2.Execute(&b, dict)
 	if err != nil {
 		return "", err
 	}
@@ -128,6 +134,18 @@ export ESSH_HOST_PROPS_{{$key | ToUpper | EnvKeyEscape}}={{$value | ShellEscape 
 export ESSH_HOST_TAGS_{{$value | ToUpper | EnvKeyEscape}}=1
 {{end -}}
 {{end -}}
+{{end}}
+`
+
+
+const FunctionsTemplate = `{{define "functions" -}}
+function escp() {
+    scp -F {{.SSHConfigPath}} "$@"
+}
+function ersync() {
+    rsync -e "ssh -F {{.SSHConfigPath}}" "$@"
+}
+
 {{end}}
 `
 

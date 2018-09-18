@@ -190,12 +190,22 @@ func checkTask(L *lua.LState) *Task {
 
 func taskCall(L *lua.LState) int {
 	task := checkTask(L)
-	tb := L.CheckTable(2)
 
-	setupTask(L, task, tb)
+	arg := L.CheckAny(2)
+	if tb, ok := toLTable(arg); ok {
+		setupTask(L, task, tb)
+		L.Push(L.CheckUserData(1))
+		return 1
+	}
 
-	L.Push(L.CheckUserData(1))
-	return 1
+	if lv, ok := arg.(lua.LString); ok {
+		updateTask(L, task, "script", lv)
+		L.Push(L.CheckUserData(1))
+		return 1
+	}
+
+	L.ArgError(2, "Table or string expected")
+	return 0
 }
 
 func taskIndex(L *lua.LState) int {

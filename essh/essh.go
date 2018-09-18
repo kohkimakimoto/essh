@@ -155,6 +155,7 @@ func initResources() {
 	driver.Engine = func(driver *Driver) (string, error) {
 		return `
 {{template "environment" .}}
+{{template "functions" .}}
 {{range $i, $script := .Scripts}}{{$script.code}}
 {{end}}`, nil
 	}
