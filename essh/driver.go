@@ -74,7 +74,7 @@ func (driver *Driver) GenerateRunnableContent(sshConfigPath string, task *Task, 
 	}
 
 	dict := map[string]interface{}{
-		"Executable": Executable,
+		"Executable":    Executable,
 		"GOARCH":        runtime.GOARCH,
 		"GOOS":          runtime.GOOS,
 		"Debug":         debugFlag,
@@ -136,7 +136,6 @@ export ESSH_HOST_TAGS_{{$value | ToUpper | EnvKeyEscape}}=1
 {{end -}}
 {{end}}
 `
-
 
 const FunctionsTemplate = `{{define "functions" -}}
 function escp() {
