@@ -1,0 +1,1132 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Essh - Extended ssh command</title>
+    <link>https://kohkimakimoto.github.io/essh/</link>
+    <description>Recent content on Essh - Extended ssh command</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <atom:link href="https://kohkimakimoto.github.io/essh/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>CLI Options | Documentation</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/en/cli-options.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/en/cli-options.html</guid>
+      <description>
+
+&lt;h1 id=&#34;cli-options&#34;&gt;CLI Options&lt;/h1&gt;
+
+&lt;p&gt;In order to extend &lt;code&gt;ssh&lt;/code&gt; command, Essh uses several command line options.
+All these options are long option that names with the double-dash prefix to prevent conflict with &lt;code&gt;ssh&lt;/code&gt; command options.&lt;/p&gt;
+
+&lt;p&gt;All the options are listed below.&lt;/p&gt;
+
+&lt;h2 id=&#34;general&#34;&gt;General&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--print&lt;/code&gt;: Print generated ssh_config.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--gen&lt;/code&gt;: Only generate ssh_config.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--working-dir &amp;lt;dir&amp;gt;&lt;/code&gt;: Change working directory.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--config &amp;lt;file&amp;gt;&lt;/code&gt;: Load configuration from the file.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--color&lt;/code&gt;: Force ANSI output.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--no-color&lt;/code&gt;: Disable ANSI output.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--debug&lt;/code&gt;: Output debug log.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;manage-hosts-tags-and-tasks&#34;&gt;Manage Hosts, Tags And Tasks&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--hosts&lt;/code&gt;: List hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--select &amp;lt;tag|host&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt; option) Get only the hosts filtered with tags or hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--filter &amp;lt;tag|host&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt; option) Filter selected hosts with tags or hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--namespace &amp;lt;namespace&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt; option) Get hosts from specific namespace.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--ssh-config&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt; option) Output selected hosts as ssh_config format.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--tasks&lt;/code&gt;: List tasks.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--all&lt;/code&gt;: (Using with &lt;code&gt;--tasks&lt;/code&gt; option) Show all that include hidden objects.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--tags&lt;/code&gt;: List tags.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--namespaces&lt;/code&gt;: List namespaces.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--quiet&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt;, &lt;code&gt;--tasks&lt;/code&gt; or &lt;code&gt;--tags&lt;/code&gt; option) Show only names.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;manage-modules&#34;&gt;Manage Modules&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--update&lt;/code&gt;: Update modules.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--clean-modules&lt;/code&gt;: Clean downloaded modules.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--clean-cache&lt;/code&gt;: Clean temporary data.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--clean-all&lt;/code&gt;: Clean all data.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--with-global&lt;/code&gt;: (Using with &lt;code&gt;--update&lt;/code&gt;, &lt;code&gt;--clean-modules&lt;/code&gt;, &lt;code&gt;--clean-cache&lt;/code&gt; or &lt;code&gt;--clean-all&lt;/code&gt; option) Update or clean modules in the local and global both registry.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;execute-commands&#34;&gt;Execute Commands&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--exec&lt;/code&gt;: Execute commands with the hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--target &amp;lt;tag|host&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Target hosts to run the commands.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--filter &amp;lt;tag|host&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Filter target hosts with tags or hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--backend remote|local&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Run the commands on local or remote hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--prefix&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Enable outputing prefix.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--prefix-string &amp;lt;prefix&amp;gt;&lt;/code&gt; (Using with &lt;code&gt;--exec&lt;/code&gt; option) Custom string of the prefix.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--privileged&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Run by the privileged user.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--user&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Run by the specific user.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--parallel&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Run in parallel.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--pty&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Allocate pseudo-terminal. (add ssh option &amp;ldquo;-t -t&amp;rdquo; internally)&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--script-file&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Load commands from a file.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--driver&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Specify a driver.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;completion&#34;&gt;Completion&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--zsh-completion&lt;/code&gt;: Output zsh completion code.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--aliases&lt;/code&gt;: Output aliases code.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;help&#34;&gt;Help&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--version&lt;/code&gt;: Print version.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--help&lt;/code&gt;: Print help.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>CLI オプション | ドキュメント</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/ja/cli-options.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/ja/cli-options.html</guid>
+      <description>
+
+&lt;h1 id=&#34;cli-オプション&#34;&gt;CLI オプション&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;ssh&lt;/code&gt;コマンドを拡張するために、Esshはいくつかのコマンドラインオプションを使います。
+これらのオプションは&lt;code&gt;ssh&lt;/code&gt;コマンドのオプションとの衝突を避けるために、すべて二重ダッシュの接頭辞を付けたロングオプションです。&lt;/p&gt;
+
+&lt;p&gt;すべてのオプションを以下に記します。&lt;/p&gt;
+
+&lt;h2 id=&#34;general&#34;&gt;General&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--print&lt;/code&gt;: 生成されるssh_configを表示する。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--gen&lt;/code&gt;: ssh_configを生成することのみを行う。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--working-dir &amp;lt;dir&amp;gt;&lt;/code&gt;: 作業ディレクトリを変更する&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--config &amp;lt;file&amp;gt;&lt;/code&gt;: コンフィグをファイルからロードする&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--color&lt;/code&gt;: ANSI出力を強制する。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--no-color&lt;/code&gt;: ANSI出力を行わない。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--debug&lt;/code&gt;: デバッグログを出力する。&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;manage-hosts-tags-and-tasks&#34;&gt;Manage Hosts, Tags And Tasks&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--hosts&lt;/code&gt;: List hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--select &amp;lt;tag|host&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt; option) Get only the hosts filtered with tags or hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--filter &amp;lt;tag|host&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt; option) Filter selected hosts with tags or hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--namespace &amp;lt;namespace&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt; option) Get hosts from specific namespace.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--ssh-config&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt; option) Output selected hosts as ssh_config format.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--tasks&lt;/code&gt;: List tasks.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--all&lt;/code&gt;: (Using with &lt;code&gt;--tasks&lt;/code&gt; option) Show all that include hidden objects.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--tags&lt;/code&gt;: List tags.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--namespaces&lt;/code&gt;: List namespaces.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--quiet&lt;/code&gt;: (Using with &lt;code&gt;--hosts&lt;/code&gt;, &lt;code&gt;--tasks&lt;/code&gt; or &lt;code&gt;--tags&lt;/code&gt; option) Show only names.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;manage-modules&#34;&gt;Manage Modules&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--update&lt;/code&gt;: Update modules.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--clean-modules&lt;/code&gt;: Clean downloaded modules.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--clean-cache&lt;/code&gt;: Clean temporary data.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--clean-all&lt;/code&gt;: Clean all data.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--with-global&lt;/code&gt;: Using with &lt;code&gt;--update&lt;/code&gt;, &lt;code&gt;--clean-modules&lt;/code&gt;, &lt;code&gt;--clean-cache&lt;/code&gt; or &lt;code&gt;--clean-all&lt;/code&gt; option) Update or clean modules in the local and global both registry.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;execute-commands&#34;&gt;Execute Commands&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--exec&lt;/code&gt;: Execute commands with the hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--target &amp;lt;tag|host&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Target hosts to run the commands.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--filter &amp;lt;tag|host&amp;gt;&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Filter target hosts with tags or hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--backend remote|local&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Run the commands on local or remote hosts.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--prefix&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Enable outputing prefix.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--prefix-string &amp;lt;prefix&amp;gt;&lt;/code&gt; (Using with &lt;code&gt;--exec&lt;/code&gt; option) Custom string of the prefix.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--privileged&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Run by the privileged user.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--user&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Run by the specific user.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--parallel&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Run in parallel.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--pty&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Allocate pseudo-terminal. (add ssh option &amp;ldquo;-t -t&amp;rdquo; internally)&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--script-file&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Load commands from a file.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--driver&lt;/code&gt;: (Using with &lt;code&gt;--exec&lt;/code&gt; option) Specify a driver.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;completion&#34;&gt;Completion&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--zsh-completion&lt;/code&gt;: Output zsh completion code.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--aliases&lt;/code&gt;: Output aliases code.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;help&#34;&gt;Help&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--version&lt;/code&gt;: Print version.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;--help&lt;/code&gt;: Print help.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Configuration Files | Documentation</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/en/configuration-files.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/en/configuration-files.html</guid>
+      <description>
+
+&lt;h1 id=&#34;configuration-files&#34;&gt;Configuration Files&lt;/h1&gt;
+
+&lt;p&gt;Essh configuration is written in &lt;a href=&#34;https://www.lua.org/&#34;&gt;Lua&lt;/a&gt;. In the configuration files, you can use DSL syntax that is more human-readable.&lt;/p&gt;
+
+&lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    description = &amp;quot;web01 development server&amp;quot;,
+    tags = {
+        &amp;quot;web&amp;quot;,
+    },
+}
+
+host &amp;quot;web02.localhost&amp;quot; {
+    HostName = &amp;quot;192.168.0.12&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    description = &amp;quot;web02 development server&amp;quot;,
+    tags = {
+        &amp;quot;web&amp;quot;,
+    },
+}
+
+task &amp;quot;uptime&amp;quot; {
+    backend = &amp;quot;remote&amp;quot;,
+    targets = &amp;quot;web&amp;quot;,
+    script = &amp;quot;uptime&amp;quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;another-syntax&#34;&gt;Another Syntax&lt;/h2&gt;
+
+&lt;p&gt;The above example of configuration is written in Lua DSL style. You can also use plain Lua functions styles. The following examples are valid config code.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host(&amp;quot;web01.localhost&amp;quot;, {
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    description = &amp;quot;web01 development server&amp;quot;,
+    tags = {
+        &amp;quot;web&amp;quot;,
+    },
+})
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;or&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;local web01 = host &amp;quot;web01.localhost&amp;quot;
+web01.HostName = &amp;quot;192.168.0.11&amp;quot;
+web01.Port = &amp;quot;22&amp;quot;
+web01.User = &amp;quot;kohkimakimoto&amp;quot;
+web01.description = &amp;quot;web01 development server&amp;quot;
+web01.tags = {
+    &amp;quot;web&amp;quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;evaluating-orders&#34;&gt;Evaluating Orders&lt;/h2&gt;
+
+&lt;p&gt;Essh loads configuration files from several different places. Configuration are applied in the following order:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Loads &lt;code&gt;.esshconfig.lua&lt;/code&gt; that is in the current directory, if it exists.&lt;/li&gt;
+&lt;li&gt;If &lt;code&gt;.esshconfig.lua&lt;/code&gt; in the current directory does not exist, Loads &lt;code&gt;~/.essh/config.lua&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Loads &lt;code&gt;.esshconfig_override.lua&lt;/code&gt; that is in the current directory.&lt;/li&gt;
+&lt;li&gt;Loads &lt;code&gt;~/.essh/config_override.lua&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;If you use &lt;code&gt;--config&lt;/code&gt; command line option or &lt;code&gt;ESSH_CONFIG&lt;/code&gt; environment variable, You can change loading file that is in the current directory.&lt;/p&gt;
+
+&lt;h2 id=&#34;lua&#34;&gt;Lua&lt;/h2&gt;
+
+&lt;p&gt;Essh provides built-in Lua libraries that can be used in the configuration files.&lt;/p&gt;
+
+&lt;p&gt;Please see &lt;a href=&#34;lua-vm.html&#34;&gt;Lua VM&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Defining Namespaces | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/defining-namespaces.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/defining-namespaces.html</guid>
+      <description>
+
+&lt;h1 id=&#34;defining-namespaces&#34;&gt;Defining Namespaces&lt;/h1&gt;
+
+&lt;p&gt;Namespaces in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a namespace can be used only by the tasks in the same namespace. It prevents to conflict public hosts with task&amp;rsquo;s hosts.&lt;/p&gt;
+
+&lt;p&gt;Edit your &lt;code&gt;.esshconfig.lua&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;namespace &amp;quot;mynamespace&amp;quot; {
+    host &amp;quot;web01.localhost&amp;quot; {
+        ForwardAgent = &amp;quot;yes&amp;quot;,
+        HostName = &amp;quot;192.168.0.11&amp;quot;,
+        Port = &amp;quot;22&amp;quot;,
+        User = &amp;quot;kohkimakimoto&amp;quot;,
+        tags = {
+            &amp;quot;web&amp;quot;,
+        },
+    },
+
+    host &amp;quot;web02.localhost&amp;quot; {
+        ForwardAgent = &amp;quot;yes&amp;quot;,
+        HostName = &amp;quot;192.168.0.12&amp;quot;,
+        Port = &amp;quot;22&amp;quot;,
+        User = &amp;quot;kohkimakimoto&amp;quot;,
+        tags = {
+            &amp;quot;web&amp;quot;,
+        },
+    },
+
+    task &amp;quot;hello&amp;quot; {
+        description = &amp;quot;say hello&amp;quot;,
+        prefix = true,
+        backend = &amp;quot;remote&amp;quot;,
+        targets = &amp;quot;web&amp;quot;,
+        script = [=[
+            echo &amp;quot;hello on $(hostname)&amp;quot;
+        ]=],
+    },
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;A Namespace&amp;rsquo;s tasks have a prefix that is their namespace&amp;rsquo;s name, So you can run the task like the following&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh mynamespace:hello
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For more information on namespaces, see the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/docs/en/namespaces.html&#34;&gt;Namespaces&lt;/a&gt; section.&lt;/p&gt;
+
+&lt;h2 id=&#34;next-steps&#34;&gt;Next Steps&lt;/h2&gt;
+
+&lt;p&gt;In the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/intro/en/index.html&#34;&gt;Introduction&lt;/a&gt; guide, I have explained the basic features of Essh. If you want to get in-depth information about Essh, read the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/docs/en/index.html&#34;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Enjoy!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Documentation</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/en.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/en.html</guid>
+      <description>
+
+&lt;h1 id=&#34;documentation&#34;&gt;Documentation&lt;/h1&gt;
+
+&lt;p&gt;Welcome to the Essh documentation. This documentation explains detail of Essh configuration.&lt;/p&gt;
+
+&lt;p&gt;If you&amp;rsquo;re just getting started with Essh, please start to read &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/intro/en/index.html&#34;&gt;Introduction&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Drivers | Documentation</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/en/drivers.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/en/drivers.html</guid>
+      <description>
+
+&lt;h1 id=&#34;dirvers&#34;&gt;Dirvers&lt;/h1&gt;
+
+&lt;p&gt;Drivers in Essh are template system to construct shell scripts in tasks execution. You can use a driver to modify behavior of tasks.&lt;/p&gt;
+
+&lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;-- defining a driver
+driver &amp;quot;custom_driver&amp;quot; { 
+    engine = [=[
+        {{template &amp;quot;environment&amp;quot; .}}
+        
+        set -e
+        indent() {
+            local n=&amp;quot;${1:-4}&amp;quot;
+            local p=&amp;quot;&amp;quot;
+            for i in `seq 1 $n`; do
+                p=&amp;quot;$p &amp;quot;
+            done;
+
+            local c=&amp;quot;s/^/$p/&amp;quot;
+            case $(uname) in
+              Darwin) sed -l &amp;quot;$c&amp;quot;;;
+              *)      sed -u &amp;quot;$c&amp;quot;;;
+            esac
+        }
+        
+        {{range $i, $script := .Scripts -}}
+        echo &#39;==&amp;gt; step {{$i}}:{{if $script.description}} {{$script.description}}{{end}}&#39;
+        { 
+            {{$script.code}} 
+        } | indent; __essh_exit_status=${PIPESTATUS[0]}
+        if [ $__essh_exit_status -ne 0 ]; then
+            exit $__essh_exit_status
+        fi
+        {{end}}
+    ]=],
+}
+
+-- using defined driver in a task
+task &amp;quot;example&amp;quot; {
+    driver = &amp;quot;custom_driver&amp;quot;,
+    script = {
+        &amp;quot;echo aaa&amp;quot;,
+        &amp;quot;echo bbb&amp;quot;,
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;environment-template&#34;&gt;Environment template&lt;/h2&gt;
+
+&lt;p&gt;Essh provides environment template to generate bash code to set environment variables.
+You can used it as &lt;code&gt;{{template &amp;quot;environment&amp;quot; .}}&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;predefined-variables&#34;&gt;Predefined variables&lt;/h2&gt;
+
+&lt;p&gt;You can use predefined variables in the driver engine text template.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;.Scripts&lt;/code&gt;: This is a task&amp;rsquo;s &lt;code&gt;script&lt;/code&gt; value.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;default-driver&#34;&gt;Default driver&lt;/h2&gt;
+
+&lt;p&gt;If you define &lt;code&gt;default&lt;/code&gt; driver like the following. This driver is used at default in the task instead of built-in default driver.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;driver &amp;quot;default&amp;quot; { 
+    engine = [=[
+    -- your driver code...
+    ]=],
+}
+
+-- This task uses above default driver automatically.
+task &amp;quot;example&amp;quot; {
+    script = {
+        &amp;quot;echo aaa&amp;quot;,
+        &amp;quot;echo bbb&amp;quot;,
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Groups | Documentation</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/en/groups.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/en/groups.html</guid>
+      <description>
+
+&lt;h1 id=&#34;groups&#34;&gt;Groups&lt;/h1&gt;
+
+&lt;p&gt;Groups are used for defining default parameters for hosts, tasks and drivers. See below example. At one group can only include one type of resource. For example, If you define a group with some hosts definitions, you can not define tasks and drivers in this group.&lt;/p&gt;
+
+&lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;group {
+    -- Define default parameters.
+    hidden = true,
+    privileged = true,
+    backend = &amp;quot;remote&amp;quot;,
+    targets = {&amp;quot;web&amp;quot;},
+    
+    task &amp;quot;foo&amp;quot; {
+        script = &amp;quot;echo foo&amp;quot;
+    },
+
+    task &amp;quot;foo&amp;quot; {
+        -- You can override parameters.
+        hidden = false,
+        script = &amp;quot;echo foo&amp;quot;
+    },
+}
+
+group {
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    
+    -- You can define only one type resource in a group.
+    host &amp;quot;web01&amp;quot; {
+        -- ...
+    },
+    
+    host &amp;quot;web02&amp;quot; {
+        -- ...
+    },
+}
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Hosts | Documentation</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/en/hosts.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/en/hosts.html</guid>
+      <description>
+
+&lt;h1 id=&#34;hosts&#34;&gt;Hosts&lt;/h1&gt;
+
+&lt;p&gt;Hosts in Essh are SSH servers that you manage. Using hosts configuration, Essh dynamically generates SSH config, provides hook functions, classify the hosts by tags.&lt;/p&gt;
+
+&lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    -- SSH config properties.
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    -- ... And you can use all ssh_config options. see ssh_config(5)
+    
+    -- Essh config properties.
+    description = &amp;quot;web01 development server&amp;quot;,
+    
+    hidden = false,
+    
+    props = {
+        aaa = &amp;quot;bbb&amp;quot;,
+        ccc = &amp;quot;ddd&amp;quot;,
+    },
+    
+    tags = {
+        &amp;quot;web&amp;quot;,
+        &amp;quot;development&amp;quot;,
+    },
+    
+    hooks_before_connect = {
+        &amp;quot;echo bar&amp;quot;,
+    },
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Host is composed of two different kinds of properties. &lt;strong&gt;SSH Config Properties&lt;/strong&gt; and &lt;strong&gt;Essh Config Properties&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;ssh-config-properties&#34;&gt;SSH Config Properties&lt;/h2&gt;
+
+&lt;p&gt;SSH config properties require that the first character is upper case.
+For instance &lt;code&gt;HostName&lt;/code&gt; and &lt;code&gt;Port&lt;/code&gt;. They are used to generate &lt;strong&gt;ssh_config&lt;/strong&gt;. You can use all ssh options to these properties. see ssh_config(5).&lt;/p&gt;
+
+&lt;h2 id=&#34;essh-config-properties&#34;&gt;Essh Config Properties&lt;/h2&gt;
+
+&lt;p&gt;Essh config properties require that the first character is lower case.
+They are used for special purpose of Essh functions, not ssh_config.&lt;/p&gt;
+
+&lt;p&gt;All the properties of this type are listed below.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;description&lt;/code&gt; (string): Description of the host. This is used for displaying hosts list and zsh completion.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;hidden&lt;/code&gt; (boolean): If you set it true, zsh completion doesn&amp;rsquo;t show the host.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;hooks_before_connect&lt;/code&gt; (table): Hooks that fire before connect. This hook runs on local. The hook is defined as a Lua table. This table can have mulitple functions or strings. See the example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;hooks_before_connect = {
+    -- function
+    function()
+        print(&amp;quot;foo&amp;quot;)
+    end,
+
+    -- string (commands)
+    &amp;quot;echo bar&amp;quot;,
+
+    -- If the function returns a string, Essh run the string as a command.
+    function()
+        return &amp;quot;echo foobar&amp;quot;
+    end,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;All hooks (includes &lt;code&gt;hooks_after_connect&lt;/code&gt;, &lt;code&gt;hooks_after_disconnect&lt;/code&gt;) implemented in Lua function runs on local.&lt;/p&gt;
+
+&lt;p&gt;All hooks (includes &lt;code&gt;hooks_after_connect&lt;/code&gt;, &lt;code&gt;hooks_after_disconnect&lt;/code&gt;) only fire when your simply login with ssh. Hooks don&amp;rsquo;t fire in tasks and with &lt;code&gt;--exec&lt;/code&gt; option.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;hooks_after_connect&lt;/code&gt; (table): Hooks that fire after connect. This hook runs on remote.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;hooks_after_disconnect&lt;/code&gt; (table): Hooks that fire after disconnect. This hook runs on local.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;tags&lt;/code&gt; (array table): Tags classifies hosts.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;tags = {
+    &amp;quot;web&amp;quot;,
+    &amp;quot;production&amp;quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Tags mustn&amp;rsquo;t be duplicated with any host names.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;props&lt;/code&gt; (table): Props sets environment variables &lt;code&gt;ESSH_HOST_PROPS_{KEY}&lt;/code&gt; when the host is used in tasks. The table key is modified to upper cased.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;props = {
+    foo = &amp;quot;bar&amp;quot;,
+}
+
+-- ESSH_HOST_PROPS_FOO=bar
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Installation | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/installation.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/installation.html</guid>
+      <description>
+
+&lt;h1 id=&#34;installation&#34;&gt;Installation&lt;/h1&gt;
+
+&lt;p&gt;Essh is provided as a single binary. You can download it and drop it in your $PATH.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/kohkimakimoto/essh/releases/latest&#34;&gt;Download latest version&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;After installing Essh, run the &lt;code&gt;essh&lt;/code&gt; without any options in your terminal to check working.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh
+Usage: essh [&amp;lt;options&amp;gt;] [&amp;lt;ssh options and args...&amp;gt;]
+
+Essh is an extended ssh command.
+version 0.87.0 (611624e6cb12e8add4494fd05e106bcdc701f9c3)
+
+Copyright (c) Kohki Makimoto &amp;lt;kohki.makimoto@gmail.com&amp;gt;
+The MIT License (MIT)
+
+See more detail, use &#39;--help&#39;.
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;using-as-a-ssh-client.html&#34;&gt;Using As A SSH Client&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Integrating Other Tools | Documentation</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/en/integrating-other-tools.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/en/integrating-other-tools.html</guid>
+      <description>
+
+&lt;h1 id=&#34;integrating-other-tools&#34;&gt;Integrating Other Tools&lt;/h1&gt;
+
+&lt;p&gt;Essh can be used with &lt;code&gt;scp&lt;/code&gt;, &lt;code&gt;rsync&lt;/code&gt; and &lt;code&gt;git&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;git&#34;&gt;git&lt;/h2&gt;
+
+&lt;p&gt;To use Essh inside of the git command. Write the following line in your &lt;code&gt;~/.zshrc&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;export GIT_SSH=essh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;scp&#34;&gt;scp&lt;/h2&gt;
+
+&lt;p&gt;Essh supports to use with scp.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh --exec &#39;scp -F $ESSH_SSH_CONFIG &amp;lt;scp command args...&amp;gt;&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For more easy to use, you can run &lt;code&gt;eval &amp;quot;$(essh --aliases)&amp;quot;&lt;/code&gt; in your &lt;code&gt;~/.zshrc&lt;/code&gt;, the above code can be written as the following.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ escp &amp;lt;scp command args...&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;rsync&#34;&gt;rsync&lt;/h2&gt;
+
+&lt;p&gt;Essh supports to use with rsync.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh --exec &#39;rsync -e &amp;quot;ssh -F $ESSH_SSH_CONFIG&amp;quot; &amp;lt;rsync command args...&amp;gt;&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For more easy to use, you can run &lt;code&gt;eval &amp;quot;$(essh --aliases)&amp;quot;&lt;/code&gt; in your &lt;code&gt;~/.zshrc&lt;/code&gt;, the above code can be written as the following.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ ersync &amp;lt;rsync command args...&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en.html</guid>
+      <description>
+
+&lt;h1 id=&#34;introduction&#34;&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;This section covers the basic features of Essh. If you are beginner of Essh, I recommend you to read it at first. Let&amp;rsquo;s start at &lt;a href=&#34;installation.html&#34;&gt;Installation&lt;/a&gt;, and Try to read sections step by step.&lt;/p&gt;
+
+&lt;p&gt;If you want to get in-depth information about Essh, read the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/index.html&#34;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Lua VM | Documentation</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/en/lua-vm.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/en/lua-vm.html</guid>
+      <description>
+
+&lt;h1 id=&#34;lua-vm&#34;&gt;Lua VM&lt;/h1&gt;
+
+&lt;p&gt;Essh uses &lt;a href=&#34;https://github.com/yuin/gopher-lua&#34;&gt;GopherLua&lt;/a&gt; as a Lua VM to load configuration files written in Lua.&lt;/p&gt;
+
+&lt;h2 id=&#34;built-in-functions&#34;&gt;Built-in Functions&lt;/h2&gt;
+
+&lt;p&gt;As you already seen &lt;code&gt;host&lt;/code&gt; and &lt;code&gt;task&lt;/code&gt; functions, Essh core features consist of built-in functions. All the functions that Essh provides are listed below.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;host&lt;/code&gt;: Defines a host. See &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/hosts.html&#34;&gt;Hosts&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;task&lt;/code&gt;: Defines a task. See &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/tasks.html&#34;&gt;Tasks&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;driver&lt;/code&gt;: Defines a driver. See &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/drivers.html&#34;&gt;Drivers&lt;/a&gt;.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;built-in-libraries&#34;&gt;Built-in Libraries&lt;/h2&gt;
+
+&lt;p&gt;Essh provides built-in Lua libraries that you can use in your configuration files.
+For instance, if you want to use &lt;code&gt;json&lt;/code&gt; library, you should use Lua&amp;rsquo;s &lt;code&gt;require&lt;/code&gt; function like below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;local json = require(&amp;quot;json&amp;quot;)
+
+local jsontext = json.encode({aaa = &amp;quot;bbb&amp;quot;, ccc = &amp;quot;ddd&amp;quot;})
+print(jsontext)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The following are the built-in libraries that are included in Essh.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;json&lt;/code&gt;: &lt;a href=&#34;https://github.com/layeh/gopher-json&#34;&gt;layeh/gopher-json&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fs&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluafs&#34;&gt;kohkimakimoto/gluafs&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;yaml&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluayaml&#34;&gt;kohkimakimoto/gluayaml&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;question&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluaquestion&#34;&gt;kohkimakimoto/gluaquestion&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;template&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluatemplate&#34;&gt;kohkimakimoto/gluatemplate&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;env&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluaenv&#34;&gt;kohkimakimoto/gluaenv&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;http&lt;/code&gt;: &lt;a href=&#34;https://github.com/cjoudrey/gluahttp&#34;&gt;cjoudrey/gluahttp&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;re&lt;/code&gt;: &lt;a href=&#34;https://github.com/yuin/gluare&#34;&gt;yuin/gluare&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sh&lt;/code&gt;: &lt;a href=&#34;https://github.com/otm/gluash&#34;&gt;otm/gluash&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;predefined-variables&#34;&gt;Predefined Variables&lt;/h2&gt;
+
+&lt;p&gt;Essh provides predefined variables. In the recent version of Essh, there is one predefined variable: &lt;code&gt;essh&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;essh&lt;/code&gt; is a table that has some functions and variables. see below&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;ssh_config&lt;/code&gt; (string): ssh_config is ssh_config file path. At default, it is a temporary file that is generated automatically when you run Essh. You can overwrite this value for generating ssh_config to a static destination. If you use a gateway host that is a server between your client computer and a target server, you may use this variable to specify &lt;code&gt;ProxyCommand&lt;/code&gt;. See below example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;--
+-- network environment.
+-- [your-computer] -- [getway-server1] -- [web-server]
+--
+
+host &amp;quot;web-server&amp;quot; {
+    HostName = &amp;quot;192.168.0.1&amp;quot;,
+    ProxyCommand = &amp;quot;ssh -q -F &amp;quot; .. essh.ssh_config .. &amp;quot; -W %h:%p getway-server1&amp;quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;select_hosts&lt;/code&gt; (function): Gets defined hosts. It is useful for overriding host config or setting default values. For example, if you want to set a default ssh_config: &lt;code&gt;ForwardAgent = yes&lt;/code&gt;, you can achieve it the below code:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;-- ~/.essh/config_override.lua
+for _, h in pairs(essh.select_hosts():get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &amp;quot;yes&amp;quot;
+    end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Above example sets the default value to the all hosts. If you want to set the value to some hosts you selected, You can also use the below code:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;-- ~/.essh/config_override.lua
+-- Getting only the hosts that has `web` tag or name of the hosts is `web`.
+for _, h in pairs(essh.select_hosts(&amp;quot;web&amp;quot;):get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &amp;quot;yes&amp;quot;
+    end
+end
+
+-- Using a table, Getting the hosts both `web` or `db`
+for _, h in pairs(essh.select_hosts({&amp;quot;web&amp;quot;, &amp;quot;db&amp;quot;}):get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &amp;quot;yes&amp;quot;
+    end
+end
+
+-- You can set a filter.
+-- Getting only the `web` hosts filtered by `production`.
+for _, h in pairs(essh.select_hosts(&amp;quot;web&amp;quot;):filter(&amp;quot;production&amp;quot;):get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &amp;quot;yes&amp;quot;
+    end
+end
+
+-- Getting only the first one host using `first` method.
+local h = essh.select_hosts(&amp;quot;web&amp;quot;):first()
+if h.ForwardAgent == nil then
+    h.ForwardAgent = &amp;quot;yes&amp;quot;
+end
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;host&lt;/code&gt; (function): An alias of &lt;code&gt;host&lt;/code&gt; function.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;task&lt;/code&gt; (function): An alias of &lt;code&gt;task&lt;/code&gt; function.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;driver&lt;/code&gt; (function): An alias of &lt;code&gt;driver&lt;/code&gt; function.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;debug&lt;/code&gt; (function): Output a debug message. The debug message is outputed when you run Essh with &lt;code&gt;--debug&lt;/code&gt; option.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;essh.debug(&amp;quot;foo&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Lua VM | ドキュメント</title>
+      <link>https://kohkimakimoto.github.io/essh/docs/ja/lua-vm.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/docs/ja/lua-vm.html</guid>
+      <description>
+
+&lt;h1 id=&#34;lua-vm&#34;&gt;Lua VM&lt;/h1&gt;
+
+&lt;p&gt;EsshはLuaで書かれた設定ファイルを読み込むために&lt;a href=&#34;https://github.com/yuin/gopher-lua&#34;&gt;GopherLua&lt;/a&gt;をLua VMとして使っています。&lt;/p&gt;
+
+&lt;h2 id=&#34;ビルトイン関数&#34;&gt;ビルトイン関数&lt;/h2&gt;
+
+&lt;p&gt;すでに&lt;code&gt;host&lt;/code&gt;と&lt;code&gt;task&lt;/code&gt;関数を見てきたように、Esshのコア機能はビルトイン関数で構成されています。Esshが提供しているすべての関数は以下の通りです。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;host&lt;/code&gt;: ホストを定義します。&lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/ja/hosts.html&#34;&gt;ホスト&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;task&lt;/code&gt;: タスクを定義します。&lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/ja/tasks.html&#34;&gt;タスク&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;driver&lt;/code&gt;: ドライバを定義します。&lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/ja/drivers.html&#34;&gt;ドライバ&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;ビルトインライブラリ&#34;&gt;ビルトインライブラリ&lt;/h2&gt;
+
+&lt;p&gt;Esshには、設定ファイルで使用できるビルトインLuaライブラリが用意されています。
+たとえば、&lt;code&gt;json&lt;/code&gt;ライブラリを使いたい場合は、以下のようにLuaの&lt;code&gt;require&lt;/code&gt;関数を使います。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;local json = require(&amp;quot;json&amp;quot;)
+
+local jsontext = json.encode({aaa = &amp;quot;bbb&amp;quot;, ccc = &amp;quot;ddd&amp;quot;})
+print(jsontext)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以下は、Esshに組み込まれているビルトインライブラリです。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;json&lt;/code&gt;: &lt;a href=&#34;https://github.com/layeh/gopher-json&#34;&gt;layeh/gopher-json&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fs&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluafs&#34;&gt;kohkimakimoto/gluafs&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;yaml&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluayaml&#34;&gt;kohkimakimoto/gluayaml&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;question&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluaquestion&#34;&gt;kohkimakimoto/gluaquestion&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;template&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluatemplate&#34;&gt;kohkimakimoto/gluatemplate&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;env&lt;/code&gt;: &lt;a href=&#34;https://github.com/kohkimakimoto/gluaenv&#34;&gt;kohkimakimoto/gluaenv&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;http&lt;/code&gt;: &lt;a href=&#34;https://github.com/cjoudrey/gluahttp&#34;&gt;cjoudrey/gluahttp&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;re&lt;/code&gt;: &lt;a href=&#34;https://github.com/yuin/gluare&#34;&gt;yuin/gluare&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sh&lt;/code&gt;: &lt;a href=&#34;https://github.com/otm/gluash&#34;&gt;otm/gluash&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;定義済みの変数&#34;&gt;定義済みの変数&lt;/h2&gt;
+
+&lt;p&gt;Esshは事前定義された変数を提供します。 最新のEsshのバージョンには、定義済みの変数が1つあります。&lt;code&gt;essh&lt;/code&gt;です。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;essh&lt;/code&gt;はいくつかの関数と変数を持つテーブルです。下記を参照してください&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;ssh_config&lt;/code&gt; (string): ssh_configはssh_configファイルのパスです。デフォルトでは、Esshを実行すると自動的に生成される一時ファイルです。 ssh_configを静的な宛先に生成するために、この値を上書きすることができます。クライアントコンピュータとターゲットサーバの間のサーバであるゲートウェイホストを使用する場合は、この変数を使用して &lt;code&gt;ProxyCommand&lt;/code&gt;を指定することができます。以下の例を参照してください：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;--
+-- network environment.
+-- [your-computer] -- [getway-server1] -- [web-server]
+--
+
+host &amp;quot;web-server&amp;quot; {
+    HostName = &amp;quot;192.168.0.1&amp;quot;,
+    ProxyCommand = &amp;quot;ssh -q -F &amp;quot; .. essh.ssh_config .. &amp;quot; -W %h:%p getway-server1&amp;quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;select_hosts&lt;/code&gt; (function): 定義されたホストを取得します。これは、ホスト設定のオーバライドやデフォルト値の設定に役立ちます。たとえば、デフォルトのssh_config:&lt;code&gt;ForwardAgent = yes&lt;/code&gt;を設定する場合は、以下のコードで実施できます。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;-- ~/.essh/config_override.lua
+for _, h in pairs(essh.select_hosts():get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &amp;quot;yes&amp;quot;
+    end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上記の例では、すべてのホストにデフォルト値が設定されます。選択したホストに値を設定したい場合は、次のコードを使います:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;-- ~/.essh/config_override.lua
+-- Getting only the hosts that has `web` tag or name of the hosts is `web`.
+for _, h in pairs(essh.select_hosts(&amp;quot;web&amp;quot;):get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &amp;quot;yes&amp;quot;
+    end
+end
+
+-- Using a table, Getting the hosts both `web` or `db`
+for _, h in pairs(essh.select_hosts({&amp;quot;web&amp;quot;, &amp;quot;db&amp;quot;}):get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &amp;quot;yes&amp;quot;
+    end
+end
+
+-- You can set a filter.
+-- Getting only the `web` hosts filtered by `production`.
+for _, h in pairs(essh.select_hosts(&amp;quot;web&amp;quot;):filter(&amp;quot;production&amp;quot;):get()) do
+    if h.ForwardAgent == nil then
+        h.ForwardAgent = &amp;quot;yes&amp;quot;
+    end
+end
+
+-- Getting only the first one host using `first` method.
+local h = essh.select_hosts(&amp;quot;web&amp;quot;):first()
+if h.ForwardAgent == nil then
+    h.ForwardAgent = &amp;quot;yes&amp;quot;
+end
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;host&lt;/code&gt; (function): &lt;code&gt;host&lt;/code&gt; 関数のエイリアス。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;task&lt;/code&gt; (function): &lt;code&gt;task&lt;/code&gt; 関数のエイリアス。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;driver&lt;/code&gt; (function): &lt;code&gt;driver&lt;/code&gt; 関数のエイリアス。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;code&gt;debug&lt;/code&gt; (function): デバッグメッセージを出力します。デバッグメッセージは&lt;code&gt;--debug&lt;/code&gt;オプションつきでEsshを実行したときに出力されます。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;essh.debug(&amp;quot;foo&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Luaライブラリを使う | イントロダクション</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/ja/using-lua-libraries.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/ja/using-lua-libraries.html</guid>
+      <description>
+
+&lt;h1 id=&#34;luaライブラリを使う&#34;&gt;Luaライブラリを使う&lt;/h1&gt;
+
+&lt;p&gt;Esshは設定にLuaを使用し、いくつかの組み込みのLuaライブラリも持っています。ライブラリをロードするには&lt;code&gt;require&lt;/code&gt;関数を使います。&lt;/p&gt;
+
+&lt;p&gt;例:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;local question = require &amp;quot;question&amp;quot;
+
+task &amp;quot;example&amp;quot; {
+    prepare = function ()
+        local r = question.ask(&amp;quot;Are you OK? [y/N]: &amp;quot;)
+        if r ~= &amp;quot;y&amp;quot; then
+            -- return false, the task does not run.
+            return false
+        end
+    end,
+    script = [=[
+        echo &amp;quot;foo&amp;quot;
+    ]=],
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;question&lt;/code&gt;はEsshの組み込みライブラリで&lt;a href=&#34;https://github.com/kohkimakimoto/gluaquestion&#34;&gt;gluaquestion&lt;/a&gt;によって実装されています。これはターミナルからのユーザ入力を取得する機能を提供します。
+タスクのプロパティ&lt;code&gt;prepare&lt;/code&gt;は、タスクの開始時に実行される関数を定義する設定です。&lt;/p&gt;
+
+&lt;p&gt;タスクを実行すると、Esshはメッセージを表示し、入力を待ちます。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh example
+Are you OK? [y/N]: y
+foo
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Luaライブラリの詳細については、&lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/ja/lua-vm.html&#34;&gt;Lua VM&lt;/a&gt;セクションを参照してください。&lt;/p&gt;
+
+&lt;p&gt;次のセクションに進みましょう: &lt;a href=&#34;using-drivers.html&#34;&gt;ドライバを使う&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Managing Hosts | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/managing-hosts.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/managing-hosts.html</guid>
+      <description>
+
+&lt;h1 id=&#34;managing-hosts&#34;&gt;Managing Hosts&lt;/h1&gt;
+
+&lt;p&gt;Hosts in Essh can have tags. The tags allow you to classify the hosts.&lt;/p&gt;
+
+&lt;p&gt;For instance, edit &lt;code&gt;.esshconfig.lua&lt;/code&gt; to add some hosts and set tags.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    -- ... your config
+    description = &amp;quot;web01 development server&amp;quot;,
+    tags = {
+        &amp;quot;web&amp;quot;,
+    }
+}
+
+host &amp;quot;web02.localhost&amp;quot; {
+    -- ... your config
+    description = &amp;quot;web02 development server&amp;quot;,
+    tags = {
+        &amp;quot;web&amp;quot;,
+    }
+}
+
+host &amp;quot;db01.localhost&amp;quot; {
+    -- ... your config
+    description = &amp;quot;db01 server&amp;quot;,
+    tags = {
+        &amp;quot;db&amp;quot;,
+        &amp;quot;backend&amp;quot;,
+    }
+}
+
+host &amp;quot;cache01.localhost&amp;quot; {
+    -- ... your config
+    description = &amp;quot;cache01 server&amp;quot;,
+    tags = {
+        &amp;quot;cache&amp;quot;,
+        &amp;quot;backend&amp;quot;,
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Run &lt;code&gt;essh&lt;/code&gt; with &lt;code&gt;--hosts&lt;/code&gt; option.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --hosts
+NAME                     DESCRIPTION                     TAGS                 HIDDEN
+cache01.localhost        cache01 server                  cache,backend        false
+db01.localhost           db01 server                     db,backend           false
+web01.localhost          web01 development server        web                  false
+web02.localhost          web02 development server        web                  false
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You will see the all hosts. Next, try to run it with &lt;code&gt;--select&lt;/code&gt; option.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --hosts --select=web
+NAME                   DESCRIPTION                     TAGS         HIDDEN
+web01.localhost        web01 development server        web          false
+web02.localhost        web02 development server        web          false
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You will get filtered hosts by &lt;code&gt;web&lt;/code&gt; tag. &lt;code&gt;--select&lt;/code&gt; can be specified multiple times. Each filters are used in OR condition.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --hosts --select=web --select=db
+NAME                   DESCRIPTION                     TAGS              HIDDEN
+db01.localhost         db01 server                     db,backend        false
+web01.localhost        web01 development server        web               false
+web02.localhost        web02 development server        web               false
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For more information on hosts, see the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/docs/en/hosts.html&#34;&gt;Hosts&lt;/a&gt; section.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;running-commands.html&#34;&gt;Running Commands&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

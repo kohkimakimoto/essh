@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Hosts | Documentation | Essh - Extended ssh command</title>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+
+  <link rel="shortcut icon" href="/essh/images/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/agate.min.css">
+<link rel="stylesheet" href="/essh/asciinema/asciinema-player.css">
+<link rel="stylesheet" href="/essh/css/style.css">
+
+</head>
+
+<body class="layout-docs-single">
+  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+              </button>
+      <a class="navbar-brand" href="/essh/">Essh</a>
+    </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a class="" href="/essh/intro/en/index.html">Intro</a>
+        </li>
+        <li>
+          <a class="" href="/essh/docs/en/index.html">Docs</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh">Github</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh/releases/latest">Download</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <section class="single content-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9 col-sm-push-3">
+          <div class="pull-right lang-list change-lang">
+            <span>Change Language:</span>
+            <ul>
+              <li><a href="/essh/docs/en/hosts.html" class="disabled">en</a></li>
+              <li><a href="/essh/docs/ja/hosts.html" class="">ja</a></li>
+            </ul>
+            </div>
+          <section class="main-content">
+            
+
+<h1 id="hosts">Hosts</h1>
+
+<p>Hosts in Essh are SSH servers that you manage. Using hosts configuration, Essh dynamically generates SSH config, provides hook functions, classify the hosts by tags.</p>
+
+<h2 id="example">Example</h2>
+
+<pre><code class="language-lua">host &quot;web01.localhost&quot; {
+    -- SSH config properties.
+    HostName = &quot;192.168.0.11&quot;,
+    Port = &quot;22&quot;,
+    User = &quot;kohkimakimoto&quot;,
+    -- ... And you can use all ssh_config options. see ssh_config(5)
+    
+    -- Essh config properties.
+    description = &quot;web01 development server&quot;,
+    
+    hidden = false,
+    
+    props = {
+        aaa = &quot;bbb&quot;,
+        ccc = &quot;ddd&quot;,
+    },
+    
+    tags = {
+        &quot;web&quot;,
+        &quot;development&quot;,
+    },
+    
+    hooks_before_connect = {
+        &quot;echo bar&quot;,
+    },
+}
+</code></pre>
+
+<p>Host is composed of two different kinds of properties. <strong>SSH Config Properties</strong> and <strong>Essh Config Properties</strong>.</p>
+
+<h2 id="ssh-config-properties">SSH Config Properties</h2>
+
+<p>SSH config properties require that the first character is upper case.
+For instance <code>HostName</code> and <code>Port</code>. They are used to generate <strong>ssh_config</strong>. You can use all ssh options to these properties. see ssh_config(5).</p>
+
+<h2 id="essh-config-properties">Essh Config Properties</h2>
+
+<p>Essh config properties require that the first character is lower case.
+They are used for special purpose of Essh functions, not ssh_config.</p>
+
+<p>All the properties of this type are listed below.</p>
+
+<ul>
+<li><p><code>description</code> (string): Description of the host. This is used for displaying hosts list and zsh completion.</p></li>
+
+<li><p><code>hidden</code> (boolean): If you set it true, zsh completion doesn&rsquo;t show the host.</p></li>
+
+<li><p><code>hooks_before_connect</code> (table): Hooks that fire before connect. This hook runs on local. The hook is defined as a Lua table. This table can have mulitple functions or strings. See the example:</p>
+
+<pre><code class="language-lua">hooks_before_connect = {
+    -- function
+    function()
+        print(&quot;foo&quot;)
+    end,
+
+    -- string (commands)
+    &quot;echo bar&quot;,
+
+    -- If the function returns a string, Essh run the string as a command.
+    function()
+        return &quot;echo foobar&quot;
+    end,
+}
+</code></pre>
+
+<p>All hooks (includes <code>hooks_after_connect</code>, <code>hooks_after_disconnect</code>) implemented in Lua function runs on local.</p>
+
+<p>All hooks (includes <code>hooks_after_connect</code>, <code>hooks_after_disconnect</code>) only fire when your simply login with ssh. Hooks don&rsquo;t fire in tasks and with <code>--exec</code> option.</p></li>
+
+<li><p><code>hooks_after_connect</code> (table): Hooks that fire after connect. This hook runs on remote.</p></li>
+
+<li><p><code>hooks_after_disconnect</code> (table): Hooks that fire after disconnect. This hook runs on local.</p></li>
+
+<li><p><code>tags</code> (array table): Tags classifies hosts.</p>
+
+<pre><code class="language-lua">tags = {
+    &quot;web&quot;,
+    &quot;production&quot;,
+}
+</code></pre>
+
+<p>Tags mustn&rsquo;t be duplicated with any host names.</p></li>
+
+<li><p><code>props</code> (table): Props sets environment variables <code>ESSH_HOST_PROPS_{KEY}</code> when the host is used in tasks. The table key is modified to upper cased.</p>
+
+<pre><code class="language-lua">props = {
+    foo = &quot;bar&quot;,
+}
+
+-- ESSH_HOST_PROPS_FOO=bar
+</code></pre></li>
+</ul>
+
+          </section>
+        </div>
+        <div class="col-sm-3 col-sm-pull-9">
+          <section class="side-menu">
+<ul>
+<li><a href="index.html">Documentation</a></li>
+<li><a href="configuration-files.html">Configuration Files</a></li>
+<li><a href="hosts.html">Hosts</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="lua-vm.html">Lua VM</a></li>
+<li><a href="cli-options.html">CLI Options</a></li>
+<li><a href="drivers.html">Drivers</a></li>
+<li><a href="groups.html">Groups</a></li>
+<li><a href="integrating-other-tools.html">Integrating Other Tools</a></li>
+</ul>
+</section>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <footer>
+  <div class="container">
+    <p>Copyright (c) 2016 Kohki Makimoto</p>
+    <ul class="list-inline">
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh">Github</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/issues">Issues</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/releases">Releases</a>
+      </li>
+    </ul>
+    <p>HTML template is <a href="https://github.com/BlackrockDigital/startbootstrap-new-age">startbootstrap-new-age</a> - Copyright 2013-2016 Blackrock Digital LLC.</p>
+    <p>I use “Google Analytics” to collect information about use of this site.</p>
+  </div>
+</footer>
+
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/languages/lua.min.js"></script>
+<script type="text/javascript" src="/essh/asciinema/asciinema-player.js"></script>
+<script type="text/javascript" src="/essh/js/bundle.js"></script>
+
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+
+</html>

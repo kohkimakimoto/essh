@@ -1,0 +1,970 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Intros on Essh - Extended ssh command</title>
+    <link>https://kohkimakimoto.github.io/essh/intro.html</link>
+    <description>Recent content in Intros on Essh - Extended ssh command</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <atom:link href="https://kohkimakimoto.github.io/essh/intro.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Defining Namespaces | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/defining-namespaces.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/defining-namespaces.html</guid>
+      <description>
+
+&lt;h1 id=&#34;defining-namespaces&#34;&gt;Defining Namespaces&lt;/h1&gt;
+
+&lt;p&gt;Namespaces in Essh encapsulate tasks, hosts and drivers. Hosts and drivers that are defined in a namespace can be used only by the tasks in the same namespace. It prevents to conflict public hosts with task&amp;rsquo;s hosts.&lt;/p&gt;
+
+&lt;p&gt;Edit your &lt;code&gt;.esshconfig.lua&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;namespace &amp;quot;mynamespace&amp;quot; {
+    host &amp;quot;web01.localhost&amp;quot; {
+        ForwardAgent = &amp;quot;yes&amp;quot;,
+        HostName = &amp;quot;192.168.0.11&amp;quot;,
+        Port = &amp;quot;22&amp;quot;,
+        User = &amp;quot;kohkimakimoto&amp;quot;,
+        tags = {
+            &amp;quot;web&amp;quot;,
+        },
+    },
+
+    host &amp;quot;web02.localhost&amp;quot; {
+        ForwardAgent = &amp;quot;yes&amp;quot;,
+        HostName = &amp;quot;192.168.0.12&amp;quot;,
+        Port = &amp;quot;22&amp;quot;,
+        User = &amp;quot;kohkimakimoto&amp;quot;,
+        tags = {
+            &amp;quot;web&amp;quot;,
+        },
+    },
+
+    task &amp;quot;hello&amp;quot; {
+        description = &amp;quot;say hello&amp;quot;,
+        prefix = true,
+        backend = &amp;quot;remote&amp;quot;,
+        targets = &amp;quot;web&amp;quot;,
+        script = [=[
+            echo &amp;quot;hello on $(hostname)&amp;quot;
+        ]=],
+    },
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;A Namespace&amp;rsquo;s tasks have a prefix that is their namespace&amp;rsquo;s name, So you can run the task like the following&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh mynamespace:hello
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For more information on namespaces, see the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/docs/en/namespaces.html&#34;&gt;Namespaces&lt;/a&gt; section.&lt;/p&gt;
+
+&lt;h2 id=&#34;next-steps&#34;&gt;Next Steps&lt;/h2&gt;
+
+&lt;p&gt;In the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/intro/en/index.html&#34;&gt;Introduction&lt;/a&gt; guide, I have explained the basic features of Essh. If you want to get in-depth information about Essh, read the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/docs/en/index.html&#34;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Enjoy!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Installation | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/installation.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/installation.html</guid>
+      <description>
+
+&lt;h1 id=&#34;installation&#34;&gt;Installation&lt;/h1&gt;
+
+&lt;p&gt;Essh is provided as a single binary. You can download it and drop it in your $PATH.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/kohkimakimoto/essh/releases/latest&#34;&gt;Download latest version&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;After installing Essh, run the &lt;code&gt;essh&lt;/code&gt; without any options in your terminal to check working.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh
+Usage: essh [&amp;lt;options&amp;gt;] [&amp;lt;ssh options and args...&amp;gt;]
+
+Essh is an extended ssh command.
+version 0.87.0 (611624e6cb12e8add4494fd05e106bcdc701f9c3)
+
+Copyright (c) Kohki Makimoto &amp;lt;kohki.makimoto@gmail.com&amp;gt;
+The MIT License (MIT)
+
+See more detail, use &#39;--help&#39;.
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;using-as-a-ssh-client.html&#34;&gt;Using As A SSH Client&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en.html</guid>
+      <description>
+
+&lt;h1 id=&#34;introduction&#34;&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;This section covers the basic features of Essh. If you are beginner of Essh, I recommend you to read it at first. Let&amp;rsquo;s start at &lt;a href=&#34;installation.html&#34;&gt;Installation&lt;/a&gt;, and Try to read sections step by step.&lt;/p&gt;
+
+&lt;p&gt;If you want to get in-depth information about Essh, read the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/index.html&#34;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Luaライブラリを使う | イントロダクション</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/ja/using-lua-libraries.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/ja/using-lua-libraries.html</guid>
+      <description>
+
+&lt;h1 id=&#34;luaライブラリを使う&#34;&gt;Luaライブラリを使う&lt;/h1&gt;
+
+&lt;p&gt;Esshは設定にLuaを使用し、いくつかの組み込みのLuaライブラリも持っています。ライブラリをロードするには&lt;code&gt;require&lt;/code&gt;関数を使います。&lt;/p&gt;
+
+&lt;p&gt;例:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;local question = require &amp;quot;question&amp;quot;
+
+task &amp;quot;example&amp;quot; {
+    prepare = function ()
+        local r = question.ask(&amp;quot;Are you OK? [y/N]: &amp;quot;)
+        if r ~= &amp;quot;y&amp;quot; then
+            -- return false, the task does not run.
+            return false
+        end
+    end,
+    script = [=[
+        echo &amp;quot;foo&amp;quot;
+    ]=],
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;question&lt;/code&gt;はEsshの組み込みライブラリで&lt;a href=&#34;https://github.com/kohkimakimoto/gluaquestion&#34;&gt;gluaquestion&lt;/a&gt;によって実装されています。これはターミナルからのユーザ入力を取得する機能を提供します。
+タスクのプロパティ&lt;code&gt;prepare&lt;/code&gt;は、タスクの開始時に実行される関数を定義する設定です。&lt;/p&gt;
+
+&lt;p&gt;タスクを実行すると、Esshはメッセージを表示し、入力を待ちます。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh example
+Are you OK? [y/N]: y
+foo
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Luaライブラリの詳細については、&lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/ja/lua-vm.html&#34;&gt;Lua VM&lt;/a&gt;セクションを参照してください。&lt;/p&gt;
+
+&lt;p&gt;次のセクションに進みましょう: &lt;a href=&#34;using-drivers.html&#34;&gt;ドライバを使う&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Managing Hosts | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/managing-hosts.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/managing-hosts.html</guid>
+      <description>
+
+&lt;h1 id=&#34;managing-hosts&#34;&gt;Managing Hosts&lt;/h1&gt;
+
+&lt;p&gt;Hosts in Essh can have tags. The tags allow you to classify the hosts.&lt;/p&gt;
+
+&lt;p&gt;For instance, edit &lt;code&gt;.esshconfig.lua&lt;/code&gt; to add some hosts and set tags.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    -- ... your config
+    description = &amp;quot;web01 development server&amp;quot;,
+    tags = {
+        &amp;quot;web&amp;quot;,
+    }
+}
+
+host &amp;quot;web02.localhost&amp;quot; {
+    -- ... your config
+    description = &amp;quot;web02 development server&amp;quot;,
+    tags = {
+        &amp;quot;web&amp;quot;,
+    }
+}
+
+host &amp;quot;db01.localhost&amp;quot; {
+    -- ... your config
+    description = &amp;quot;db01 server&amp;quot;,
+    tags = {
+        &amp;quot;db&amp;quot;,
+        &amp;quot;backend&amp;quot;,
+    }
+}
+
+host &amp;quot;cache01.localhost&amp;quot; {
+    -- ... your config
+    description = &amp;quot;cache01 server&amp;quot;,
+    tags = {
+        &amp;quot;cache&amp;quot;,
+        &amp;quot;backend&amp;quot;,
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Run &lt;code&gt;essh&lt;/code&gt; with &lt;code&gt;--hosts&lt;/code&gt; option.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --hosts
+NAME                     DESCRIPTION                     TAGS                 HIDDEN
+cache01.localhost        cache01 server                  cache,backend        false
+db01.localhost           db01 server                     db,backend           false
+web01.localhost          web01 development server        web                  false
+web02.localhost          web02 development server        web                  false
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You will see the all hosts. Next, try to run it with &lt;code&gt;--select&lt;/code&gt; option.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --hosts --select=web
+NAME                   DESCRIPTION                     TAGS         HIDDEN
+web01.localhost        web01 development server        web          false
+web02.localhost        web02 development server        web          false
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You will get filtered hosts by &lt;code&gt;web&lt;/code&gt; tag. &lt;code&gt;--select&lt;/code&gt; can be specified multiple times. Each filters are used in OR condition.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --hosts --select=web --select=db
+NAME                   DESCRIPTION                     TAGS              HIDDEN
+db01.localhost         db01 server                     db,backend        false
+web01.localhost        web01 development server        web               false
+web02.localhost        web02 development server        web               false
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For more information on hosts, see the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/docs/en/hosts.html&#34;&gt;Hosts&lt;/a&gt; section.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;running-commands.html&#34;&gt;Running Commands&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Running Commands | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/running-commands.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/running-commands.html</guid>
+      <description>
+
+&lt;h1 id=&#34;running-commands&#34;&gt;Running Commands&lt;/h1&gt;
+
+&lt;p&gt;Essh allow you to run commands on the selected remote hosts by using &lt;code&gt;--exec&lt;/code&gt;, &lt;code&gt;--backend&lt;/code&gt; and &lt;code&gt;--target&lt;/code&gt; options.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --exec --backend=remote --target=web uptime
+ 22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
+ 22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;--target&lt;/code&gt; option can be used multiple times.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --exec --backend=remote --target=web --target=db uptime
+ 16:47:02 up 270 days, 13:29,  0 users,  load average: 0.11, 0.18, 0.11
+ 16:47:02 up 270 days, 13:26,  0 users,  load average: 0.00, 0.01, 0.00
+ 16:47:02 up 10 days,  1:02,  0 users,  load average: 0.01, 0.03, 0.00
+ 16:47:03 up 2 days, 22:24,  1 user,  load average: 0.00, 0.01, 0.05
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Use &lt;code&gt;--prefix&lt;/code&gt; option, Essh outputs result of command with hostname prefix.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --exec --backend=remote --target=web --prefix uptime
+[remote:web01.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
+[remote:web02.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Use &lt;code&gt;--parallel&lt;/code&gt; option, Essh runs commands in parallel.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --exec --backend=remote --target=web --prefix --parallel uptime
+[remote:web01.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
+[remote:web02.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Use &lt;code&gt;--privileged&lt;/code&gt; option, Essh runs commands by privileged (root) user. You have to configure your machine to be able to be used &lt;code&gt;sudo&lt;/code&gt; without password.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --exec --backend=remote --target=web --prefix --privileged whoami
+[remote:web01.localhost] root
+[remote:web01.localhost] root
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Set &lt;code&gt;--backend=local&lt;/code&gt; option, Essh runs commands locally.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ essh --exec --backend=local --target=web --parallel --prefix &#39;echo $ESSH_HOSTNAME&#39;
+[local:web01.localhost] web01.localhost
+[local:web02.localhost] web02.localhost
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;In the above example, I use &lt;code&gt;ESSH_HOSTNAME&lt;/code&gt; environment variable.
+Essh runs commands by using a temporary &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/tasks.html&#34;&gt;task&lt;/a&gt; internally. So you can use some predefined variables that defined by a task in the commands. For detail, see &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/tasks.html&#34;&gt;Tasks&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;running-tasks.html&#34;&gt;Running Tasks&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Running Tasks | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/running-tasks.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/running-tasks.html</guid>
+      <description>
+
+&lt;h1 id=&#34;running-tasks&#34;&gt;Running Tasks&lt;/h1&gt;
+
+&lt;p&gt;Task is a script that runs on remote servers or local.
+For example, edit your &lt;code&gt;.esshconfig.lua&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;task &amp;quot;hello&amp;quot; {
+    description = &amp;quot;say hello&amp;quot;,
+    prefix = true,
+    backend = &amp;quot;remote&amp;quot;,
+    targets = &amp;quot;web&amp;quot;,
+    script = [=[
+        echo &amp;quot;hello on $(hostname)&amp;quot;
+    ]=],
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Run the task.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh hello
+[remote:web01.localhost] hello on web01.localhost
+[remote:web02.localhost] hello on web02.localhost
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you set &lt;code&gt;local&lt;/code&gt; at &lt;code&gt;backend&lt;/code&gt; property, Essh runs a task locally.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;task &amp;quot;hello&amp;quot; {
+    description = &amp;quot;say hello&amp;quot;,
+    prefix = true,
+    backend = &amp;quot;local&amp;quot;,
+    script = [=[
+        echo &amp;quot;hello on $(hostname)&amp;quot;
+    ]=],
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh hello
+[local] hello on your-hostname
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For more information on tasks, see the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/tasks.html&#34;&gt;Tasks&lt;/a&gt; section.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;using-lua-libraries.html&#34;&gt;Using Lua Libraries&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>SSHクライアントとして使う | イントロダクション</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/ja/using-as-a-ssh-client.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/ja/using-as-a-ssh-client.html</guid>
+      <description>
+
+&lt;h1 id=&#34;sshクライアントとして使う&#34;&gt;SSHクライアントとして使う&lt;/h1&gt;
+
+&lt;p&gt;Esshは&lt;code&gt;ssh&lt;/code&gt;コマンドのラッパーとして実装されています。つまりEsshは&lt;code&gt;ssh&lt;/code&gt;と同じように使うことができます。&lt;code&gt;ssh&lt;/code&gt;コマンドの代わりにEsshを使ってリモートサーバに接続してみましょう。&lt;/p&gt;
+
+&lt;p&gt;カレントディレクトリに&lt;code&gt;.esshconfig.lua&lt;/code&gt;を作成します。これはEsshのデフォルト設定ファイルです。設定は&lt;a href=&#34;https://www.lua.org/&#34;&gt;Lua&lt;/a&gt;プログラミング言語で書かれています。このファイルを次のように編集します。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;HostName&lt;/code&gt;や&lt;code&gt;User&lt;/code&gt;などのパラメータは自分の環境に合わせて置き換えてください。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+}
+
+host &amp;quot;web02.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.12&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;この設定は&lt;code&gt;essh&lt;/code&gt;を実行するたびに&lt;code&gt;/tmp/essh.ssh_config.260398422&lt;/code&gt;のような一時ファイルに以下の&lt;strong&gt;&lt;em&gt;ssh_config&lt;/em&gt;&lt;/strong&gt;を自動的に生成します。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Host web01.localhost
+    ForwardAgent yes
+    HostName 192.168.0.11
+    Port 22
+    User kohkimakimoto
+
+Host web02.localhost
+    ForwardAgent yes
+    HostName 192.168.0.12
+    Port 22
+    User kohkimakimoto
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Esshはデフォルトでこの生成された設定ファイルを使用します。以下のコマンドを実行すると、&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh web01.localhost
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Esshは内部的に次のような&lt;code&gt;ssh&lt;/code&gt;コマンドを実行します。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ ssh -F /tmp/essh.ssh_config.260398422 web01.localhost
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;このようにしてLua設定を使用してsshサーバに接続することができます。生成される&lt;strong&gt;&lt;em&gt;ssh_config&lt;/em&gt;&lt;/strong&gt;を確認したいのなら、&lt;code&gt;--print&lt;/code&gt;オプションを使ってください。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh --print
+Host web01.localhost
+    ForwardAgent yes
+    HostName 192.168.0.11
+    Port 22
+    User kohkimakimoto
+
+Host web02.localhost
+    ForwardAgent yes
+    HostName 192.168.0.12
+    Port 22
+    User kohkimakimoto
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;プロセスが終了すると、Esshは自動的に一時ファイルを削除します。したがって、通常の操作で実際のssh設定を意識する必要はありません。&lt;/p&gt;
+
+&lt;p&gt;Esshの設定ファイルは &lt;code&gt;~/.essh/config.lua&lt;/code&gt;に置くこともできます。これは &lt;code&gt;~/.ssh/config&lt;/code&gt;のようなユーザごとの設定ファイルです。&lt;/p&gt;
+
+&lt;p&gt;設定ファイルについての詳細は&lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/ja/configuration-files.html&#34;&gt;設定ファイル&lt;/a&gt;セクションを参照してください。&lt;/p&gt;
+
+&lt;p&gt;次のセクションに進みましょう: &lt;a href=&#34;zsh-completion.html&#34;&gt;Zsh補完&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Using As A SSH Client | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/using-as-a-ssh-client.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/using-as-a-ssh-client.html</guid>
+      <description>
+
+&lt;h1 id=&#34;using-as-a-ssh-client&#34;&gt;Using As A SSH Client&lt;/h1&gt;
+
+&lt;p&gt;Essh is implemented as a wrapper of &lt;code&gt;ssh&lt;/code&gt; command. That means you can use Essh in the same way as &lt;code&gt;ssh&lt;/code&gt;. Try to connect a remote server by using Essh instead of &lt;code&gt;ssh&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;p&gt;Create &lt;code&gt;.esshconfig.lua&lt;/code&gt; in your current directory. This is a default configuration file for Essh. The configuration is written in &lt;a href=&#34;https://www.lua.org/&#34;&gt;Lua&lt;/a&gt; programming language. Now edit this file as the following.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Replace the &lt;code&gt;HostName&lt;/code&gt;, &lt;code&gt;User&lt;/code&gt; and some parameters for your environment.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+}
+
+host &amp;quot;web02.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.12&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This configuration automatically generates the below &lt;strong&gt;&lt;em&gt;ssh_config&lt;/em&gt;&lt;/strong&gt; to the temporary file like the &lt;code&gt;/tmp/essh.ssh_config.260398422&lt;/code&gt; whenever you run &lt;code&gt;essh&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Host web01.localhost
+    ForwardAgent yes
+    HostName 192.168.0.11
+    Port 22
+    User kohkimakimoto
+
+Host web02.localhost
+    ForwardAgent yes
+    HostName 192.168.0.12
+    Port 22
+    User kohkimakimoto
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Essh uses this generated config file by default. If you run the below command&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh web01.localhost
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Essh internally runs the &lt;code&gt;ssh&lt;/code&gt; command like the following.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ ssh -F /tmp/essh.ssh_config.260398422 web01.localhost
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Therefore you can connect with a ssh server using Lua config. If you want to see the generated &lt;strong&gt;&lt;em&gt;ssh_config&lt;/em&gt;&lt;/strong&gt;, use &lt;code&gt;--print&lt;/code&gt; options.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh --print
+Host web01.localhost
+    ForwardAgent yes
+    HostName 192.168.0.11
+    Port 22
+    User kohkimakimoto
+
+Host web02.localhost
+    ForwardAgent yes
+    HostName 192.168.0.12
+    Port 22
+    User kohkimakimoto
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Essh also automatically removes the temporary file when the process finishes. So you don&amp;rsquo;t have to be conscious of the real ssh configuration in the normal operations.&lt;/p&gt;
+
+&lt;p&gt;Essh configuration file can also be placed at &lt;code&gt;~/.essh/config.lua&lt;/code&gt;. This is a per user&amp;rsquo;s configuration file like a &lt;code&gt;~/.ssh/config&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;For more information on configuration files, see the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/configuration-files.html&#34;&gt;Configuration Files&lt;/a&gt; section.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;zsh-completion.html&#34;&gt;Zsh Completion&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Using Drivers | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/using-drivers.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/using-drivers.html</guid>
+      <description>
+
+&lt;h1 id=&#34;using-drivers&#34;&gt;Using Drivers&lt;/h1&gt;
+
+&lt;p&gt;Drivers in Essh are template system to construct shell scripts in tasks execution.
+In this tutorial, You have already used default built-in driver that is included in Essh binary. You can use a custom driver to modify behavior of tasks.&lt;/p&gt;
+
+&lt;p&gt;To understand what drivers do, see the following short example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;task &amp;quot;example&amp;quot; {
+    script = {
+        &amp;quot;echo aaa&amp;quot;,
+        &amp;quot;echo bbb&amp;quot;,
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Try to run this task with &lt;code&gt;--debug&lt;/code&gt; option to display the actual script.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh example --debug
+...
+[essh debug] run task: example
+[essh debug] driver: default 
+[essh debug] real local command: [bash -c 
+export ESSH_TASK_NAME=&#39;example&#39;
+export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh_config.767200705
+export ESSH_DEBUG=&amp;quot;1&amp;quot;
+
+echo aaa
+echo bbb
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;According to the debug messages, the task ran the following bash script:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;export ESSH_TASK_NAME=&#39;example&#39;
+export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh_config.767200705
+export ESSH_DEBUG=&amp;quot;1&amp;quot;
+
+echo aaa
+echo bbb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This contents was generated by the &lt;strong&gt;built-in driver&lt;/strong&gt;. The built-in driver is the following text template that is included in Essh binary:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{{template &amp;quot;environment&amp;quot; .}}
+{{range $i, $script := .Scripts}}{{$script.code}}
+{{end}}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;{{template &amp;quot;environment&amp;quot; .}}&lt;/code&gt; generates environment variables section. In the above example, this section becomes the following code:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;export ESSH_TASK_NAME=&#39;example&#39;
+export ESSH_SSH_CONFIG=/var/folders/bt/xwh9qmcj00dctz53_rxclgtr0000gn/T/essh.ssh_config.767200705
+export ESSH_DEBUG=&amp;quot;1&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And after that, Essh concatenates &lt;code&gt;script&lt;/code&gt; texts with new line code.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{{range $i, $script := .Scripts}}{{$script.code}}
+{{end}}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The above code becomes the following:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;echo aaa
+echo bbb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Then, Try to define your first custom driver using &lt;code&gt;driver&lt;/code&gt; function.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;driver &amp;quot;my_driver&amp;quot; {
+    engine = [=[
+        {{template &amp;quot;environment&amp;quot; .}}
+        
+        set -e
+        indent() {
+            local n=&amp;quot;${1:-4}&amp;quot;
+            local p=&amp;quot;&amp;quot;
+            for i in `seq 1 $n`; do
+                p=&amp;quot;$p &amp;quot;
+            done;
+
+            local c=&amp;quot;s/^/$p/&amp;quot;
+            case $(uname) in
+              Darwin) sed -l &amp;quot;$c&amp;quot;;;
+              *)      sed -u &amp;quot;$c&amp;quot;;;
+            esac
+        }
+        
+        {{range $i, $script := .Scripts -}}
+        echo &#39;==&amp;gt; step {{$i}}:{{if $script.description}} {{$script.description}}{{end}}&#39;
+        { 
+            {{$script.code}} 
+        } | indent; __essh_exit_status=${PIPESTATUS[0]}
+        if [ $__essh_exit_status -ne 0 ]; then
+            exit $__essh_exit_status
+        fi
+        {{end}}
+    ]=],
+}
+
+task &amp;quot;example&amp;quot; {
+    driver = &amp;quot;my_driver&amp;quot;,
+    script = {
+        &amp;quot;echo aaa&amp;quot;,
+        &amp;quot;echo bbb&amp;quot;,
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;driver&lt;/code&gt; function needs the required parameter &lt;code&gt;engine&lt;/code&gt;. This is the template text.
+To use your custom driver, you need to set task&amp;rsquo;s &lt;code&gt;driver&lt;/code&gt; property.&lt;/p&gt;
+
+&lt;p&gt;In this example, the driver outputs a step number and description, and indented script&amp;rsquo;s stdout. If you run the above task, you will get the following outputs.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;==&amp;gt; step 0:
+    aaa
+==&amp;gt; step 1:
+    bbb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The description hasn&amp;rsquo;t be displayed yet. You can set &lt;code&gt;description&lt;/code&gt; property to each script&amp;rsquo;s code.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;task &amp;quot;example&amp;quot; {
+    driver = &amp;quot;my_driver&amp;quot;,
+    script = {
+        {
+            description = &amp;quot;output aaa&amp;quot;,
+            code = &amp;quot;echo aaa&amp;quot;,
+        },
+        {
+            description = &amp;quot;output bbb&amp;quot;,
+            code = &amp;quot;echo bbb&amp;quot;,
+        },
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This code outputs the result like the following.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;==&amp;gt; step 0: output aaa
+    aaa
+==&amp;gt; step 1: output bbb
+    bbb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For more information on drivers, see the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/drivers.html&#34;&gt;Drivers&lt;/a&gt; section.&lt;/p&gt;
+
+&lt;h2 id=&#34;next-steps&#34;&gt;Next Steps&lt;/h2&gt;
+
+&lt;p&gt;In the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/intro/en/index.html&#34;&gt;Introduction&lt;/a&gt; guide, I have explained the basic features of Essh. If you want to get in-depth information about Essh, read the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/index.html&#34;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Enjoy!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Using Hooks | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/using-hooks.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/using-hooks.html</guid>
+      <description>
+
+&lt;h1 id=&#34;using-hooks&#34;&gt;Using Hooks&lt;/h1&gt;
+
+&lt;p&gt;Hooks in Essh are scripts executed before and after connecting remote servers.&lt;/p&gt;
+
+&lt;p&gt;Write the following code in your &lt;code&gt;.esshconfig.lua&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+
+    hooks_before_connect = {
+        &amp;quot;echo before_connect: $HOSTNAME&amp;quot;,
+    },
+    hooks_after_connect = {
+        &amp;quot;echo after_connect: $HOSTNAME&amp;quot;,
+    },
+    hooks_after_disconnect = {
+        &amp;quot;echo after_disconnect: $HOSTNAME&amp;quot;,
+    },
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Connect with the server.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh web01.localhost 
+before_connect: your-local-machine
+after_connect: web01.localhost
+[kohkimakimoto@web01.localhost ~]$ 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;hooks_before_connect&lt;/code&gt; and &lt;code&gt;hooks_after_connect&lt;/code&gt; were executed. Disconnect with the server.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[kohkimakimoto@web01.localhost ~]$ exit
+exit
+Connection to 192.168.0.11 closed.
+after_disconnect: your-local-machine
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;hooks_after_disconnect&lt;/code&gt; was executed.&lt;/p&gt;
+
+&lt;p&gt;Essh supports below type of hooks:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;hooks_before_connect&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;hooks_after_connect&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;hooks_after_disconnect&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;managing-hosts.html&#34;&gt;Managing Hosts&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Using Lua Libraries | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/using-lua-libraries.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/using-lua-libraries.html</guid>
+      <description>
+
+&lt;h1 id=&#34;using-lua-libraries&#34;&gt;Using Lua Libraries&lt;/h1&gt;
+
+&lt;p&gt;Essh uses Lua for configuration and also has several built-in Lua libraries. You can use &lt;code&gt;require&lt;/code&gt; function to load the libraries.&lt;/p&gt;
+
+&lt;p&gt;Example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;local question = require &amp;quot;question&amp;quot;
+
+task &amp;quot;example&amp;quot; {
+    prepare = function ()
+        local r = question.ask(&amp;quot;Are you OK? [y/N]: &amp;quot;)
+        if r ~= &amp;quot;y&amp;quot; then
+            -- return false, the task does not run.
+            return false
+        end
+    end,
+    script = [=[
+        echo &amp;quot;foo&amp;quot;
+    ]=],
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;question&lt;/code&gt; is a built-in library of Essh, that is implemented by &lt;a href=&#34;https://github.com/kohkimakimoto/gluaquestion&#34;&gt;gluaquestion&lt;/a&gt;. It provides functions to get user input from a terminal.
+And task&amp;rsquo;s property &lt;code&gt;prepare&lt;/code&gt; is a configuration that defines a function executed when the task starts.&lt;/p&gt;
+
+&lt;p&gt;When you run the task Essh, displays a message and waits your input.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh example
+Are you OK? [y/N]: y
+foo
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For more information on Lua libraries, see the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/lua-vm.html&#34;&gt;Lua VM&lt;/a&gt; section.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;using-drivers.html&#34;&gt;Using Drivers&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Zsh Completion | Introduction</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/en/zsh-completion.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/en/zsh-completion.html</guid>
+      <description>
+
+&lt;h1 id=&#34;zsh-completion&#34;&gt;Zsh Completion&lt;/h1&gt;
+
+&lt;p&gt;Essh supports zsh completion that lists SSH hosts. If you want to use it, add the following code in your &lt;code&gt;~/.zshrc&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;eval &amp;quot;$(essh --zsh-completion)&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And then, edit your &lt;code&gt;.esshconfig.lua&lt;/code&gt;. Try to add the &lt;code&gt;description&lt;/code&gt; property as the following.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    -- add description
+    description = &amp;quot;web01 development server&amp;quot;,
+}
+
+host &amp;quot;web02.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.12&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    -- add description
+    description = &amp;quot;web02 development server&amp;quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You will get completion about hosts.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh [TAB]
+web01.localhost  -- web01 development server
+web02.localhost  -- web02 development server
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can hide a host using &lt;code&gt;hidden&lt;/code&gt; property. If you set it true, zsh completion doesn&amp;rsquo;t show the host.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    description = &amp;quot;web01 development server&amp;quot;,
+    hidden = true,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You notice that the first characters of the &lt;code&gt;description&lt;/code&gt; and &lt;code&gt;hidden&lt;/code&gt; are lower case. Others are upper case. It is important point. Essh uses properties whose first character is upper case, as &lt;strong&gt;ssh_config&lt;/strong&gt; generated to the temporary file. And the properties whose first character is lower case are used for special purpose of Essh functions, not ssh config.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;If you are using bash instead of zsh, you can use &lt;code&gt;eval &amp;quot;$(essh --bash-completion)&amp;quot;&lt;/code&gt;. but the bash completion does not support to display description.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;For more information on hosts, see the &lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/en/hosts.html&#34;&gt;Hosts&lt;/a&gt; section.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s read next section: &lt;a href=&#34;using-hooks.html&#34;&gt;Using Hooks&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Zsh補完 | イントロダクション</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/ja/zsh-completion.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/ja/zsh-completion.html</guid>
+      <description>
+
+&lt;h1 id=&#34;zsh補完&#34;&gt;Zsh補完&lt;/h1&gt;
+
+&lt;p&gt;EsshはSSHホストをリストするzsh補完をサポートしています。使用する場合は次のコードを&lt;code&gt;~/.zshrc&lt;/code&gt;に追加してください。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;eval &amp;quot;$(essh --zsh-completion)&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;それから&lt;code&gt;.esshconfig.lua&lt;/code&gt;を編集してください。&lt;code&gt;description&lt;/code&gt;プロパティを次のように追加してみてください。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    -- add description
+    description = &amp;quot;web01 development server&amp;quot;,
+}
+
+host &amp;quot;web02.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.12&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    -- add description
+    description = &amp;quot;web02 development server&amp;quot;,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ホストが補完されるはずです。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh [TAB]
+web01.localhost  -- web01 development server
+web02.localhost  -- web02 development server
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;hidden&lt;/code&gt;プロパティを使ってホストを隠すことができます。これをtrueに設定すると、zsh補完はホストを表示しません。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lua&#34;&gt;host &amp;quot;web01.localhost&amp;quot; {
+    ForwardAgent = &amp;quot;yes&amp;quot;,
+    HostName = &amp;quot;192.168.0.11&amp;quot;,
+    Port = &amp;quot;22&amp;quot;,
+    User = &amp;quot;kohkimakimoto&amp;quot;,
+    description = &amp;quot;web01 development server&amp;quot;,
+    hidden = true,
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;description&lt;/code&gt;と&lt;code&gt;hidden&lt;/code&gt;は最初の文字が小文字であることにお気づきですか。その他は大文字です。これは重要なポイントです。 Esshは一時ファイルに生成されるssh_configに最初の文字が大文字のプロパティを使用します。最初の文字が小文字のプロパティはssh_configではなく、Esshの機能の特殊な目的に使用されます。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;zshではなくbashを使用している場合は、&lt;code&gt;eval &amp;quot;$(essh --bash-completion)&amp;quot;&lt;/code&gt;を使用できます。 だたしbash補完は説明の表示はサポートしていません。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;ホストの詳細については、&lt;a href=&#34;https://kohkimakimoto.github.io/essh/essh/docs/ja/hosts.html&#34;&gt;ホスト&lt;/a&gt; セクションを参照してください。&lt;/p&gt;
+
+&lt;p&gt;次のセクションに進みましょう: &lt;a href=&#34;using-hooks.html&#34;&gt;フックを使う&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>インストール | イントロダクション</title>
+      <link>https://kohkimakimoto.github.io/essh/intro/ja/installation.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://kohkimakimoto.github.io/essh/intro/ja/installation.html</guid>
+      <description>
+
+&lt;h1 id=&#34;インストール&#34;&gt;インストール&lt;/h1&gt;
+
+&lt;p&gt;Esshは単一のバイナリとして提供されています。 Esshをダウンロードして$PATHに配置してください。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/kohkimakimoto/essh/releases/latest&#34;&gt;最新バージョンをダウンロード&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Esshをインストールしたら、ターミナルで&lt;code&gt;essh&lt;/code&gt;を何もオプションを指定せずに実行し、動作確認してください。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ essh
+Usage: essh [&amp;lt;options&amp;gt;] [&amp;lt;ssh options and args...&amp;gt;]
+
+Essh is an extended ssh command.
+version 0.87.0 (611624e6cb12e8add4494fd05e106bcdc701f9c3)
+
+Copyright (c) Kohki Makimoto &amp;lt;kohki.makimoto@gmail.com&amp;gt;
+The MIT License (MIT)
+
+See more detail, use &#39;--help&#39;.
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;次のセクションに進みましょう: &lt;a href=&#34;using-as-a-ssh-client.html&#34;&gt;SSHクライアントとして使う&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

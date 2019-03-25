@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <title>コマンドを実行する | イントロダクション | Essh - Extended ssh command</title>
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+
+  <link rel="shortcut icon" href="/essh/images/favicon.png" type="image/x-icon" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/styles/agate.min.css">
+<link rel="stylesheet" href="/essh/asciinema/asciinema-player.css">
+<link rel="stylesheet" href="/essh/css/style.css">
+
+</head>
+
+<body class="layout-docs-single">
+  <nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span> Menu <i class="fa fa-bars"></i>
+              </button>
+      <a class="navbar-brand" href="/essh/">Essh</a>
+    </div>
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <a class="" href="/essh/intro/en/index.html">Intro</a>
+        </li>
+        <li>
+          <a class="" href="/essh/docs/en/index.html">Docs</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh">Github</a>
+        </li>
+        <li>
+          <a class="" href="https://github.com/kohkimakimoto/essh/releases/latest">Download</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <section class="single content-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9 col-sm-push-3">
+          <div class="pull-right lang-list change-lang">
+            <span>言語の選択:</span>
+            <ul>
+              <li><a href="/essh/intro/en/running-commands.html" class="">英語</a></li>
+              <li><a href="/essh/intro/ja/running-commands.html" class="disabled">日本語</a></li>
+            </ul>
+            </div>
+          <section class="main-content">
+            
+
+<h1 id="コマンドを実行する">コマンドを実行する</h1>
+
+<p>Esshでは<code>--exec</code>、<code>--backend</code>、<code>--target</code>オプションを使って、選択したリモートホスト上でコマンドを実行することができます。</p>
+
+<pre><code class="language-sh">$ essh --exec --backend=remote --target=web uptime
+ 22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
+ 22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
+</code></pre>
+
+<p><code>--target</code>オプションは複数指定することができます。</p>
+
+<pre><code class="language-sh">$ essh --exec --backend=remote --target=web --target=db uptime
+ 16:47:02 up 270 days, 13:29,  0 users,  load average: 0.11, 0.18, 0.11
+ 16:47:02 up 270 days, 13:26,  0 users,  load average: 0.00, 0.01, 0.00
+ 16:47:02 up 10 days,  1:02,  0 users,  load average: 0.01, 0.03, 0.00
+ 16:47:03 up 2 days, 22:24,  1 user,  load average: 0.00, 0.01, 0.05
+</code></pre>
+
+<p><code>--prefix</code>オプションを使うとEsshはホスト名をプリフィクスにつけてコマンドの結果を出力します。</p>
+
+<pre><code class="language-sh">$ essh --exec --backend=remote --target=web --prefix uptime
+[remote:web01.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
+[remote:web02.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
+</code></pre>
+
+<p><code>--parallel</code>オプションを使うと、並列にコマンドを実行します。</p>
+
+<pre><code class="language-sh">$ essh --exec --backend=remote --target=web --prefix --parallel uptime
+[remote:web01.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.01, 0.03
+[remote:web02.localhost]  22:48:31 up  7:58,  0 users,  load average: 0.00, 0.02, 0.04
+</code></pre>
+
+<p><code>--privileged</code>オプションを使うと、特権(root)ユーザでコマンドを実行します。パスワードなしでsudoを使用できるようにマシンを設定する必要があります。</p>
+
+<pre><code class="language-sh">$ essh --exec --backend=remote --target=web --prefix --privileged whoami
+[remote:web01.localhost] root
+[remote:web01.localhost] root
+</code></pre>
+
+<p><code>--backend=local</code>をセットすると, Esshはローカルでコマンドを実行します。</p>
+
+<pre><code class="language-sh">$ essh --exec --backend=local --target=web --parallel --prefix 'echo $ESSH_HOSTNAME'
+[local:web01.localhost] web01.localhost
+[local:web02.localhost] web02.localhost
+</code></pre>
+
+<p>上記の例では<code>ESSH_HOSTNAME</code>環境変数を使用しています。Esshは内部的に一時的な<a href="/essh/docs/ja/tasks.html">タスク</a>を使用してコマンドを実行します。したがって、タスクが定義する変数を使用することができます。詳細は<a href="/essh/docs/en/tasks.html">タスク</a>を参照してください。</p>
+
+<p>次のセクションに進みましょう: <a href="running-tasks.html">タスクを実行する</a></p>
+
+          </section>
+        </div>
+        <div class="col-sm-3 col-sm-pull-9">
+          <section class="side-menu">
+<ul>
+<li><a href="index.html">イントロダクション</a></li>
+<li><a href="installation.html">インストール</a></li>
+<li><a href="using-as-a-ssh-client.html">SSHクライアントとして使う</a></li>
+<li><a href="zsh-completion.html">Zsh補完</a></li>
+<li><a href="using-hooks.html">フックを使う</a></li>
+<li><a href="managing-hosts.html">ホストの管理</a></li>
+<li><a href="running-commands.html">コマンドを実行する</a></li>
+<li><a href="running-tasks.html">タスクを実行する</a></li>
+<li><a href="using-lua-libraries.html">Luaライブラリを使う</a></li>
+<li><a href="using-drivers.html">ドライバを使う</a></li>
+</ul>
+</section>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <footer>
+  <div class="container">
+    <p>Copyright (c) 2016 Kohki Makimoto</p>
+    <ul class="list-inline">
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh">Github</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/issues">Issues</a>
+      </li>
+      <li>
+        <a href="https://github.com/kohkimakimoto/essh/releases">Releases</a>
+      </li>
+    </ul>
+    <p>HTML template is <a href="https://github.com/BlackrockDigital/startbootstrap-new-age">startbootstrap-new-age</a> - Copyright 2013-2016 Blackrock Digital LLC.</p>
+    <p>I use “Google Analytics” to collect information about use of this site.</p>
+  </div>
+</footer>
+
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/highlight.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.8.0/languages/lua.min.js"></script>
+<script type="text/javascript" src="/essh/asciinema/asciinema-player.js"></script>
+<script type="text/javascript" src="/essh/js/bundle.js"></script>
+
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+
+</html>
