@@ -42,4 +42,4 @@ foo
 
 For more information on Lua libraries, see the [Lua VM](/essh/docs/en/lua-vm.html) section.
 
-Let's read next section: [Using Modules](using-modules.html)
+Let's read next section: [Using Drivers](using-drivers.html)
