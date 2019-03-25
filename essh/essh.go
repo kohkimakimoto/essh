@@ -48,11 +48,6 @@ var (
 	tagsFlag         bool
 	tasksFlag        bool
 	genFlag          bool
-	updateFlag       bool
-	withGlobalFlag   bool
-	cleanAllFlag     bool
-	cleanModulesFlag bool
-	cleanCacheFlag   bool
 
 	zshCompletionModeFlag       bool
 	zshCompletionFlag           bool
@@ -104,11 +99,6 @@ func initResources() {
 	tagsFlag = false
 	tasksFlag = false
 	genFlag = false
-	updateFlag = false
-	withGlobalFlag = false
-	cleanAllFlag = false
-	cleanModulesFlag = false
-	cleanCacheFlag = false
 	zshCompletionModeFlag = false
 	zshCompletionFlag = false
 	zshCompletionHostsFlag = false
@@ -243,16 +233,6 @@ func Run(osArgs []string) (exitStatus int) {
 			tagsFlag = true
 		} else if arg == "--gen" {
 			genFlag = true
-		} else if arg == "--update" {
-			updateFlag = true
-		} else if arg == "--clean-modules" {
-			cleanModulesFlag = true
-		} else if arg == "--clean-cache" {
-			cleanCacheFlag = true
-		} else if arg == "--clean-all" {
-			cleanAllFlag = true
-		} else if arg == "--with-global" {
-			withGlobalFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletionFlag = true
 			zshCompletionModeFlag = true
@@ -444,15 +424,6 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
-	if cleanAllFlag || cleanModulesFlag || cleanCacheFlag {
-		err := removeRegistryData()
-		if err != nil {
-			printError(err)
-			return ExitErr
-		}
-		return
-	}
-
 	if versionFlag {
 		fmt.Printf("%s (%s)\n", Version, CommitHash)
 		return
@@ -543,10 +514,6 @@ func Run(osArgs []string) (exitStatus int) {
 	LocalRegistry = NewRegistry(WorkingDataDir, RegistryTypeLocal)
 
 	CurrentRegistry = GlobalRegistry
-	if err := CurrentRegistry.MkDirs(); err != nil {
-		printError(err)
-		return ExitErr
-	}
 
 	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
 		// has working directroy config file
@@ -560,17 +527,7 @@ func Run(osArgs []string) (exitStatus int) {
 				fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirConfigFile)
 			}
 
-			if err := CurrentRegistry.MkDirs(); err != nil {
-				printError(err)
-				return ExitErr
-			}
-
 			if err := L.DoFile(WorkingDirConfigFile); err != nil {
-				printError(err)
-				return ExitErr
-			}
-
-			if err := evaluateModules(); err != nil {
 				printError(err)
 				return ExitErr
 			}
@@ -588,17 +545,7 @@ func Run(osArgs []string) (exitStatus int) {
 				fmt.Printf("[essh debug] loading config file: %s\n", UserConfigFile)
 			}
 
-			if err := CurrentRegistry.MkDirs(); err != nil {
-				printError(err)
-				return ExitErr
-			}
-
 			if err := L.DoFile(UserConfigFile); err != nil {
-				printError(err)
-				return ExitErr
-			}
-
-			if err := evaluateModules(); err != nil {
 				printError(err)
 				return ExitErr
 			}
@@ -623,11 +570,6 @@ func Run(osArgs []string) (exitStatus int) {
 			return ExitErr
 		}
 
-		if err := evaluateModules(); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
 		if debugFlag {
 			fmt.Printf("[essh debug] loaded config file: %s\n", WorkingDirOverrideConfigFile)
 		}
@@ -642,17 +584,7 @@ func Run(osArgs []string) (exitStatus int) {
 			fmt.Printf("[essh debug] loading config file: %s\n", UserOverrideConfigFile)
 		}
 
-		if err := CurrentRegistry.MkDirs(); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
 		if err := L.DoFile(UserOverrideConfigFile); err != nil {
-			printError(err)
-			return ExitErr
-		}
-
-		if err := evaluateModules(); err != nil {
 			printError(err)
 			return ExitErr
 		}
@@ -896,11 +828,6 @@ func Run(osArgs []string) (exitStatus int) {
 				}
 				return
 			}
-		}
-
-		if updateFlag && len(args) == 0 {
-			// run just "essh --update"
-			return
 		}
 
 		// no argument
@@ -1609,79 +1536,6 @@ func (w *CallbackWriter) Write(data []byte) (int, error) {
 		w.Func(data)
 	}
 	return len(data), nil
-}
-
-func removeRegistryData() error {
-	if withGlobalFlag {
-		c := NewRegistry(UserDataDir, RegistryTypeGlobal)
-		if cleanModulesFlag || cleanAllFlag {
-			if _, err := os.Stat(c.ModulesDir()); err == nil {
-				fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.ModulesDir()))
-				err = os.RemoveAll(c.ModulesDir())
-				if err != nil {
-					return err
-				}
-			}
-			// For BC
-			if _, err := os.Stat(c.PackagesDir()); err == nil {
-				err = os.RemoveAll(c.PackagesDir())
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		if cleanCacheFlag || cleanAllFlag {
-			if _, err := os.Stat(c.CacheDir()); err == nil {
-				fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.CacheDir()))
-				err = os.RemoveAll(c.CacheDir())
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	c := NewRegistry(WorkingDataDir, RegistryTypeLocal)
-	if cleanModulesFlag || cleanAllFlag {
-		if _, err := os.Stat(c.ModulesDir()); err == nil {
-			fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.ModulesDir()))
-			err = os.RemoveAll(c.ModulesDir())
-			if err != nil {
-				return err
-			}
-		}
-
-		// For BC
-		if _, err := os.Stat(c.PackagesDir()); err == nil {
-			err = os.RemoveAll(c.PackagesDir())
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	if cleanCacheFlag || cleanAllFlag {
-		if _, err := os.Stat(c.CacheDir()); err == nil {
-			fmt.Fprintf(os.Stdout, "Deleting: '%s'\n", color.FgYB(c.CacheDir()))
-			err = os.RemoveAll(c.CacheDir())
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func evaluateModules() error {
-	for _, m := range Modules {
-		if err := m.Evaluate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func printUsage() {

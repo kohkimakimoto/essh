@@ -207,10 +207,6 @@ func registerDriver(L *lua.LState, name string) *Driver {
 		driver.Parent = d
 	}
 
-	if EvaluatingModule != nil {
-		EvaluatingModule.Drivers = append(EvaluatingModule.Drivers, d)
-	}
-
 	Drivers[d.Name] = d
 
 	return d

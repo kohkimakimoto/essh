@@ -192,10 +192,6 @@ func registerHost(L *lua.LState, name string) *Host {
 		host.Parent = h
 	}
 
-	if EvaluatingModule != nil {
-		EvaluatingModule.Hosts = append(EvaluatingModule.Hosts, h)
-	}
-
 	Hosts[h.Name] = h
 
 	return h
