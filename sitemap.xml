@@ -3,24 +3,8 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/en/cli-options.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/ja/cli-options.html</loc>
-  </url>
-  
-  <url>
     <loc>https://kohkimakimoto.github.io/essh/categories.html</loc>
     <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/en/configuration-files.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/defining-namespaces.html</loc>
   </url>
   
   <url>
@@ -33,28 +17,8 @@
   </url>
   
   <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/en/drivers.html</loc>
-  </url>
-  
-  <url>
     <loc>https://kohkimakimoto.github.io/essh/</loc>
     <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/en/groups.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/en/hosts.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/installation.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/en/integrating-other-tools.html</loc>
   </url>
   
   <url>
@@ -67,76 +31,8 @@
   </url>
   
   <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/en/lua-vm.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/ja/lua-vm.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/using-lua-libraries.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/managing-hosts.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/en/modules.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/running-commands.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/running-tasks.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/using-as-a-ssh-client.html</loc>
-  </url>
-  
-  <url>
     <loc>https://kohkimakimoto.github.io/essh/tags.html</loc>
     <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/en/tasks.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/using-as-a-ssh-client.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/using-drivers.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/using-hooks.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/using-lua-libraries.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/using-modules.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/en/zsh-completion.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/zsh-completion.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/installation.html</loc>
   </url>
   
   <url>
@@ -144,63 +40,7 @@
   </url>
   
   <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/ja/groups.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/running-commands.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/ja/tasks.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/running-tasks.html</loc>
-  </url>
-  
-  <url>
     <loc>https://kohkimakimoto.github.io/essh/docs/ja/</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/ja/drivers.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/using-drivers.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/defining-namespaces.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/using-hooks.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/ja/hosts.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/managing-hosts.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/ja/modules.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/intro/ja/using-modules.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/ja/integrating-other-tools.html</loc>
-  </url>
-  
-  <url>
-    <loc>https://kohkimakimoto.github.io/essh/docs/ja/configuration-files.html</loc>
   </url>
   
 </urlset>
