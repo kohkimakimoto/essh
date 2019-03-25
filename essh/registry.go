@@ -7,8 +7,8 @@ import (
 )
 
 type Registry struct {
-	Key            string
-	Type           int
+	Key  string
+	Type int
 }
 
 const (
@@ -22,8 +22,8 @@ var LocalRegistry *Registry
 
 func NewRegistry(dataDir string, registryType int) *Registry {
 	reg := &Registry{
-		Key:            fmt.Sprintf("%x", sha256.Sum256([]byte(dataDir))),
-		Type:           registryType,
+		Key:  fmt.Sprintf("%x", sha256.Sum256([]byte(dataDir))),
+		Type: registryType,
 	}
 
 	return reg
@@ -108,7 +108,7 @@ func checkRegistry(L *lua.LState) *Registry {
 func registerRegistryClass(L *lua.LState) {
 	mt := L.NewTypeMetatable(LRegistryClass)
 	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
-		"type":        registryType,
+		"type": registryType,
 	}))
 }
 

@@ -36,18 +36,18 @@ var (
 
 // flags
 var (
-	versionFlag      bool
-	helpFlag         bool
-	printFlag        bool
-	colorFlag        bool
-	noColorFlag      bool
-	debugFlag        bool
-	hostsFlag        bool
-	quietFlag        bool
-	allFlag          bool
-	tagsFlag         bool
-	tasksFlag        bool
-	genFlag          bool
+	versionFlag bool
+	helpFlag    bool
+	printFlag   bool
+	colorFlag   bool
+	noColorFlag bool
+	debugFlag   bool
+	hostsFlag   bool
+	quietFlag   bool
+	allFlag     bool
+	tagsFlag    bool
+	tasksFlag   bool
+	genFlag     bool
 
 	zshCompletionModeFlag       bool
 	zshCompletionFlag           bool
