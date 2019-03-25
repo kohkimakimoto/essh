@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "clean": "rm -rf public",
-    "build": "npm run clean && hugo",
-    "serve": "hugo server",
+    "build": "npm run clean && ./hugo",
+    "serve": "./hugo server",
     "publish": "npm run build && ./scripts/gh-pages-publish"
   },
   "author": "",
