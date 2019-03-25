@@ -146,10 +146,6 @@ func registerTask(L *lua.LState, name string) *Task {
 		task.Parent = t
 	}
 
-	if EvaluatingModule != nil {
-		EvaluatingModule.Tasks = append(EvaluatingModule.Tasks, t)
-	}
-
 	Tasks[t.Name] = t
 
 	return t

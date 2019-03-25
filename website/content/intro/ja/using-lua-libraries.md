@@ -42,4 +42,5 @@ foo
 
 Luaライブラリの詳細については、[Lua VM](/essh/docs/ja/lua-vm.html)セクションを参照してください。
 
-次のセクションに進みましょう: [モジュールを使う](using-modules.html)
+次のセクションに進みましょう: [ドライバを使う](using-drivers.html)
+

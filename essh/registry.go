@@ -4,15 +4,11 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/yuin/gopher-lua"
-	"os"
-	"path/filepath"
 )
 
 type Registry struct {
-	Key            string
-	DataDir        string
-	LoadedPackages map[string]*Package
-	Type           int
+	Key  string
+	Type int
 }
 
 const (
@@ -26,62 +22,60 @@ var LocalRegistry *Registry
 
 func NewRegistry(dataDir string, registryType int) *Registry {
 	reg := &Registry{
-		Key:            fmt.Sprintf("%x", sha256.Sum256([]byte(dataDir))),
-		DataDir:        dataDir,
-		LoadedPackages: map[string]*Package{},
-		Type:           registryType,
+		Key:  fmt.Sprintf("%x", sha256.Sum256([]byte(dataDir))),
+		Type: registryType,
 	}
 
 	return reg
 }
 
-func (reg *Registry) PackagesDir() string {
-	return filepath.Join(reg.DataDir, "packages")
-}
-
-func (reg *Registry) ModulesDir() string {
-	return filepath.Join(reg.DataDir, "modules")
-}
-
-func (reg *Registry) LibDir() string {
-	return filepath.Join(reg.DataDir, "lib")
-}
-
-func (ctx *Registry) CacheDir() string {
-	return filepath.Join(ctx.DataDir, "cache")
-}
-
-func (reg *Registry) MkDirs() error {
-	if _, err := os.Stat(reg.PackagesDir()); os.IsNotExist(err) {
-		err = os.MkdirAll(reg.PackagesDir(), os.FileMode(0755))
-		if err != nil {
-			return err
-		}
-	}
-
-	if _, err := os.Stat(reg.ModulesDir()); os.IsNotExist(err) {
-		err = os.MkdirAll(reg.ModulesDir(), os.FileMode(0755))
-		if err != nil {
-			return err
-		}
-	}
-
-	if _, err := os.Stat(reg.LibDir()); os.IsNotExist(err) {
-		err = os.MkdirAll(reg.LibDir(), os.FileMode(0755))
-		if err != nil {
-			return err
-		}
-	}
-
-	if _, err := os.Stat(reg.CacheDir()); os.IsNotExist(err) {
-		err = os.MkdirAll(reg.CacheDir(), os.FileMode(0755))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
+//func (reg *Registry) PackagesDir() string {
+//	return filepath.Join(reg.DataDir, "packages")
+//}
+//
+//func (reg *Registry) ModulesDir() string {
+//	return filepath.Join(reg.DataDir, "modules")
+//}
+//
+//func (reg *Registry) LibDir() string {
+//	return filepath.Join(reg.DataDir, "lib")
+//}
+//
+//func (ctx *Registry) CacheDir() string {
+//	return filepath.Join(ctx.DataDir, "cache")
+//}
+//
+//func (reg *Registry) MkDirs() error {
+//	if _, err := os.Stat(reg.PackagesDir()); os.IsNotExist(err) {
+//		err = os.MkdirAll(reg.PackagesDir(), os.FileMode(0755))
+//		if err != nil {
+//			return err
+//		}
+//	}
+//
+//	if _, err := os.Stat(reg.ModulesDir()); os.IsNotExist(err) {
+//		err = os.MkdirAll(reg.ModulesDir(), os.FileMode(0755))
+//		if err != nil {
+//			return err
+//		}
+//	}
+//
+//	if _, err := os.Stat(reg.LibDir()); os.IsNotExist(err) {
+//		err = os.MkdirAll(reg.LibDir(), os.FileMode(0755))
+//		if err != nil {
+//			return err
+//		}
+//	}
+//
+//	if _, err := os.Stat(reg.CacheDir()); os.IsNotExist(err) {
+//		err = os.MkdirAll(reg.CacheDir(), os.FileMode(0755))
+//		if err != nil {
+//			return err
+//		}
+//	}
+//
+//	return nil
+//}
 
 func (reg *Registry) TypeString() string {
 	if reg.Type == RegistryTypeGlobal {
@@ -114,29 +108,8 @@ func checkRegistry(L *lua.LState) *Registry {
 func registerRegistryClass(L *lua.LState) {
 	mt := L.NewTypeMetatable(LRegistryClass)
 	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
-		"data_dir":    registryDataDir,
-		"cache_dir":   registryCacheDir,
-		"modules_dir": registryModulesDir,
-		"type":        registryType,
+		"type": registryType,
 	}))
-}
-
-func registryDataDir(L *lua.LState) int {
-	reg := checkRegistry(L)
-	L.Push(lua.LString(reg.DataDir))
-	return 1
-}
-
-func registryCacheDir(L *lua.LState) int {
-	reg := checkRegistry(L)
-	L.Push(lua.LString(reg.CacheDir()))
-	return 1
-}
-
-func registryModulesDir(L *lua.LState) int {
-	reg := checkRegistry(L)
-	L.Push(lua.LString(reg.PackagesDir()))
-	return 1
 }
 
 func registryType(L *lua.LState) int {

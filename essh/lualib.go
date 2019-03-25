@@ -13,8 +13,6 @@ import (
 	"github.com/yuin/gopher-lua"
 	gluajson "layeh.com/gopher-json"
 	"net/http"
-	"os"
-	"path/filepath"
 )
 
 func InitLuaState(L *lua.LState) {
@@ -25,17 +23,12 @@ func InitLuaState(L *lua.LState) {
 	registerHostQueryClass(L)
 	registerRegistryClass(L)
 	registerGroupClass(L)
-	registerModuleClass(L)
 
 	// global functions
 	L.SetGlobal("host", L.NewFunction(esshHost))
 	L.SetGlobal("task", L.NewFunction(esshTask))
 	L.SetGlobal("driver", L.NewFunction(esshDriver))
 	L.SetGlobal("group", L.NewFunction(esshGroup))
-	L.SetGlobal("load_module", L.NewFunction(esshModule))
-
-	// deprecated. for BC
-	L.SetGlobal("import", L.NewFunction(esshImport))
 
 	// modules
 	L.PreloadModule("json", gluajson.Loader)
@@ -57,11 +50,10 @@ func InitLuaState(L *lua.LState) {
 
 	L.SetFuncs(lessh, map[string]lua.LGFunction{
 		// aliases global function.
-		"host":        esshHost,
-		"task":        esshTask,
-		"driver":      esshDriver,
-		"group":       esshGroup,
-		"load_module": esshModule,
+		"host":   esshHost,
+		"task":   esshTask,
+		"driver": esshDriver,
+		"group":  esshGroup,
 
 		// utility functions
 		"debug":            esshDebug,
@@ -77,62 +69,6 @@ func esshDebug(L *lua.LState) int {
 	}
 
 	return 0
-}
-
-func esshImport(L *lua.LState) int {
-	name := L.CheckString(1)
-	lessh, ok := toLTable(L.GetGlobal("essh"))
-	if !ok {
-		L.RaiseError("'essh' global variable is broken")
-	}
-	mod := lessh.RawGetString("package")
-	if mod != lua.LNil {
-		L.RaiseError("'essh.pkg' is existed. does not support nested pkg importing.")
-	}
-
-	pkg := CurrentRegistry.LoadedPackages[name]
-	if pkg == nil {
-		pkg = NewPackage(name)
-
-		update := updateFlag
-		if CurrentRegistry.Type == RegistryTypeGlobal && !withGlobalFlag {
-			update = false
-		}
-
-		err := pkg.Load(update)
-		if err != nil {
-			L.RaiseError("%v", err)
-		}
-
-		indexFile := pkg.IndexFile()
-		if _, err := os.Stat(indexFile); err != nil {
-			L.RaiseError("invalid pkg: %v", err)
-		}
-
-		// init pkg variable
-		modulevar := L.NewTable()
-		modulevar.RawSetString("path", lua.LString(filepath.Dir(indexFile)))
-		modulevar.RawSetString("import_path", lua.LString(name))
-		lessh.RawSetString("package", modulevar)
-
-		if err := L.DoFile(indexFile); err != nil {
-			panic(err)
-		}
-		// remove pkg variable
-		lessh.RawSetString("package", lua.LNil)
-
-		// get a pkg return value
-		ret := L.Get(-1)
-		pkg.Value = ret
-
-		// register loaded pkg.
-		CurrentRegistry.LoadedPackages[name] = pkg
-
-		return 1
-	}
-
-	L.Push(pkg.Value)
-	return 1
 }
 
 func esshCurrentRegistry(L *lua.LState) int {
