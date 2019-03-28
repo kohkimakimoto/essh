@@ -24,8 +24,6 @@ Essh is an extended `ssh` command. If you use `essh` command instead of `ssh`, Y
 
 * **Task Runner**: Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.
 
-* **Modules**: Essh provides modular system that allows you to use, create and share reusable Lua code easily.
-
 ## Installation
 
 Essh is provided as a single binary. You can download it and drop it in your $PATH.
