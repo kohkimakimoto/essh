@@ -656,7 +656,11 @@ func Run(osArgs []string) (exitStatus int) {
 			return ExitErr
 		}
 
-		filteredHosts := NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar).GetHostsOrderByName()
+		query := NewHostQuery().AppendSelections(selectVar).AppendFilters(filterVar)
+		if !allFlag {
+			query = query.isVisible()
+		}
+		filteredHosts := query.GetHostsOrderByName()
 
 		if SSHConfigFlag {
 			outputConfig, ok := toString(lessh.RawGetString("ssh_config"))
@@ -1577,17 +1581,9 @@ Options:
   --filter <tag|host>           (Using with --hosts option) Filter selected hosts with tags or hosts.
   --ssh-config                  (Using with --hosts option) Output selected hosts as ssh_config format.
   --tasks                       List tasks.
-  --all                         (Using with --tasks option) Show all that include hidden objects.
+  --all                         (Using with --hosts or --tasks option) Show all that includes hidden objects.
   --tags                        List tags.
   --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
-
-  (Manage Modules)
-  --update                      Update modules.
-  --clean-modules               Clean downloaded modules.
-  --clean-cache                 Clean temporary data.
-  --clean-all                   Clean all data.
-  --with-global                 (Using with --update, --clean-modules, --clean-cache or --clean-all option)
-                                Update or clean modules in the local and global both registry.
 
   (Execute Commands)
   --exec                        Execute commands with the hosts.
@@ -1703,10 +1699,6 @@ _essh_options() {
         '--color:Force ANSI output.'
         '--no-color:Disable ANSI output.'
         '--gen:Only generate ssh config.'
-        '--update:Update modules.'
-        '--clean-modules:Clean downloaded modules.'
-        '--clean-cache:Clean temporary data.'
-        '--clean-all:Clean all data.'
         '--working-dir:Change working directory.'
         '--config:Load per-project configuration from the file.'
         '--hosts:List hosts.'
@@ -1726,6 +1718,7 @@ _essh_hosts_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
+        '--all:Show all that includes hidden hosts.'
         '--select:Get only the hosts filtered with tags or hosts.'
         '--filter:Filter selected hosts with tags or hosts.'
         '--ssh-config:Output selected hosts as ssh_config format.'
@@ -1738,7 +1731,7 @@ _essh_tasks_options() {
     __essh_options=(
         '--debug:Output debug log.'
         '--quiet:Show only names.'
-        '--all:Show all that includs hidden objects.'
+        '--all:Show all that includes hidden tasks.'
      )
     _describe -t option "option" __essh_options
 }
@@ -1759,7 +1752,7 @@ _essh_exec_options() {
         '--backend:Run the commands on local or remote hosts.'
         '--target:Target hosts to run the commands.'
         '--filter:Filter target hosts with tags or hosts.'
-        '--prefix:Disable outputing prefix.'
+        '--prefix:Disable outputting prefix.'
         '--prefix-string:Custom string of the prefix.'
         '--privileged:Run by the privileged user.'
         '--user:Run by the specific user.'
@@ -1911,6 +1904,7 @@ _essh_hosts_options() {
     COMPREPLY=( $(compgen -W "
         --debug
         --quiet
+        --all
         --select
         --filter
         --ssh-config
@@ -1959,10 +1953,6 @@ _essh_options() {
         --color
         --no-color
         --gen
-        --update
-        --clean-modules
-        --clean-cache
-        --clean-all
         --working-dir
         --config
         --hosts

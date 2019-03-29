@@ -9,6 +9,7 @@ type HostQuery struct {
 	Datasource map[string]*Host
 	Selections []string
 	Filters    []string
+	Hidden     *bool
 }
 
 func NewHostQuery() *HostQuery {
@@ -16,6 +17,7 @@ func NewHostQuery() *HostQuery {
 		Datasource: Hosts,
 		Selections: []string{},
 		Filters:    []string{},
+		Hidden:     nil,
 	}
 }
 
@@ -44,17 +46,37 @@ func (hostQuery *HostQuery) AppendFilters(filters []string) *HostQuery {
 	return hostQuery
 }
 
+func (hostQuery *HostQuery) isHidden() *HostQuery {
+	b := true
+	hostQuery.Hidden = &b
+	return hostQuery
+}
+
+func (hostQuery *HostQuery) isVisible() *HostQuery {
+	b := false
+	hostQuery.Hidden = &b
+
+	return hostQuery
+}
+
 func (hostQuery *HostQuery) GetHosts() []*Host {
 	hosts := hostQuery.getHostsList()
-
-	if len(hostQuery.Selections) == 0 && len(hostQuery.Filters) == 0 {
-		return hosts
-	}
-
 	hosts = hostQuery.selectHosts(hosts)
 
 	for _, filter := range hostQuery.Filters {
 		hosts = hostQuery.filterHosts(hosts, filter)
+	}
+
+	if hostQuery.Hidden != nil {
+		newHosts := []*Host{}
+		hidden := hostQuery.Hidden
+		for _, host := range hosts {
+			if host.Hidden == *hidden {
+				newHosts = append(newHosts, host)
+			}
+		}
+
+		hosts = newHosts
 	}
 
 	return hosts
@@ -229,6 +251,28 @@ func hostQueryIndex(L *lua.LState) int {
 				hostQuery.AppendFilters(filters)
 			}
 
+			ud.Value = hostQuery
+			L.Push(ud)
+			return 1
+		}))
+
+		return 1
+	case "visible":
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			hostQuery := checkHostQuery(L)
+			ud := L.CheckUserData(1)
+			hostQuery.isVisible()
+			ud.Value = hostQuery
+			L.Push(ud)
+			return 1
+		}))
+
+		return 1
+	case "hidden":
+		L.Push(L.NewFunction(func(L *lua.LState) int {
+			hostQuery := checkHostQuery(L)
+			ud := L.CheckUserData(1)
+			hostQuery.isHidden()
 			ud.Value = hostQuery
 			L.Push(ud)
 			return 1
