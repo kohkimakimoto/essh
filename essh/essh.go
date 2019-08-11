@@ -48,6 +48,7 @@ var (
 	tagsFlag    bool
 	tasksFlag   bool
 	genFlag     bool
+	globalFlag  bool
 
 	zshCompletionModeFlag       bool
 	zshCompletionFlag           bool
@@ -99,6 +100,7 @@ func initResources() {
 	tagsFlag = false
 	tasksFlag = false
 	genFlag = false
+	globalFlag = false
 	zshCompletionModeFlag = false
 	zshCompletionFlag = false
 	zshCompletionHostsFlag = false
@@ -233,6 +235,8 @@ func Run(osArgs []string) (exitStatus int) {
 			tagsFlag = true
 		} else if arg == "--gen" {
 			genFlag = true
+		} else if arg == "--global" {
+			globalFlag = true
 		} else if arg == "--zsh-completion" {
 			zshCompletionFlag = true
 			zshCompletionModeFlag = true
@@ -515,7 +519,7 @@ func Run(osArgs []string) (exitStatus int) {
 
 	CurrentRegistry = GlobalRegistry
 
-	if _, err := os.Stat(WorkingDirConfigFile); err == nil {
+	if _, err := os.Stat(WorkingDirConfigFile); err == nil && !globalFlag {
 		// has working directroy config file
 
 		// change context to working dir context
@@ -560,7 +564,7 @@ func Run(osArgs []string) (exitStatus int) {
 	CurrentRegistry = LocalRegistry
 
 	// load working directory override config
-	if _, err := os.Stat(WorkingDirOverrideConfigFile); err == nil {
+	if _, err := os.Stat(WorkingDirOverrideConfigFile); err == nil && !globalFlag {
 		if debugFlag {
 			fmt.Printf("[essh debug] loading config file: %s\n", WorkingDirOverrideConfigFile)
 		}
@@ -1574,6 +1578,7 @@ Options:
   --color                       Force ANSI output.
   --no-color                    Disable ANSI output.
   --debug                       Output debug log.
+  --global                      Force using global config ($HOME/.ssh/config.lua)
 
   (Manage Hosts, Tags And Tasks)
   --hosts                       List hosts.
@@ -1583,7 +1588,7 @@ Options:
   --tasks                       List tasks.
   --all                         (Using with --hosts or --tasks option) Show all that includes hidden objects.
   --tags                        List tags.
-  --quiet                       (Using with --hosts, --tasks or --tags option) Show only names.
+  --quiet                       (Using with --hosts, --tasks or --tags option) Show only names. 
 
   (Execute Commands)
   --exec                        Execute commands with the hosts.
@@ -1672,6 +1677,15 @@ _essh_hosts() {
     _describe -t host "host" __essh_hosts
 }
 
+_essh_hosts_global() {
+    local -a __essh_hosts
+    PRE_IFS=$IFS
+    IFS=$'\n'
+    __essh_hosts=($({{.Executable}} --global --zsh-completion-hosts | awk -F'\t' '{print $1":"$2}'))
+    IFS=$PRE_IFS
+    _describe -t host "host" __essh_hosts
+}
+
 _essh_tasks() {
     local -a __essh_tasks
     PRE_IFS=$IFS
@@ -1681,11 +1695,29 @@ _essh_tasks() {
     _describe -t task "task" __essh_tasks
 }
 
+_essh_tasks_global() {
+    local -a __essh_tasks
+    PRE_IFS=$IFS
+    IFS=$'\n'
+    __essh_tasks=($({{.Executable}} --global --zsh-completion-tasks | awk -F'\t' '{print $1":"$2}'))
+    IFS=$PRE_IFS
+    _describe -t task "task" __essh_tasks
+}
+
 _essh_tags() {
     local -a __essh_tags
     PRE_IFS=$IFS
     IFS=$'\n'
     __essh_tags=($({{.Executable}} --zsh-completion-tags))
+    IFS=$PRE_IFS
+    _describe -t tag "tag" __essh_tags
+}
+
+_essh_tags_global() {
+    local -a __essh_tags
+    PRE_IFS=$IFS
+    IFS=$'\n'
+    __essh_tags=($({{.Executable}} --global --zsh-completion-tags))
     IFS=$PRE_IFS
     _describe -t tag "tag" __essh_tags
 }
@@ -1705,6 +1737,7 @@ _essh_options() {
         '--tags:List tags.'
         '--tasks:List tasks.'
         '--debug:Output debug log.'
+        '--global:Force using global config.'
         '--exec:Execute commands with the hosts.'
         '--zsh-completion:Output zsh completion code.'
         '--bash-completion:Output bash completion code.'
@@ -1783,7 +1816,7 @@ _essh_backends() {
 
 _essh () {
     local curcontext="$curcontext" state line
-    local last_arg arg execMode hostsMode tasksMode tagsMode
+    local last_arg arg execMode hostsMode tasksMode tagsMode globalMode
 
     typeset -A opt_args
 
@@ -1809,6 +1842,9 @@ _essh () {
 
             for arg in ${line[@]}; do
                 case $arg in
+                    --global)
+                        globalMode="on"
+                        ;;
                     --exec)
                         execMode="on"
                         ;;
@@ -1827,20 +1863,33 @@ _essh () {
             done
 
             case $last_arg in
+                --global)
+                    if [ "$globalMode" = "on" ]; then
+                      _essh_tasks_global
+                      _essh_hosts_global
+                    else
+                      _essh_tasks
+                      _essh_hosts
+                    fi
+                    ;;
                 --print|--help|--version|--gen)
                     ;;
                 --script-file|--config)
                     _files
                     ;;
                 --select|--target|--filter)
-                    _essh_hosts
-                    _essh_tags
+                    if [ "$globalMode" = "on" ]; then
+                      _essh_hosts_global
+                      _essh_tags_global
+                    else
+                      _essh_hosts
+                      _essh_tags
+                    fi
+
                     ;;
+                    
                 --backend)
                     _essh_backends
-                    ;;
-                --clean-modules|--clean-cache|--clean-all|--update)
-                    _essh_registry_options
                     ;;
                 *)
                     if [ "$execMode" = "on" ]; then
@@ -1953,6 +2002,7 @@ _essh_options() {
         --color
         --no-color
         --gen
+        --global
         --working-dir
         --config
         --hosts
@@ -2014,9 +2064,6 @@ _essh() {
                     ;;
                 --backend)
                     _essh_backends
-                    ;;
-                --clean-modules|--clean-cache|--clean-all|--update)
-                    _essh_registry_options
                     ;;
                 *)
                     if [ "$execMode" = "on" ]; then
