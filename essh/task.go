@@ -20,6 +20,7 @@ type Task struct {
 	Parallel    bool
 	Privileged  bool
 	User        string
+	SSHOptions  []string
 	// deprecated? use only hidden?
 	Disabled  bool
 	Hidden    bool
@@ -52,6 +53,7 @@ func NewTask() *Task {
 		Targets: []string{},
 		Filters: []string{},
 		Backend: TASK_BACKEND_LOCAL,
+		SSHOptions: []string{},
 		Script:  []map[string]string{},
 		Args:    []string{},
 		LValues: map[string]lua.LValue{},
@@ -309,6 +311,15 @@ func updateTask(L *lua.LState, task *Task, key string, value lua.LValue) {
 			task.Privileged = privilegedBool
 		} else {
 			panic("invalid value of a task's field '" + key + "'.")
+		}
+	case "ssh_options":
+		if sshOptionsSlice, ok := toSlice(value); ok {
+			task.SSHOptions = []string{}
+			for _, sshOption := range sshOptionsSlice {
+				if sshOptionStr, ok := sshOption.(string); ok {
+					task.SSHOptions = append(task.SSHOptions, sshOptionStr)
+				}
+			}
 		}
 	case "disabled":
 		if disabledBool, ok := toBool(value); ok {
