@@ -1057,6 +1057,10 @@ func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*
 
 	sshCommandArgs = append(sshCommandArgs, "bash", "-c", ShellEscape(script))
 
+	if task.SSHOptions != nil {
+		sshCommandArgs = append(task.SSHOptions, sshCommandArgs[:]...)
+	}
+
 	cmd := exec.Command("ssh", sshCommandArgs[:]...)
 	if debugFlag {
 		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
