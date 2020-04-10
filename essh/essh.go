@@ -490,15 +490,17 @@ func Run(osArgs []string) (exitStatus int) {
 		printError(err)
 		return ExitErr
 	}
+	
 	defer func() {
-		tmpFile.Close()
 		os.Remove(tmpFile.Name())
 
 		if debugFlag {
 			fmt.Printf("[essh debug] deleted config file: %s \n", tmpFile.Name())
 		}
 	}()
+	
 	temporarySSHConfigFile := tmpFile.Name()
+	tmpFile.Close();
 
 	if debugFlag {
 		fmt.Printf("[essh debug] generated config file: %s \n", temporarySSHConfigFile)
