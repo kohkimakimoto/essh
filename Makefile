@@ -28,17 +28,15 @@ testv: ## Run tests with verbose outputting.
 	@export GOTEST_FLAGS="-cover -timeout=360s -v" && bash -c $(CURDIR)/test/test.sh
 
 deps: ## Install dependences.
-	go get -u github.com/golang/dep/cmd/dep
-	go get -u github.com/mitchellh/gox
-	go get -u github.com/axw/gocov/gocov
-	go get -u gopkg.in/matm/v1/gocov-html
-	dep ensure
+	go mod download
+	go install github.com/mitchellh/gox@latest
+	go install github.com/axw/gocov/gocov@latest
 
 resetdeps: ## reset dependences.
-	rm -rf Gopkg.*
 	rm -rf vendor
-	dep init
-	dep ensure
+	rm -f go.sum
+	go mod tidy
+	go mod download
 
 website: ## Build webside resources.
-	cd website && make deps && make
+	cd website && ./hugo

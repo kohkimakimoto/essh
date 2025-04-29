@@ -3,13 +3,8 @@ package essh
 import (
 	"bufio"
 	"bytes"
+	_ "embed"
 	"fmt"
-	"github.com/Songmu/wrapcommander"
-	fatihColor "github.com/fatih/color"
-	"github.com/kardianos/osext"
-	"github.com/kohkimakimoto/essh/support/color"
-	"github.com/kohkimakimoto/essh/support/helper"
-	"github.com/yuin/gopher-lua"
 	"io"
 	"io/ioutil"
 	"os"
@@ -20,6 +15,16 @@ import (
 	"sync"
 	"syscall"
 	"text/template"
+
+	fatihColor "github.com/fatih/color"
+	"github.com/kardianos/osext"
+	"github.com/sevir/essh/support/color"
+	"github.com/sevir/essh/support/helper"
+	lua "github.com/yuin/gopher-lua"
+
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // system configurations.
@@ -47,6 +52,9 @@ var (
 	allFlag     bool
 	tagsFlag    bool
 	tasksFlag   bool
+	evalFlag    bool
+	evalFileVar string
+	menuFlag    bool
 	genFlag     bool
 	globalFlag  bool
 
@@ -99,6 +107,9 @@ func initResources() {
 	allFlag = false
 	tagsFlag = false
 	tasksFlag = false
+	menuFlag = false
+	evalFlag = false
+	evalFileVar = ""
 	genFlag = false
 	globalFlag = false
 	zshCompletionModeFlag = false
@@ -155,6 +166,132 @@ func initResources() {
 	DefaultDriver = driver
 }
 
+// Add new types for the TUI
+type item struct {
+	name, desc string
+	isHost     bool
+}
+
+func (i item) Title() string       { return i.name }
+func (i item) Description() string { return i.desc }
+func (i item) FilterValue() string { return i.name }
+
+type model struct {
+	list     list.Model
+	selected item
+	quitting bool
+}
+
+// New styles for the TUI
+var (
+	titleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FFFFFF")).
+			Bold(true)
+
+	descStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#A0A0A0"))
+
+	docStyle = lipgloss.NewStyle().Margin(1, 2)
+
+	hostStyle = lipgloss.NewStyle().
+			Background(lipgloss.Color("25")).
+			Foreground(lipgloss.Color("230")).
+			Padding(0, 1)
+
+	taskStyle = lipgloss.NewStyle().
+			Background(lipgloss.Color("208")).
+			Foreground(lipgloss.Color("230")).
+			Padding(0, 1)
+)
+
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		h, v := docStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			m.quitting = true
+			return m, tea.Quit
+		case "enter":
+			if i, ok := m.list.SelectedItem().(item); ok {
+				m.selected = i
+				return m, tea.Quit
+			}
+		}
+	}
+
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+	return m, cmd
+}
+
+func (m model) View() string {
+	if m.quitting {
+		return ""
+	}
+	return "\n" + m.list.View()
+}
+
+// Custom delegate embedding the default delegate
+type delegate struct {
+	list.DefaultDelegate
+}
+
+func (d delegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+	itm, ok := listItem.(item)
+	if !ok {
+		return
+	}
+
+	var tagType string
+	var tagStyle lipgloss.Style
+	switch itm.isHost {
+	case true:
+		tagStyle = hostStyle
+		tagType = "H"
+	case false:
+		tagStyle = taskStyle
+		tagType = "T"
+	default:
+		tagStyle = hostStyle
+	}
+
+	tag := tagStyle.Render(tagType)
+	desc := descStyle.Render(itm.desc)
+
+	// If the item is selected, render the name with underline
+	var name string
+	if index == m.Index() {
+		name = titleStyle.Underline(true).Render(itm.name)
+		// Reset the title style to prevent affecting other items
+		titleStyle = titleStyle.Underline(false)
+	} else {
+		name = titleStyle.Render(itm.name)
+	}
+
+	var symbol string
+	if index == m.Index() {
+		symbol = "»"
+	} else {
+		symbol = " "
+	}
+
+	content := lipgloss.JoinVertical(lipgloss.Left,
+		lipgloss.JoinHorizontal(lipgloss.Left, symbol, tag, " ", name),
+		desc,
+	)
+
+	fmt.Fprint(w, content)
+}
+
+// ---- end of new types for the TUI
+
 func Run(osArgs []string) (exitStatus int) {
 	defer func() {
 		if e := recover(); e != nil {
@@ -182,6 +319,7 @@ func Run(osArgs []string) (exitStatus int) {
 	if len(osArgs) == 0 {
 		printUsage()
 		return
+
 	}
 
 	args := []string{}
@@ -222,6 +360,17 @@ func Run(osArgs []string) (exitStatus int) {
 			allFlag = true
 		} else if arg == "--tasks" {
 			tasksFlag = true
+		} else if arg == "--eval" {
+			evalFlag = true
+		} else if arg == "--eval-file" {
+			if len(osArgs) < 2 {
+				printError("--eval-file requires an argument.")
+				return ExitErr
+			}
+			evalFileVar = osArgs[1]
+			osArgs = osArgs[1:]
+		} else if strings.HasPrefix(arg, "--eval-file=") {
+			evalFileVar = strings.Split(arg, "=")[1]
 		} else if arg == "--select" {
 			if len(osArgs) < 2 {
 				printError("--select reguires an argument.")
@@ -347,6 +496,8 @@ func Run(osArgs []string) (exitStatus int) {
 			fileFlag = true
 		} else if arg == "--pty" {
 			ptyFlag = true
+		} else if arg == "--menu" {
+			menuFlag = true
 		} else if arg == "--" {
 			doesNotParseOption = true
 			// to behave same ssh. pass the `--` to the ssh.
@@ -388,11 +539,11 @@ func Run(osArgs []string) (exitStatus int) {
 
 	WorkingDir = wd
 	WorkingDataDir = filepath.Join(wd, ".essh")
-	WorkingDirConfigFile = filepath.Join(wd, ".esshconfig.lua")
+	WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
 
-	// This is for Backward Compatibility
-	if _, err := os.Stat(filepath.Join(wd, "esshconfig.lua")); err == nil {
-		WorkingDirConfigFile = filepath.Join(wd, "esshconfig.lua")
+	// If exists hidden file is preferred
+	if _, err := os.Stat(filepath.Join(wd, ".esshconfig.lua")); err == nil {
+		WorkingDirConfigFile = filepath.Join(wd, ".esshconfig.lua")
 	}
 
 	// use config file path from environment variable if it set.
@@ -490,7 +641,7 @@ func Run(osArgs []string) (exitStatus int) {
 		printError(err)
 		return ExitErr
 	}
-	
+
 	defer func() {
 		os.Remove(tmpFile.Name())
 
@@ -498,9 +649,9 @@ func Run(osArgs []string) (exitStatus int) {
 			fmt.Printf("[essh debug] deleted config file: %s \n", tmpFile.Name())
 		}
 	}()
-	
+
 	temporarySSHConfigFile := tmpFile.Name()
-	tmpFile.Close();
+	tmpFile.Close()
 
 	if debugFlag {
 		fmt.Printf("[essh debug] generated config file: %s \n", temporarySSHConfigFile)
@@ -743,6 +894,75 @@ func Run(osArgs []string) (exitStatus int) {
 		return
 	}
 
+	// only eval lua code
+	if evalFlag {
+
+		var code string = "print('No Lua code is passed')"
+		//lua code can be passed as arguments, standard input, or env variable ESSH_EVAL
+		if os.Getenv("ESSH_EVAL") != "" {
+			code = os.Getenv("ESSH_EVAL")
+			// check if code is passed as standard input including all code
+		} else if len(args) == 0 {
+			stdin := bufio.NewReader(os.Stdin)
+			code_buffer, err := io.ReadAll(stdin)
+
+			if err != nil {
+				printError(err)
+				return ExitErr
+			}
+			code = string(code_buffer)
+			// check if code is passed as arguments
+		} else if len(args) > 0 {
+			code = strings.Join(args, "\n")
+		}
+
+		//print code before eval
+		if debugFlag {
+			fmt.Println("[essh debug] lua code to be executed:")
+			fmt.Println(code)
+			fmt.Println("[essh debug] end of lua code")
+			fmt.Println("[essh debug] executing lua code:")
+		}
+
+		if err := L.DoString(code); err != nil {
+			printError(err)
+			return ExitErr
+		}
+
+		return
+	}
+
+	// only eval lua code from file
+	if evalFileVar != "" {
+		if debugFlag {
+			fmt.Printf("[essh debug] evaluating lua file: %s\n", evalFileVar)
+		}
+
+		if _, err := os.Stat(evalFileVar); os.IsNotExist(err) {
+			printError(fmt.Errorf("file not found: %s", evalFileVar))
+			return ExitErr
+		}
+
+		// detect arguments and pass them to lua script
+		argTable := L.NewTable()
+		scriptPath := os.Args[2]
+		L.SetTable(argTable, lua.LNumber(0), lua.LString(scriptPath))
+		luaArgs := os.Args[3:]
+		for i, arg := range luaArgs {
+			L.SetTable(argTable, lua.LNumber(i+1), lua.LString(arg))
+		}
+
+		L.SetGlobal("arg", argTable)
+
+		if err := L.DoFile(evalFileVar); err != nil {
+			//printError(err)
+			print(fmt.Sprintf("error in file %s: %v", evalFileVar, err))
+			return ExitErr
+		}
+
+		return
+	}
+
 	outputConfig, ok := toString(lessh.RawGetString("ssh_config"))
 	if !ok {
 		printError(fmt.Errorf("invalid value %v in the 'ssh_config'", lessh.RawGetString("ssh_config")))
@@ -764,6 +984,86 @@ func Run(osArgs []string) (exitStatus int) {
 
 	// only generating contents
 	if genFlag {
+		return
+	}
+
+	if menuFlag {
+		// Create list of items combining hosts and tasks
+		items := []list.Item{}
+
+		// Add hosts first
+		hosts := NewHostQuery().GetHostsOrderByName()
+		for _, host := range hosts {
+			if !host.Hidden {
+				items = append(items, item{
+					name:   host.Name,
+					desc:   host.DescriptionOrDefault(),
+					isHost: true,
+				})
+			}
+		}
+
+		// Add tasks
+		tasks := NewTaskQuery().GetTasksOrderByName()
+		for _, task := range tasks {
+			if !task.Hidden && !task.Disabled {
+				items = append(items, item{
+					name:   task.PublicName(),
+					desc:   task.DescriptionOrDefault(),
+					isHost: false,
+				})
+			}
+		}
+
+		// Setup list
+
+		// delegate := list.NewDefaultDelegate()
+		// delegate.Styles.SelectedTitle = delegate.Styles.SelectedTitle.
+		// 	Background(lipgloss.Color("57")).
+		// 	Foreground(lipgloss.Color("230"))
+
+		l := list.New(items, list.NewDefaultDelegate(), 80, 20) // Set width and height to ensure visibility
+		l.Title = "ESSH Hosts and Tasks"
+		l.Styles.Title = titleStyle
+		l.SetShowStatusBar(true)
+		l.SetFilteringEnabled(true)
+		l.Styles.Title = titleStyle
+
+		// Custom delegate to render items with tags
+		l.SetDelegate(delegate{list.NewDefaultDelegate()})
+		l.Styles.NoItems = lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
+
+		m := model{list: l}
+
+		p := tea.NewProgram(m, tea.WithAltScreen())
+		finalModel, err := p.Run()
+		if err != nil {
+			printError(err)
+			return ExitErr
+		}
+
+		if m, ok := finalModel.(model); ok && !m.quitting {
+			selected := m.selected
+			if selected.isHost {
+				// Run SSH for host
+				err, ex := runSSH(L, outputConfig, []string{selected.name})
+				if err != nil {
+					printError(err)
+					return ExitErr
+				}
+				return ex
+			} else {
+				// Run task
+				task := GetEnabledTask(selected.name)
+				if task != nil {
+					err := runTask(outputConfig, task, []string{}, L)
+					if err != nil {
+						printError(err)
+						return ExitErr
+					}
+				}
+			}
+		}
 		return
 	}
 
@@ -879,420 +1179,6 @@ func UpdateSSHConfig(outputConfig string, enabledHosts []*Host) ([]byte, error) 
 	return content, nil
 }
 
-func runTask(config string, task *Task, args []string, L *lua.LState) error {
-	if debugFlag {
-		fmt.Printf("[essh debug] run task: %s\n", task.Name)
-		fmt.Printf("[essh debug] task's args: %v\n", args)
-	}
-
-	if task.Registry != nil {
-		// change current registry
-		CurrentRegistry = task.Registry
-	}
-
-	// compose args
-	argstb := L.NewTable()
-	for i := 0; i < len(args); i++ {
-		L.RawSet(argstb, lua.LNumber(i+1), lua.LString(args[i]))
-	}
-	updateTask(L, task, "args", argstb)
-
-	if task.Prepare != nil {
-		if debugFlag {
-			fmt.Printf("[essh debug] run task's prepare function.\n")
-		}
-
-		err := task.Prepare()
-		if err != nil {
-			return err
-		}
-	}
-
-	// get target hosts.
-	if task.IsRemoteTask() {
-		// run remotely.
-		var hosts []*Host
-		if len(task.TargetsSlice()) == 0 {
-			hosts = []*Host{}
-		} else {
-			hosts = NewHostQuery().
-				AppendSelections(task.TargetsSlice()).
-				AppendFilters(task.FiltersSlice()).
-				GetHostsOrderByName()
-		}
-
-		if len(hosts) == 0 {
-			return fmt.Errorf("There are not hosts to run the command. you must specify the valid hosts.")
-		}
-
-		// see https://github.com/kohkimakimoto/essh/issues/38
-		//// handle stdin
-		stdinChs := make([]chan ([]byte), len(hosts))
-		for i, _ := range hosts {
-			stdinChs[i] = make(chan []byte, 256)
-		}
-		go func() {
-			processStdin(stdinChs)
-		}()
-
-		wg := &sync.WaitGroup{}
-		m := new(sync.Mutex)
-		for i, host := range hosts {
-			if task.Parallel {
-				wg.Add(1)
-				go func(host *Host) {
-					err := runRemoteTaskScript(config, task, host, hosts, stdinChs[i], m)
-					if err != nil {
-						fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
-						panic(err)
-					}
-
-					wg.Done()
-				}(host)
-			} else {
-				err := runRemoteTaskScript(config, task, host, hosts, stdinChs[i], m)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		wg.Wait()
-	} else {
-		// run locally.
-		var hosts []*Host
-		if len(task.TargetsSlice()) == 0 {
-			hosts = []*Host{}
-		} else {
-			hosts = NewHostQuery().
-				AppendSelections(task.TargetsSlice()).
-				AppendFilters(task.FiltersSlice()).
-				GetHostsOrderByName()
-		}
-
-		if len(task.Targets) >= 1 && len(hosts) == 0 {
-			return fmt.Errorf("There are not hosts to run the command. you must specify the valid hosts.")
-		}
-
-		wg := &sync.WaitGroup{}
-		m := new(sync.Mutex)
-
-		if len(hosts) == 0 {
-			// local no host task
-			// This pattern should run just exec. should not use magic to pipe stdin to multi targets.
-			err := runLocalTaskScript(config, task, nil, hosts, nil, m)
-			if err != nil {
-				return err
-			}
-			return nil
-		}
-
-		// see https://github.com/kohkimakimoto/essh/issues/38
-		// handle stdin
-		stdinChs := make([]chan ([]byte), len(hosts))
-		for i, _ := range hosts {
-			stdinChs[i] = make(chan []byte, 256)
-		}
-		go func() {
-			processStdin(stdinChs)
-		}()
-
-		for i, host := range hosts {
-			if task.Parallel {
-				wg.Add(1)
-				go func(host *Host) {
-					err := runLocalTaskScript(config, task, host, hosts, stdinChs[i], m)
-					if err != nil {
-						fmt.Fprintf(os.Stderr, color.FgRB("essh error: %v\n", err))
-						panic(err)
-					}
-
-					wg.Done()
-				}(host)
-			} else {
-				err := runLocalTaskScript(config, task, host, hosts, stdinChs[i], m)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		wg.Wait()
-	}
-
-	return nil
-}
-
-func runRemoteTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*Host, stdinCh chan []byte, m *sync.Mutex) error {
-	// setup ssh command args
-	var sshCommandArgs []string
-	if task.Pty {
-		sshCommandArgs = []string{"-t", "-t", "-F", sshConfigPath, host.Name}
-	} else {
-		sshCommandArgs = []string{"-F", sshConfigPath, host.Name}
-	}
-
-	// generate commands by using driver
-	if task.Driver == "" {
-		task.Driver = DefaultDriverName
-	}
-
-	driver := Drivers[task.Driver]
-	if driver == nil {
-		return fmt.Errorf("invalid driver name '%s'", task.Driver)
-	}
-
-	if debugFlag {
-		fmt.Printf("[essh debug] driver: %s \n", driver.Name)
-	}
-
-	var script string
-	content, err := driver.GenerateRunnableContent(sshConfigPath, task, host)
-	if err != nil {
-		return err
-	}
-	script += content
-
-	if task.User != "" {
-		script = "sudo -u " + ShellEscape(task.User) + " bash -l -c " + ShellEscape(script)
-	} else if task.Privileged {
-		script = "sudo bash -l -c " + ShellEscape(script)
-	}
-
-	sshCommandArgs = append(sshCommandArgs, "bash", "-c", ShellEscape(script))
-
-	if task.SSHOptions != nil {
-		sshCommandArgs = append(task.SSHOptions, sshCommandArgs[:]...)
-	}
-
-	cmd := exec.Command("ssh", sshCommandArgs[:]...)
-	if debugFlag {
-		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
-	}
-
-	prefix := ""
-	if task.UsePrefix {
-		prefixTmp := task.Prefix
-		if prefixTmp == "" {
-			if task.IsRemoteTask() {
-				prefixTmp = DefaultPrefixRemote
-			} else {
-				prefixTmp = DefaultPrefixLocal
-			}
-		}
-
-		funcMap := template.FuncMap{
-			"ShellEscape":         ShellEscape,
-			"ToUpper":             strings.ToUpper,
-			"ToLower":             strings.ToLower,
-			"EnvKeyEscape":        EnvKeyEscape,
-			"HostnameAlignString": HostnameAlignString(host, hosts),
-		}
-
-		dict := map[string]interface{}{
-			"Host": host,
-			"Task": task,
-		}
-		tmpl, err := template.New("T").Funcs(funcMap).Parse(prefixTmp)
-		if err != nil {
-			return err
-		}
-		var b bytes.Buffer
-		err = tmpl.Execute(&b, dict)
-		if err != nil {
-			return err
-		}
-
-		prefix = b.String()
-	}
-
-	// cmd.Stdin = os.Stdin
-
-	// see https://github.com/kohkimakimoto/essh/issues/38
-	if stdinCh == nil {
-		cmd.Stdin = os.Stdin
-	} else {
-		stdin, err := cmd.StdinPipe()
-		if err != nil {
-			return err
-		}
-		go handleInput(stdinCh, stdin)
-	}
-
-	wg := &sync.WaitGroup{}
-	if len(hosts) <= 1 && prefix == "" {
-		cmd.Stdout = os.Stdout
-	} else {
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			return err
-		}
-		wg.Add(1)
-		go func() {
-			scanLines(stdout, os.Stdout, prefix, m)
-			wg.Done()
-		}()
-	}
-
-	if len(hosts) <= 1 && prefix == "" {
-		cmd.Stderr = os.Stderr
-	} else {
-		stderr, err := cmd.StderrPipe()
-		if err != nil {
-			return err
-		}
-		wg.Add(1)
-		go func() {
-			scanLines(stderr, os.Stderr, prefix, m)
-			wg.Done()
-		}()
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-
-	wg.Wait()
-
-	return cmd.Wait()
-}
-
-func runLocalTaskScript(sshConfigPath string, task *Task, host *Host, hosts []*Host, stdinCh chan []byte, m *sync.Mutex) error {
-	var shell, flag string
-	if runtime.GOOS == "windows" {
-		shell = "cmd"
-		flag = "/C"
-	} else {
-		shell = "bash"
-		flag = "-c"
-	}
-
-	// generate commands by using driver
-	if task.Driver == "" {
-		task.Driver = DefaultDriverName
-	}
-
-	driver := Drivers[task.Driver]
-	if driver == nil {
-		return fmt.Errorf("invalid driver name '%s'", task.Driver)
-	}
-
-	if debugFlag {
-		fmt.Printf("[essh debug] driver: %s \n", driver.Name)
-	}
-
-	var script string
-	content, err := driver.GenerateRunnableContent(sshConfigPath, task, host)
-	if err != nil {
-		return err
-	}
-	script += content
-
-	if task.User != "" {
-		script = "cd " + WorkingDir + "\n" + script
-		script = "sudo -u " + ShellEscape(task.User) + " bash -l -c " + ShellEscape(script)
-	} else if task.Privileged {
-		script = "cd " + WorkingDir + "\n" + script
-		script = "sudo bash -l -c " + ShellEscape(script)
-	}
-
-	cmd := exec.Command(shell, flag, script)
-	if debugFlag {
-		fmt.Printf("[essh debug] real local command: %v \n", cmd.Args)
-	}
-
-	prefix := ""
-	if host == nil && task.UsePrefix {
-		// simple local task (does not specify the hosts)
-		// prevent to use invalid text template.
-		// replace prefix string to the string that is not included "{{.Host}}"
-		prefix = "[local] "
-	} else if task.UsePrefix {
-		prefixTmp := task.Prefix
-		if prefixTmp == "" {
-			if task.IsRemoteTask() {
-				prefixTmp = DefaultPrefixRemote
-			} else {
-				prefixTmp = DefaultPrefixLocal
-			}
-		}
-
-		funcMap := template.FuncMap{
-			"ShellEscape":         ShellEscape,
-			"ToUpper":             strings.ToUpper,
-			"ToLower":             strings.ToLower,
-			"EnvKeyEscape":        EnvKeyEscape,
-			"HostnameAlignString": HostnameAlignString(host, hosts),
-		}
-
-		dict := map[string]interface{}{
-			"Host": host,
-			"Task": task,
-		}
-		tmpl, err := template.New("T").Funcs(funcMap).Parse(prefixTmp)
-		if err != nil {
-			return err
-		}
-		var b bytes.Buffer
-		err = tmpl.Execute(&b, dict)
-		if err != nil {
-			return err
-		}
-
-		prefix = b.String()
-	}
-
-	// cmd.Stdin = os.Stdin
-
-	// see https://github.com/kohkimakimoto/essh/issues/38
-	if stdinCh == nil {
-		cmd.Stdin = os.Stdin
-	} else {
-		stdin, err := cmd.StdinPipe()
-		if err != nil {
-			return err
-		}
-		go handleInput(stdinCh, stdin)
-	}
-
-	wg := &sync.WaitGroup{}
-	if len(hosts) <= 1 && prefix == "" {
-		cmd.Stdout = os.Stdout
-	} else {
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			return err
-		}
-		wg.Add(1)
-		go func() {
-			scanLines(stdout, os.Stdout, prefix, m)
-			wg.Done()
-		}()
-	}
-
-	if len(hosts) <= 1 && prefix == "" {
-		cmd.Stderr = os.Stderr
-	} else {
-		stderr, err := cmd.StderrPipe()
-		if err != nil {
-			return err
-		}
-		wg.Add(1)
-		go func() {
-			scanLines(stderr, os.Stderr, prefix, m)
-			wg.Done()
-		}()
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		return err
-	}
-
-	wg.Wait()
-
-	return cmd.Wait()
-}
-
 // this code is borrowed from https://github.com/fujiwara/nssh/blob/master/nssh.go
 func processStdin(chs []chan []byte) {
 	buf := make([]byte, 1024)
@@ -1358,109 +1244,6 @@ func scanLines(src io.ReadCloser, dest io.Writer, prefix string, m *sync.Mutex) 
 	}
 }
 
-func runSSH(L *lua.LState, config string, args []string) (error, int) {
-	// hooks
-	hooks := map[string][]interface{}{}
-
-	// Limitation!
-	// hooks fires only when the hostname is just specified.
-	if len(args) == 1 {
-		hostname := args[0]
-		if host := Hosts[hostname]; host != nil {
-			hooks["before_connect"] = host.HooksBeforeConnect
-			hooks["after_disconnect"] = host.HooksAfterDisconnect
-			hooks["after_connect"] = host.HooksAfterConnect
-		}
-	}
-
-	// run before_connect hook
-	if before := hooks["before_connect"]; before != nil && len(before) > 0 {
-		if debugFlag {
-			fmt.Printf("[essh debug] run before_connect hook\n")
-		}
-		hookScript, err := getHookScript(L, before)
-		if err != nil {
-			return err, ExitErr
-		}
-		if debugFlag {
-			fmt.Printf("[essh debug] before_connect hook script: %s\n", hookScript)
-		}
-		if err := runCommand(hookScript); err != nil {
-			return err, ExitErr
-		}
-	}
-
-	// register after_disconnect hook
-	defer func() {
-		// after hook
-		if after := hooks["after_disconnect"]; after != nil && len(after) > 0 {
-			if debugFlag {
-				fmt.Printf("[essh debug] run after_disconnect hook\n")
-			}
-			hookScript, err := getHookScript(L, after)
-			if err != nil {
-				panic(err)
-			}
-			if debugFlag {
-				fmt.Printf("[essh debug] after_disconnect hook script: %s\n", hookScript)
-			}
-			if err := runCommand(hookScript); err != nil {
-				panic(err)
-			}
-		}
-	}()
-
-	// setup ssh command args
-	var sshCommandArgs []string
-
-	// run after_connect hook
-	if afterConnect := hooks["after_connect"]; afterConnect != nil && len(afterConnect) > 0 {
-		hookScript, err := getHookScript(L, afterConnect)
-		if err != nil {
-			return err, ExitErr
-		}
-
-		script := hookScript
-		script += "\nexec $SHELL\n"
-
-		hasTOption := false
-		for _, arg := range args {
-			if arg == "-t" {
-				hasTOption = true
-			}
-		}
-
-		if hasTOption {
-			sshCommandArgs = []string{"-F", config}
-		} else {
-			sshCommandArgs = []string{"-t", "-F", config}
-		}
-
-		sshCommandArgs = append(sshCommandArgs, args[:]...)
-		sshCommandArgs = append(sshCommandArgs, script)
-	} else {
-		sshCommandArgs = []string{"-F", config}
-		sshCommandArgs = append(sshCommandArgs, args[:]...)
-	}
-
-	// execute ssh commmand
-	cmd := exec.Command("ssh", sshCommandArgs[:]...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if debugFlag {
-		fmt.Printf("[essh debug] real ssh command: %v \n", cmd.Args)
-	}
-
-	err := cmd.Run()
-	ex := wrapcommander.ResolveExitCode(err)
-
-	// Running as a wrapper of ssh command suppress printing error.
-	// Printing error is essh's behavior. ssh does not have it.
-	return nil, ex
-}
-
 func getHookScript(L *lua.LState, hooks []interface{}) (string, error) {
 	hookScript := ""
 	for _, hook := range hooks {
@@ -1496,7 +1279,7 @@ func convertHook(L *lua.LState, hook interface{}) (string, error) {
 		} else if retFn, ok := toLFunction(ret); ok {
 			return convertHook(L, retFn)
 		} else {
-			return "", fmt.Errorf("hook function return value must be string or function.")
+			return "", fmt.Errorf("hook function return value must be string or function")
 		}
 	} else if hookStr, ok := hook.(string); ok {
 		return hookStr, nil
@@ -1558,7 +1341,9 @@ func printUsage() {
 Essh is an extended ssh command.
 version ` + Version + ` (` + CommitHash + `)
 
-Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
+Original from Kohki Makimoto <kohki.makimoto@gmail.com>
+Forked and extended by José F. Rives <jose@sevir.org>
+
 The MIT License (MIT)
 
 See more detail, use '--help'.
@@ -1566,62 +1351,11 @@ See more detail, use '--help'.
 `)
 }
 
+//go:embed help_template.txt
+var helpTextTemplate string
+
 func printHelp() {
-	fmt.Print(`Usage: essh [<options>] [<ssh options and args...>]
-
-Essh is an extended ssh command.
-version ` + Version + ` (` + CommitHash + `)
-
-Copyright (c) Kohki Makimoto <kohki.makimoto@gmail.com>
-The MIT License (MIT)
-
-Options:
-  (General Options)
-  --print                       Print generated ssh config.
-  --gen                         Only generate ssh config.
-  --working-dir <dir>           Change working directory.
-  --config <file>               Load per-project configuration from the file.
-  --color                       Force ANSI output.
-  --no-color                    Disable ANSI output.
-  --debug                       Output debug log.
-  --global                      Force using global config ($HOME/.ssh/config.lua)
-
-  (Manage Hosts, Tags And Tasks)
-  --hosts                       List hosts.
-  --select <tag|host>           (Using with --hosts option) Get only the hosts filtered with tags or hosts.
-  --filter <tag|host>           (Using with --hosts option) Filter selected hosts with tags or hosts.
-  --ssh-config                  (Using with --hosts option) Output selected hosts as ssh_config format.
-  --tasks                       List tasks.
-  --all                         (Using with --hosts or --tasks option) Show all that includes hidden objects.
-  --tags                        List tags.
-  --quiet                       (Using with --hosts, --tasks or --tags option) Show only names. 
-
-  (Execute Commands)
-  --exec                        Execute commands with the hosts.
-  --target <tag|host>           (Using with --exec option) Target hosts to run the commands.
-  --filter <tag|host>           (Using with --exec option) Filter target hosts with tags or hosts.
-  --backend remote|local        (Using with --exec option) Run the commands on local or remote hosts.
-  --prefix                      (Using with --exec option) Enable outputing prefix.
-  --prefix-string <prefix>      (Using with --exec option) Custom string of the prefix.
-  --privileged                  (Using with --exec option) Run by the privileged user.
-  --user <user>                 (Using with --exec option) Run by the specific user.
-  --parallel                    (Using with --exec option) Run in parallel.
-  --pty                         (Using with --exec option) Allocate pseudo-terminal. (add ssh option "-t -t" internally)
-  --script-file                 (Using with --exec option) Load commands from a file.
-  --driver                      (Using with --exec option) Specify a driver.
-
-  (Completion)
-  --zsh-completion              Output zsh completion code.
-  --bash-completion             Output bash completion code.
-  --aliases                     Output aliases code.
-
-  (Help)
-  --version                     Print version.
-  --help                        Print help.
-
-See: https://github.com/kohkimakimoto/essh for updates, code and issues.
-
-`)
+	fmt.Printf(helpTextTemplate, Version, CommitHash)
 }
 
 func sprintByTemplate(tmplContent string) (string, error) {
@@ -1671,427 +1405,11 @@ func init() {
 
 }
 
-var ZSH_COMPLETION = `# This is zsh completion code.
-# If you want to use it. write the following code in your '.zshrc'
-#   eval "$(essh --zsh-completion)"
-_essh_hosts() {
-    local -a __essh_hosts
-    PRE_IFS=$IFS
-    IFS=$'\n'
-    __essh_hosts=($({{.Executable}} --zsh-completion-hosts | awk -F'\t' '{print $1":"$2}'))
-    IFS=$PRE_IFS
-    _describe -t host "host" __essh_hosts
-}
+//go:embed zsh_completion.sh
+var ZSH_COMPLETION string
 
-_essh_hosts_global() {
-    local -a __essh_hosts
-    PRE_IFS=$IFS
-    IFS=$'\n'
-    __essh_hosts=($({{.Executable}} --global --zsh-completion-hosts | awk -F'\t' '{print $1":"$2}'))
-    IFS=$PRE_IFS
-    _describe -t host "host" __essh_hosts
-}
-
-_essh_tasks() {
-    local -a __essh_tasks
-    PRE_IFS=$IFS
-    IFS=$'\n'
-    __essh_tasks=($({{.Executable}} --zsh-completion-tasks | awk -F'\t' '{print $1":"$2}'))
-    IFS=$PRE_IFS
-    _describe -t task "task" __essh_tasks
-}
-
-_essh_tasks_global() {
-    local -a __essh_tasks
-    PRE_IFS=$IFS
-    IFS=$'\n'
-    __essh_tasks=($({{.Executable}} --global --zsh-completion-tasks | awk -F'\t' '{print $1":"$2}'))
-    IFS=$PRE_IFS
-    _describe -t task "task" __essh_tasks
-}
-
-_essh_tags() {
-    local -a __essh_tags
-    PRE_IFS=$IFS
-    IFS=$'\n'
-    __essh_tags=($({{.Executable}} --zsh-completion-tags))
-    IFS=$PRE_IFS
-    _describe -t tag "tag" __essh_tags
-}
-
-_essh_tags_global() {
-    local -a __essh_tags
-    PRE_IFS=$IFS
-    IFS=$'\n'
-    __essh_tags=($({{.Executable}} --global --zsh-completion-tags))
-    IFS=$PRE_IFS
-    _describe -t tag "tag" __essh_tags
-}
-
-_essh_options() {
-    local -a __essh_options
-    __essh_options=(
-        '--version:Print version.'
-        '--help:Print help.'
-        '--print:Print generated ssh config.'
-        '--color:Force ANSI output.'
-        '--no-color:Disable ANSI output.'
-        '--gen:Only generate ssh config.'
-        '--working-dir:Change working directory.'
-        '--config:Load per-project configuration from the file.'
-        '--hosts:List hosts.'
-        '--tags:List tags.'
-        '--tasks:List tasks.'
-        '--debug:Output debug log.'
-        '--global:Force using global config.'
-        '--exec:Execute commands with the hosts.'
-        '--zsh-completion:Output zsh completion code.'
-        '--bash-completion:Output bash completion code.'
-        '--aliases:Output aliases code.'
-     )
-    _describe -t option "option" __essh_options
-}
-
-_essh_hosts_options() {
-    local -a __essh_options
-    __essh_options=(
-        '--debug:Output debug log.'
-        '--quiet:Show only names.'
-        '--all:Show all that includes hidden hosts.'
-        '--select:Get only the hosts filtered with tags or hosts.'
-        '--filter:Filter selected hosts with tags or hosts.'
-        '--ssh-config:Output selected hosts as ssh_config format.'
-     )
-    _describe -t option "option" __essh_options
-}
-
-_essh_tasks_options() {
-    local -a __essh_options
-    __essh_options=(
-        '--debug:Output debug log.'
-        '--quiet:Show only names.'
-        '--all:Show all that includes hidden tasks.'
-     )
-    _describe -t option "option" __essh_options
-}
-
-_essh_tags_options() {
-    local -a __essh_options
-    __essh_options=(
-        '--debug:Output debug log.'
-        '--quiet:Show only names.'
-     )
-    _describe -t option "option" __essh_options
-}
-
-_essh_exec_options() {
-    local -a __essh_options
-    __essh_options=(
-        '--debug:Output debug log.'
-        '--backend:Run the commands on local or remote hosts.'
-        '--target:Target hosts to run the commands.'
-        '--filter:Filter target hosts with tags or hosts.'
-        '--prefix:Disable outputting prefix.'
-        '--prefix-string:Custom string of the prefix.'
-        '--privileged:Run by the privileged user.'
-        '--user:Run by the specific user.'
-        '--parallel:Run in parallel.'
-        '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
-        '--script-file:Load commands from a file.'
-        '--driver:Specify a driver.'
-     )
-    _describe -t option "option" __essh_options
-}
-
-_essh_registry_options() {
-    local -a __essh_options
-    __essh_options=(
-        '--with-global:Update or clean modules in the local, global both registry.'
-     )
-    _describe -t option "option" __essh_options
-}
-
-_essh_backends() {
-    local -a __essh_options
-    __essh_options=(
-        'local'
-        'remote'
-     )
-    _describe -t option "option" __essh_options
-}
-
-_essh () {
-    local curcontext="$curcontext" state line
-    local last_arg arg execMode hostsMode tasksMode tagsMode globalMode
-
-    typeset -A opt_args
-
-    _arguments \
-        '1: :->objects' \
-        '*: :->args' \
-        && ret=0
-
-    case $state in
-        objects)
-            case $line[1] in
-                -*)
-                    _essh_options
-                    ;;
-                *)
-                    _essh_tasks
-                    _essh_hosts
-                    ;;
-            esac
-            ;;
-        args)
-            last_arg="${line[${#line[@]}-1]}"
-
-            for arg in ${line[@]}; do
-                case $arg in
-                    --global)
-                        globalMode="on"
-                        ;;
-                    --exec)
-                        execMode="on"
-                        ;;
-                    --hosts)
-                        hostsMode="on"
-                        ;;
-                    --tasks)
-                        tasksMode="on"
-                        ;;
-                    --tags)
-                        tagsMode="on"
-                        ;;
-                    *)
-                        ;;
-                esac
-            done
-
-            case $last_arg in
-                --global)
-                    if [ "$globalMode" = "on" ]; then
-                      _essh_tasks_global
-                      _essh_hosts_global
-                    else
-                      _essh_tasks
-                      _essh_hosts
-                    fi
-                    ;;
-                --print|--help|--version|--gen)
-                    ;;
-                --script-file|--config)
-                    _files
-                    ;;
-                --select|--target|--filter)
-                    if [ "$globalMode" = "on" ]; then
-                      _essh_hosts_global
-                      _essh_tags_global
-                    else
-                      _essh_hosts
-                      _essh_tags
-                    fi
-
-                    ;;
-                    
-                --backend)
-                    _essh_backends
-                    ;;
-                *)
-                    if [ "$execMode" = "on" ]; then
-                        _essh_exec_options
-                    elif [ "$hostsMode" = "on" ]; then
-                        _essh_hosts_options
-                    elif [ "$tasksMode" = "on" ]; then
-                        _essh_tasks_options
-                    elif [ "$tagsMode" = "on" ]; then
-                        _essh_tags_options
-                    else
-                        _essh_options
-                        _files
-                    fi
-                    ;;
-            esac
-            ;;
-        *)
-            _files
-            ;;
-    esac
-}
-
-compdef _essh essh
-`
-
-var BASH_COMPLETION = `# This is zsh completion code.
-# If you want to use it. write the following code in your '.zshrc'
-#   eval "$(essh --bash-completion)"
-
-_essh_hosts() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-hosts)" -- $cur) )
-}
-
-_essh_tasks() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-tasks)" -- $cur) )
-}
-
-_essh_hosts_and_tasks() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-hosts) $({{.Executable}} --bash-completion-tasks)" -- $cur) )
-}
-
-_essh_hosts_and_tags() {
-    COMPREPLY=( $(compgen -W "$({{.Executable}} --bash-completion-hosts) $({{.Executable}} --bash-completion-tags)" -- $cur) )
-}
-
-_essh_registry_options() {
-    COMPREPLY=( $(compgen -W "
-        --with-global
-    " -- $cur) )
-}
-
-_essh_backends() {
-    COMPREPLY=( $(compgen -W "
-        local
-        remote
-    " -- $cur) )
-}
-
-_essh_hosts_options() {
-    COMPREPLY=( $(compgen -W "
-        --debug
-        --quiet
-        --all
-        --select
-        --filter
-        --ssh-config
-    " -- $cur) )
-}
-
-_essh_tasks_options() {
-    COMPREPLY=( $(compgen -W "
-        --debug
-        --quiet
-        --all
-    " -- $cur) )
-}
-
-_essh_tags_options() {
-    COMPREPLY=( $(compgen -W "
-        --debug
-        --quiet
-    " -- $cur) )
-}
-
-_essh_exec_options() {
-    local -a __essh_options
-    __essh_options=(
-        '--debug:Output debug log.'
-        '--backend:Run the commands on local or remote hosts.'
-        '--target:Target hosts to run the commands.'
-        '--filter:Filter target hosts with tags or hosts.'
-        '--prefix:Disable outputing prefix.'
-        '--prefix-string:Custom string of the prefix.'
-        '--privileged:Run by the privileged user.'
-        '--user:Run by the specific user.'
-        '--parallel:Run in parallel.'
-        '--pty:Allocate pseudo-terminal. (add ssh option "-t -t" internally)'
-        '--script-file:Load commands from a file.'
-        '--driver:Specify a driver.'
-     )
-    _describe -t option "option" __essh_options
-}
-
-_essh_options() {
-    COMPREPLY=( $(compgen -W "
-        --version
-        --help
-        --print
-        --color
-        --no-color
-        --gen
-        --global
-        --working-dir
-        --config
-        --hosts
-        --tags
-        --tasks
-        --debug
-        --exec
-        --zsh-completion
-        --bash-completion
-        --aliases
-    " -- $cur) )
-}
-
-_essh() {
-    COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
-
-    local last_arg arg execMode hostsMode tasksMode tagsMode
-
-    local cur=${COMP_WORDS[COMP_CWORD]}
-    case "$COMP_CWORD" in
-        1)
-            case "$cur" in
-                -*)
-                    _essh_options
-                    ;;
-                *)
-                    _essh_hosts_and_tasks
-                    ;;
-            esac
-            ;;
-        *)
-            last_arg="${COMP_WORDS[COMP_CWORD-1]}"
-            for arg in ${COMP_WORDS[@]}; do
-                case $arg in
-                    --exec)
-                        execMode="on"
-                        ;;
-                    --hosts)
-                        hostsMode="on"
-                        ;;
-                    --tasks)
-                        tasksMode="on"
-                        ;;
-                    --tags)
-                        tagsMode="on"
-                        ;;
-                    *)
-                        ;;
-                esac
-            done
-
-            case "$last_arg" in
-                --print|--help|--version|--gen)
-                    ;;
-                --script-file|--config)
-                    ;;
-                --select|--target|--filter)
-                    _essh_hosts_and_tags
-                    ;;
-                --backend)
-                    _essh_backends
-                    ;;
-                *)
-                    if [ "$execMode" = "on" ]; then
-                        _essh_hosts
-                    elif [ "$hostsMode" = "on" ]; then
-                        _essh_hosts_options
-                    elif [ "$tasksMode" = "on" ]; then
-                        _essh_tasks_options
-                    elif [ "$tagsMode" = "on" ]; then
-                        _essh_tags_options
-                    else
-                        _essh_options
-                    fi
-                    ;;
-            esac
-            ;;
-
-    esac
-}
-
-complete -o default -o nospace -F _essh essh
-`
+//go:embed bash_completion.sh
+var BASH_COMPLETION string
 
 var ALIASES_CODE = `# This is aliases code.
 # If you want to use it. write the following code in your '.zshrc'

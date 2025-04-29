@@ -43,6 +43,21 @@ The following are the built-in libraries that are included in Essh.
 * `http`: [cjoudrey/gluahttp](https://github.com/cjoudrey/gluahttp).
 * `re`: [yuin/gluare](https://github.com/yuin/gluare)
 * `sh`: [otm/gluash](https://github.com/otm/gluash)
+* `strings`: [chai2010/glua-strings](https://github.com/chai2010/glua-strings)
+* `base64`: [vadv/gopher-lua-libs/base64](https://github.com/vadv/gopher-lua-libs/tree/master/base64)
+* `crypto`: [vadv/gopher-lua-libs/crypto](https://github.com/vadv/gopher-lua-libs/tree/master/crypto)
+* `db`: [vadv/gopher-lua-libs/db](https://github.com/vadv/gopher-lua-libs/tree/master/db)
+* `inspect`: [vadv/gopher-lua-libs/inspect](https://github.com/vadv/gopher-lua-libs/tree/master/inspect)
+* `log`: [vadv/gopher-lua-libs/log](https://github.com/vadv/gopher-lua-libs/tree/master/log)
+* `runtime`: [vadv/gopher-lua-libs/runtime](https://github.com/vadv/gopher-lua-libs/tree/master/runtime)
+* `storage`: [vadv/gopher-lua-libs/storage](https://github.com/vadv/gopher-lua-libs/tree/master/storage)
+* `tac`: [vadv/gopher-lua-libs/tac](https://github.com/vadv/gopher-lua-libs/tree/master/tac)
+* `time`: [vadv/gopher-lua-libs/time](https://github.com/vadv/gopher-lua-libs/tree/master/time)
+* `aws`: [sevir/gluaaws](https://github.com/sevir/gluaaws)
+* `watcher`: [sevir/gluawatch](https://github.com/sevir/gluawatch)
+* `mdns`: [sevir/gluamdns](https://github.com/sevir/gluamdns)
+* `gum`: [sevir/gluagum](https://github.com/sevir/gluagum) 
+* `ssh`: [sevir/gluassh](https://github.com/sevir/gluassh)
 
 ## Predefined Variables
 

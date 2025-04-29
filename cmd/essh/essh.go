@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/kohkimakimoto/essh/essh"
 	"os"
+
+	"github.com/sevir/essh/essh"
 )
 
 func main() {

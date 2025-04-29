@@ -45,7 +45,8 @@
                 <div class="feature-item">
                   <i class="icon-settings text-primary"></i>
                   <h3>Configuration As Code</h3>
-                  <p class="text-muted">You can write SSH client configuration (aka: <code>~/.ssh/config</code>) in Lua code. So your ssh_config can become more dynamic.</p>
+                  <p class="text-muted">You can write SSH client configuration (aka: <code>~/.ssh/config</code>) in Lua
+                    code. So your ssh_config can become more dynamic.</p>
                 </div>
               </div>
               <div class="col-md-4">
@@ -59,7 +60,8 @@
                 <div class="feature-item">
                   <i class="icon-list text-primary"></i>
                   <h3>Servers List Management</h3>
-                  <p class="text-muted">Essh provides utilities for managing hosts, that list and classify servers by using tags.</p>
+                  <p class="text-muted">Essh provides utilities for managing hosts, that list and classify servers by
+                    using tags.</p>
                 </div>
               </div>
             </div>
@@ -70,14 +72,16 @@
                 <div class="feature-item">
                   <i class="icon-folder text-primary"></i>
                   <h3>Per-Project Configuration</h3>
-                  <p class="text-muted">Essh supports per-project configuration. This allows you to change SSH hosts config by changing current working directory.</p>
+                  <p class="text-muted">Essh supports per-project configuration. This allows you to change SSH hosts
+                    config by changing current working directory.</p>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="feature-item">
                   <i class="icon-rocket text-primary"></i>
                   <h3>Task Runner</h3>
-                  <p class="text-muted">Task is a script that runs on remote and local servers. You can use it to automate your system administration tasks.</p>
+                  <p class="text-muted">Task is a script that runs on remote and local servers. You can use it to
+                    automate your system administration tasks.</p>
                 </div>
               </div>
               <div class="col-md-2">
@@ -103,7 +107,7 @@
       </div>
       <div class="row">
         <div class="col-md-12 text-center">
-            <a href="https://github.com/kohkimakimoto/essh" class="btn btn-outline btn-xl">View Github Repo</a>
+          <a href="https://github.com/sevir/essh" class="btn btn-outline btn-xl">View Github Repo</a>
         </div>
       </div>
     </div>
@@ -127,10 +131,10 @@
           <div class="example-item">
             <h3>Managing Hosts, Running Commands, Hooks, etc...</h3>
             <p>Configuration:</p>
-<pre><code class="language-lua">host "webserver-01" {
+            <pre><code class="language-lua">host "webserver-01" {
     HostName = "192.168.56.32",
     Port = "22",
-    User = "kohkimakimoto",
+    User = "sevir",
     description = "web server-01",
     hooks_after_connect = {
         "echo -------------------------------------------------",
@@ -148,7 +152,7 @@
 host "webserver-02" {
     HostName = "192.168.56.33",
     Port = "22",
-    User = "kohkimakimoto",
+    User = "sevir",
     description = "web server-02",
     tags = {
         "web",
@@ -158,7 +162,7 @@ host "webserver-02" {
 host "dbserver-01" {
     HostName = "192.168.56.34",
     Port = "22",
-    User = "kohkimakimoto",
+    User = "sevir",
     description = "db server-01",
     tags = {
         "db",
@@ -175,7 +179,7 @@ host "dbserver-01" {
           <div class="example-item">
             <h3>Tasks</h3>
             <p>Configuration:</p>
-<pre><code class="language-lua">task "hello" {
+            <pre><code class="language-lua">task "hello" {
     description = "say hello",
     prefix = true,
     backend = "remote",
@@ -225,7 +229,7 @@ task "hello-after-confirm" {
       </div>
       <div class="row">
         <div class="col-md-12 text-center">
-            <a href="https://github.com/kohkimakimoto/essh/releases/latest" class="btn btn-outline btn-green btn-xl">Download</a>
+          <a href="https://github.com/sevir/essh/releases/latest" class="btn btn-outline btn-green btn-xl">Download</a>
         </div>
       </div>
     </div>

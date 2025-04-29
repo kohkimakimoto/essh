@@ -2,6 +2,9 @@ package essh
 
 import (
 	"fmt"
+	"net/http"
+
+	strings "github.com/chai2010/glua-strings"
 	"github.com/cjoudrey/gluahttp"
 	"github.com/kohkimakimoto/gluaenv"
 	"github.com/kohkimakimoto/gluafs"
@@ -9,10 +12,21 @@ import (
 	"github.com/kohkimakimoto/gluatemplate"
 	"github.com/kohkimakimoto/gluayaml"
 	"github.com/otm/gluash"
+	"github.com/sevir/gluaaws"
+	"github.com/sevir/gluamdns"
+	"github.com/sevir/gluawatch"
+	base64 "github.com/vadv/gopher-lua-libs/base64"
+	crypto "github.com/vadv/gopher-lua-libs/crypto"
+	db "github.com/vadv/gopher-lua-libs/db"
+	inspect "github.com/vadv/gopher-lua-libs/inspect"
+	log "github.com/vadv/gopher-lua-libs/log"
+	runtime "github.com/vadv/gopher-lua-libs/runtime"
+	storage "github.com/vadv/gopher-lua-libs/storage"
+	tac "github.com/vadv/gopher-lua-libs/tac"
+	time "github.com/vadv/gopher-lua-libs/time"
 	"github.com/yuin/gluare"
-	"github.com/yuin/gopher-lua"
+	lua "github.com/yuin/gopher-lua"
 	gluajson "layeh.com/gopher-json"
-	"net/http"
 )
 
 func InitLuaState(L *lua.LState) {
@@ -40,6 +54,20 @@ func InitLuaState(L *lua.LState) {
 	L.PreloadModule("http", gluahttp.NewHttpModule(&http.Client{}).Loader)
 	L.PreloadModule("re", gluare.Loader)
 	L.PreloadModule("sh", gluash.Loader)
+	L.PreloadModule("strings", strings.Loader)
+	L.PreloadModule("time", time.Loader)
+	L.PreloadModule("tac", tac.Loader)
+	L.PreloadModule("storage", storage.Loader)
+	L.PreloadModule("log", log.Loader)
+	L.PreloadModule("loglevel", log.LoadLogLevel)
+	L.PreloadModule("crypto", crypto.Loader)
+	L.PreloadModule("base64", base64.Loader)
+	L.PreloadModule("runtime", runtime.Loader)
+	L.PreloadModule("inspect", inspect.Loader)
+	L.PreloadModule("db", db.Loader)
+	L.PreloadModule("aws", gluaaws.Loader)
+	L.PreloadModule("watch", gluawatch.Loader)
+	L.PreloadModule("mdns", gluamdns.Loader)
 
 	// global variables
 	lessh := L.NewTable()

@@ -1,64 +1,35 @@
 {{ if eq .Params.category "docs" -}}
-{{ if eq .Params.lang "ja" -}}
+
 <section class="side-menu">
-<ul>
-<li><a href="index.html">ドキュメント</a></li>
-<li><a href="configuration-files.html">設定ファイル</a></li>
-<li><a href="hosts.html">ホスト</a></li>
-<li><a href="tasks.html">タスク</a></li>
-<li><a href="lua-vm.html">Lua VM</a></li>
-<li><a href="cli-options.html">CLIオプション</a></li>
-<li><a href="drivers.html">ドライバ</a></li>
-<li><a href="groups.html">グループ</a></li>
-<li><a href="integrating-other-tools.html">他のツールとの統合</a></li>
-</ul>
+  <ul>
+    <li><a href="index.html">Documentation</a></li>
+    <li><a href="configuration-files.html">Configuration Files</a></li>
+    <li><a href="hosts.html">Hosts</a></li>
+    <li><a href="tasks.html">Tasks</a></li>
+    <li><a href="lua-vm.html">Lua VM</a></li>
+    <li><a href="cli-options.html">CLI Options</a></li>
+    <li><a href="drivers.html">Drivers</a></li>
+    <li><a href="groups.html">Groups</a></li>
+    <li><a href="integrating-other-tools.html">Integrating Other Tools</a></li>
+    <li><a href="scripting.html">Scripting</a></li>
+  </ul>
 </section>
-{{ else -}}
-<section class="side-menu">
-<ul>
-<li><a href="index.html">Documentation</a></li>
-<li><a href="configuration-files.html">Configuration Files</a></li>
-<li><a href="hosts.html">Hosts</a></li>
-<li><a href="tasks.html">Tasks</a></li>
-<li><a href="lua-vm.html">Lua VM</a></li>
-<li><a href="cli-options.html">CLI Options</a></li>
-<li><a href="drivers.html">Drivers</a></li>
-<li><a href="groups.html">Groups</a></li>
-<li><a href="integrating-other-tools.html">Integrating Other Tools</a></li>
-</ul>
-</section>
-{{ end -}}
+
 {{ end -}}
 {{ if eq .Params.category "intro" -}}
-{{ if eq .Params.lang "ja" -}}
+
 <section class="side-menu">
-<ul>
-<li><a href="index.html">イントロダクション</a></li>
-<li><a href="installation.html">インストール</a></li>
-<li><a href="using-as-a-ssh-client.html">SSHクライアントとして使う</a></li>
-<li><a href="zsh-completion.html">Zsh補完</a></li>
-<li><a href="using-hooks.html">フックを使う</a></li>
-<li><a href="managing-hosts.html">ホストの管理</a></li>
-<li><a href="running-commands.html">コマンドを実行する</a></li>
-<li><a href="running-tasks.html">タスクを実行する</a></li>
-<li><a href="using-lua-libraries.html">Luaライブラリを使う</a></li>
-<li><a href="using-drivers.html">ドライバを使う</a></li>
-</ul>
+  <ul>
+    <li><a href="index.html">Introduction</a></li>
+    <li><a href="installation.html">Installation</a></li>
+    <li><a href="using-as-a-ssh-client.html">Using As A SSH Client</a></li>
+    <li><a href="zsh-completion.html">Zsh Completion</a></li>
+    <li><a href="using-hooks.html">Using Hooks</a></li>
+    <li><a href="managing-hosts.html">Managing Hosts</a></li>
+    <li><a href="running-commands.html">Running Commands</a></li>
+    <li><a href="running-tasks.html">Running Tasks</a></li>
+    <li><a href="using-lua-libraries.html">Using Lua Libraries</a></li>
+    <li><a href="using-drivers.html">Using Drivers</a></li>
+  </ul>
 </section>
-{{ else -}}
-<section class="side-menu">
-<ul>
-<li><a href="index.html">Introduction</a></li>
-<li><a href="installation.html">Installation</a></li>
-<li><a href="using-as-a-ssh-client.html">Using As A SSH Client</a></li>
-<li><a href="zsh-completion.html">Zsh Completion</a></li>
-<li><a href="using-hooks.html">Using Hooks</a></li>
-<li><a href="managing-hosts.html">Managing Hosts</a></li>
-<li><a href="running-commands.html">Running Commands</a></li>
-<li><a href="running-tasks.html">Running Tasks</a></li>
-<li><a href="using-lua-libraries.html">Using Lua Libraries</a></li>
-<li><a href="using-drivers.html">Using Drivers</a></li>
-</ul>
-</section>
-{{ end -}}
 {{ end -}}

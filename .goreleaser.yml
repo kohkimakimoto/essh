@@ -1,0 +1,72 @@
+# See documentation at http://goreleaser.com
+version: 2
+builds:
+  - main: ./cmd/essh
+    id: essh
+    binary: essh
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - 386
+      - arm
+      - amd64
+      - arm64
+    goarm:
+      - 7
+    ldflags:
+      - -s -w -X github.com/sevir/{{.ProjectName}}/{{.ProjectName}}.CommitHash={{.Commit}} -X github.com/sevir/{{.ProjectName}}/{{.ProjectName}}.Version={{.Version}}
+    gcflags:
+      - " -l -l -l"
+    env:
+      - CGO_ENABLED=0
+    ignore:
+      - goos: darwin
+        goarch: 386
+      - goos: windows
+        goarch: 386
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
+dist: ./build/outputs/dist
+upx:
+  - # Whether to enable it or not.
+    #
+    # Templates: allowed.
+    enabled: true
+
+    # Filter by build ID.
+    ids: [essh]
+
+    # Filter by GOOS.
+    goos: [linux]
+
+    # Filter by GOARCH.
+    goarch: [amd64, arm64]
+
+    # Compress argument.
+    # Valid options are from '1' (faster) to '9' (better), and 'best'.
+    compress: '1'
+
+    # Whether to try LZMA (slower).
+    lzma: true
+
+    # Whether to try all methods and filters (slow).
+    brute: false
+archives:
+  - formats: [ 'binary' ]
+    id: xc
+  - formats: ['tar.gz']
+    id: brew
+checksum:
+  name_template: 'checksums.txt'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+    - '^chore:'
+    - '^build:'

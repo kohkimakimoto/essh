@@ -5273,7 +5273,8 @@ tbody.collapse.in {
 .navbar-nav>li>a {
     padding-top: 10px;
     padding-bottom: 10px;
-    line-height: 20px
+    line-height: 20px;
+    font-weight: bold;
 }
 
 @media (max-width:767px) {
@@ -12156,7 +12157,7 @@ a {
     -webkit-transition: all .35s;
     -moz-transition: all .35s;
     transition: all .35s;
-    color: #00c600
+    color: #5936c1
 }
 
 a.disabled {
@@ -12168,7 +12169,7 @@ a.disabled {
 
 a:focus,
 a:hover {
-    color: #00c600;
+    color: #5936c1;
     text-decoration: underline
 }
 
@@ -12353,7 +12354,7 @@ blockquote p {
     -webkit-transition: all .35s;
     -moz-transition: all .35s;
     transition: all .35s;
-    color: #00c600
+    color: #5936c1
 }
 
 .layout-docs-single section.main-content a:focus,
@@ -12428,9 +12429,10 @@ header {
     width: 100%;
     min-height: auto;
     overflow-y: hidden;
-    background: url(../images/bg-pattern.png), #20470e;
-    background: url(../images/bg-pattern.png), -webkit-linear-gradient(to left, #20470e, #0dad1b);
-    background: url(../images/bg-pattern.png), linear-gradient(to left, #20470e, #0dad1b);
+    background: url(../images/bg-pattern.png), #4633e7;
+    background: url(../images/bg-pattern.png), -webkit-linear-gradient(to left, #4633e7, #450dad);
+    background: url(../images/bg-pattern.png), linear-gradient(to left, #4633e7, #450dad);
+    
     color: #fff
 }
 
